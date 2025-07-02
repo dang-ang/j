@@ -1,0 +1,65 @@
+<!DOCTYPE html> 
+<html lang="it"> 
+<head> 
+  <meta charset="UTF-8"> 
+  <title>Inserimento RPE Giornaliero</title> 
+  <style> 
+    body { font-family: Arial; padding: 20px; } 
+    label, select, input { margin: 5px 0; display: block; } 
+    button { margin-top: 10px; } 
+  </style> 
+</head> 
+<body> 
+  <h2>Inserisci RPE Giornaliero</h2> 
+  <form id="rpeForm"> 
+    <label for="data">Data:</label> 
+    <input type="date" id="data" name="data" required> 
+ 
+    <div id="giocatoriContainer"></div> 
+ 
+    <button type="submit">Salva</button> 
+  </form> 
+ 
+  <p id="status"></p> 
+ 
+  <script> 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxoGCiiChAxlVpqScveBlo_7SsuTTWf6G3sjTIbRagwwQyz82jzfJNpkOOdT7NNsAVghA/exec'; 
+ 
+    async function caricaGiocatori() { 
+      const response = await fetch(scriptURL + '?action=getGiocatori'); 
+      const giocatori = await response.json(); 
+      const container = document.getElementById('giocatoriContainer'); 
+      giocatori.forEach(nome => { 
+        const label = document.createElement('label'); 
+        label.textContent = nome; 
+        const input = document.createElement('input'); 
+        input.type = 'number'; 
+        input.name = nome; 
+        input.min = 0; 
+        input.max = 10; 
+        input.required = true; 
+        container.appendChild(label); 
+        container.appendChild(input); 
+      }); 
+    } 
+ 
+    document.getElementById('rpeForm').addEventListener('submit', async (e) => { 
+      e.preventDefault(); 
+      const form = new FormData(e.target); 
+      const data = Object.fromEntries(form.entries()); 
+      data.action = 'salvaRPE'; 
+ 
+      const response = await fetch(scriptURL, { 
+        method: 'POST', 
+        body: JSON.stringify(data), 
+        headers: { 'Content-Type': 'application/json' } 
+      }); 
+ 
+      const result = await response.text(); 
+      document.getElementById('status').textContent = result; 
+    }); 
+ 
+    caricaGiocatori(); 
+  </script> 
+</body> 
+</html>
