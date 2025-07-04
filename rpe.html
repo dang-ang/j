@@ -95,7 +95,7 @@
         rpeSlider.addEventListener('input', (e) => {
             rpeDisplay.textContent = e.target.value;
         });
-
+        
         // Gestisce l'invio del form
         form.addEventListener('submit', e => {
             e.preventDefault(); // Previene il ricaricamento della pagina
@@ -113,6 +113,9 @@
                 timestamp: new Date().toISOString() // Aggiunge data e ora
             };
 
+            console.log(formData);
+            console.log(data);
+            
             // Invia i dati allo script di Google tramite fetch
             fetch(scriptURL, { 
                 method: 'POST',
