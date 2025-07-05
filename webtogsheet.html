@@ -19,6 +19,7 @@
     form.addEventListener('submit', e => {
       e.preventDefault();
       const formData = new FormData(form);
+       formData: new Date().toISOString() // Aggiunge data e ora
       const params = new URLSearchParams(formData).toString();
 
       fetch(scriptURL + '?' + params, { 
