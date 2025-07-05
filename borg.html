@@ -19,9 +19,10 @@
       };
 
         console.log(data);
-      
       fetch('https://script.google.com/macros/s/AKfycbxa5VNtgEoypwwKLHcwj-3hP5coLcc7oWCkVvLMa6LuWHWMKgpZI-XoEou8EKskmOFctg/exec', {
         method: 'POST',
+          mode: 'no-cors', // Importante per questo tipo di richiesta
+          cache: 'no-cache',
         body: JSON.stringify(data)
       })
       .then(response => response.text())
