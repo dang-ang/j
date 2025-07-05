@@ -21,10 +21,10 @@
       const params = new URLSearchParams(formData).toString();
 
       fetch(scriptURL + '?' + params, { 
-        method: 'GET' 
+        method: 'GET', 
         //method: 'POST',
           mode: 'no-cors', // Importante per questo tipo di richiesta
-          cache: 'no-cache',
+          cache: 'no-cache'
        // body: JSON.stringify(data)
         }) // oppure POST
         .then(response => response.json())
