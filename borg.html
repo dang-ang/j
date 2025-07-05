@@ -17,6 +17,9 @@
         nome: document.getElementById('nome').value,
         email: document.getElementById('email').value
       };
+
+        console.log(data);
+      
       fetch('https://script.google.com/macros/s/AKfycbzZ57HltsKkB_0oUL9IlBxqmp1nwOHur8YTSVa0i6dR9aqlQjSCuo2mahFVwMdWFd5TMw/exec', {
         method: 'POST',
         body: JSON.stringify(data)
