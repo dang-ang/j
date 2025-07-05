@@ -26,6 +26,8 @@ $("#foo").submit(function(event){
     request = $.ajax({
         url: "https://script.google.com/macros/s/AKfycbxa5VNtgEoypwwKLHcwj-3hP5coLcc7oWCkVvLMa6LuWHWMKgpZI-XoEou8EKskmOFctg/exec",
         type: "post",
+          mode: 'no-cors', // 
+          cache: 'no-cache', //
         data: serializedData
     });
 
