@@ -20,7 +20,7 @@
    
     // fisso data input
     const dateInput = document.querySelector("#Date");
-          dateInput.valueAsDate = new Date().toJSON(); // Aggiunge data e ora
+          dateInput.value = new Date().toJSON(); // Aggiunge data e ora
 
     const form = document.getElementById('myForm');
     form.addEventListener('submit', e => {
