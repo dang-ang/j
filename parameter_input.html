@@ -157,6 +157,21 @@
         let currentParameterType = '';
 
         const parameterConfig = {
+
+            'balzo_alto': { label: 'Distanza (cm):', type: 'number', min: 10, max: 250, placeholder: 'Inserisci distanza in cm' },
+            'balzo_avanti': { label: 'Distanza (cm):', type: 'number', min: 10, max: 250, placeholder: 'Inserisci distanza in cm' },
+            'speed_5': { label: 'Velocità 5 mt:', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+            'speed_20': { label: 'Velocità 20 mt:', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+            'speed_30': { label: 'Velocità 30 mt:', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+            'agility': { label: 'Agilità - circuito [ M ] sec :', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+
+            'cooper_6': { label: 'Test di COOPER (6) distanza (mt):', type: 'number', min: 100, max: 4000, placeholder: 'Inserisci distanza in metri' },
+            'cooper_12': { label: 'Test di COOPER (12) distanza (mt):', type: 'number', min: 100, max: 4000, placeholder: 'Inserisci distanza in metri' },
+
+            'navetta_15': { label: 'Navetta (15 mt) tempo (sec):', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+
+            'gacon': { label: 'Test GACON - Step (nr):', type: 'number', min: 1, max: 40, placeholder: 'Inserisci lo step/nr raggiunto' },
+
             'height': { label: 'Altezza (cm):', type: 'number', min: 100, max: 250, placeholder: 'Inserisci altezza in cm' },
             'weight': { label: 'Peso (kg):', type: 'number', min: 30, max: 200, placeholder: 'Inserisci peso in kg' },
             'rpe': { label: 'RPE (Percezione dello Sforzo):', type: 'range', min: 1, max: 10, defaultValue: 5 },
@@ -280,22 +295,31 @@
                 valueToSend = parseFloat(paramValue); // For number/range types
             }
 
+
+              const [year, month, day] = date.split("-");
+              const formatted = `${day}-${month}-${year}`;
+                   
             const dataToSend = {
                 player: player,
-                date: date,
+                date: formatted,   // date:date 
                 paramType: paramType,
-                value: valueToSend // This can be a number or an object
+                value: valueToSend, // This can be a number or an object
+                dataOra:new Date().toLocaleString() // dataOra registrazione
             };
 
             // --- IMPORTANT: Replace with your deployed Google Apps Script URL ---
-//            const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxX9IZCqvizgEo-oInPfuOqhY168mmHW7ipWCB53FhM_ev-ue91CtADE5lAbtKq0Rqs/exec"; <!-- v1 -->
-              const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxX9IZCqvizgEo-oInPfuOqhY168mmHW7ipWCB53FhM_ev-ue91CtADE5lAbtKq0Rqs/exec"; <!-- v2 -->
+              const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDXchY5hWghV00icCQn_0mKt8NsBS0DbQUmoMhfUcE3n5soK2xJyGcHityWBIJFwlm/exec"; <!-- v14.47 -->
+
 
             try {
+            console.log('Attempting fetch with POST method : '+JSON.stringify(dataToSend));
                 const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    redirect: "follow", //-
                     method: 'POST',
+                    mode: "no-cors", // Crucial for opaque response
                     headers: {
                         'Content-Type': 'application/json',
+                        "Access-Control-Allow-Origin": "*"  //-
                     },
                     body: JSON.stringify(dataToSend),
                 });

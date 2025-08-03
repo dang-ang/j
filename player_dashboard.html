@@ -33,7 +33,7 @@
         }
         .parameter-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
             gap: 15px;
             margin-top: 20px;
         }
@@ -52,7 +52,7 @@
             height: 100px;
         }
         .parameter-card:hover {
-            background-color: #218838;
+            background-color: #11461c;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
@@ -69,16 +69,16 @@
             transition: background-color 0.3s ease;
         }
         .back-button:hover {
-            background-color: #5a6268;
+            background-color: #3a4044;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Dashboard Giocatore</h1>
+        <h4>Giocatore</h4>
         <h2 id="playerName"></h2>
 
-        <h3>Seleziona il dato da inserire:</h3>
+        <h4>Seleziona il dato da inserire:</h4>
         <div class="parameter-grid" id="parameterGrid">
             </div>
 
@@ -91,12 +91,23 @@
 
         // Aggiunto il nuovo parametro 'Presenze'
         const parameters = [
-            { name: "Altezza", type: "height" },
-            { name: "Peso", type: "weight" },
-            { name: "RPE", type: "rpe" },
+            { name: "PRESENZE", type: "attendance" }, // Nuovo!
+            { name: "Sforzo", type: "rpe" },
             { name: "Recupero", type: "recovery" },
             { name: "Stanchezza", type: "fatigue" },
-            { name: "Presenze", type: "attendance" } // Nuovo!
+            { name: "Peso", type: "weight" },
+            { name: "Altezza", type: "height" },
+            
+            { name: "Balzo - alto", type: "balzo_alto" },
+            { name: "Balzo - avanti", type: "balzo_avanti" },
+            { name: "Velocità - 5mt", type: "speed_5" },
+            { name: "Velocità - 20mt", type: "speed_20" },
+            { name: "Velocità - 30mt", type: "speed_30" },
+            { name: "Navetta - 15mt", type: "navetta_15" },
+            { name: "Agilità [M]", type: "agility" },
+            { name: "Test Cooper - 6 min", type: "cooper_6" },
+            { name: "Test Cooper - 12 min", type: "cooper_12" },
+            { name: "Test Gacon", type: "gacon" }
         ];
 
         let currentPlayerName = '';
