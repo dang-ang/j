@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisi Dati Team</title>
+    <!-- Tailwind CSS CDN per uno stile moderno e responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN per la visualizzazione grafica -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      /* Stili aggiuntivi per la matrice di presenze */
+      .attendance-cell {
+        padding: 0.75rem;
+        text-align: center;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+      }
+      .bg-present {
+        background-color: #34d399; /* verde 500 */
+      }
+      .bg-absent {
+        background-color: #f87171; /* rosso 400 */
+      }
+      .bg-other {
+        background-color: #f3f4f6; /* grigio 100 */
+      }
+      .table-container {
+        overflow-x: auto;
+      }
+      /* Rende la tabella di presenze compatta e leggibile */
+      #attendance-matrix td, #attendance-matrix th {
+        padding: 0.5rem;
+        min-width: 60px;
+        text-align: center;
+        white-space: nowrap;
+      }
+      #attendance-matrix thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f9fafb;
+        z-index: 10;
+      }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-8 flex flex-col items-center min-h-screen">
+
+    <div class="max-w-4xl w-full bg-white rounded-xl shadow-2xl p-8 space-y-8">
+        <h1 class="text-4xl font-bold text-center text-blue-600">Dashboard Analisi Dati Team</h1>
+        <p class="text-center text-gray-600">Seleziona un giocatore, un parametro e un periodo per visualizzare l'andamento. Per confrontare un giocatore con la media del team, usa il primo pulsante. La visualizzazione per le presenze è disponibile solo per i dati di squadra.</p>
+
+        <!-- Sezione Controlli -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Selezione Giocatore -->
+            <div class="flex flex-col">
+                <label for="player-select" class="font-medium text-gray-700 mb-2">Seleziona Giocatore:</label>
+                <select id="player-select" class="p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                    <option value="" disabled selected>Seleziona un giocatore</option>
+                </select>
+            </div>
+
+            <!-- Selezione Parametro -->
+            <div class="flex flex-col">
+                <label for="parameter-select" class="font-medium text-gray-700 mb-2">Seleziona Parametro:</label>
+                <select id="parameter-select" class="p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                    <option value="" disabled selected>Seleziona un parametro</option>
+                </select>
+            </div>
+
+            <!-- Selezione Periodo -->
+            <div class="flex flex-col">
+                <label for="period-select" class="font-medium text-gray-700 mb-2">Seleziona Periodo:</label>
+                <select id="period-select" class="p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                    <option value="all">Tutti i dati</option>
+                    <option value="weekly">Settimanale</option>
+                    <option value="monthly">Mensile</option>
+                    <option value="custom">Personalizzato</option>
+                </select>
+            </div>
+            
+            <!-- Intervallo Date Personalizzato (Nascosto di default) -->
+            <div id="custom-date-range" class="md:col-span-2 lg:col-span-3 flex flex-col md:flex-row gap-4 hidden">
+                <div class="flex flex-col w-full">
+                    <label for="start-date" class="font-medium text-gray-700 mb-2">Data di Inizio:</label>
+                    <input type="date" id="start-date" class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                </div>
+                <div class="flex flex-col w-full">
+                    <label for="end-date" class="font-medium text-gray-700 mb-2">Data di Fine:</label>
+                    <input type="date" id="end-date" class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottoni di Azione -->
+        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <button id="fetch-player-data" class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105">
+                Visualizza Giocatore vs. Team
+            </button>
+            <button id="fetch-team-data" class="bg-emerald-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-emerald-700 transition-all duration-300 ease-in-out transform hover:scale-105">
+                Visualizza solo Team
+            </button>
+        </div>
+        
+        <!-- Indicatore di Caricamento -->
+        <div id="loading" class="flex justify-center items-center gap-2 text-blue-600 font-medium hidden">
+            <svg class="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Caricamento dati...
+        </div>
+
+        <!-- Sezione Risultati -->
+        <div id="results-container" class="space-y-6 hidden">
+            <h2 id="results-title" class="text-2xl font-bold text-gray-700 text-center"></h2>
+            
+            <!-- Contenitore per il grafico (visibile solo per i parametri non-presenze) -->
+            <div id="chart-container" class="w-full max-w-full overflow-hidden bg-gray-50 rounded-lg p-4 shadow-inner">
+                <canvas id="data-chart" class="w-full h-96"></canvas>
+            </div>
+
+            <!-- Contenitore per la matrice di presenze (visibile solo per le presenze) -->
+            <div id="attendance-matrix-container" class="overflow-x-auto rounded-lg shadow-md border border-gray-200 hidden">
+                <table id="attendance-matrix" class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50"></thead>
+                    <tbody class="bg-white divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+
+            <!-- Contenitore per i dati tabellari (usato per i non-presenze e per il riassunto presenze) -->
+            <div id="table-container" class="overflow-x-auto rounded-lg shadow-md border border-gray-200">
+                <table id="data-table" class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Giocatore</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Data</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Valore</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Righe dati inserite via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Messaggio di Errore/Info -->
+        <div id="message-box" class="p-4 bg-red-100 text-red-700 rounded-lg hidden">
+            <!-- Messaggi di errore o info inseriti qui -->
+        </div>
+    </div>
+
+
+
+    
+    <script>
+        // Sostituisci questo URL con l'URL del tuo script di Google Apps
+        const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-14UNnIFbdh9-O0kNXnJNENYGy7OceIIBNJ_tTa1lZQOWkAuHgvHIrL68TOadoYNv/exec";
+
+
+
+
+
+        // Variabile per abilitare/disabilitare i dati fittizi
+        // Imposta su 'false' quando vuoi usare il tuo script di Google Apps
+        const useMockData = false;
+
+
+       // Mappa i riferimenti agli elementi del DOM
+        const playerSelect = document.getElementById('player-select');
+        const parameterSelect = document.getElementById('parameter-select');
+        const periodSelect = document.getElementById('period-select');
+        const customDateRange = document.getElementById('custom-date-range');
+        const startDateInput = document.getElementById('start-date');
+        const endDateInput = document.getElementById('end-date');
+        const fetchPlayerDataBtn = document.getElementById('fetch-player-data');
+        const fetchTeamDataBtn = document.getElementById('fetch-team-data');
+        const loadingSpinner = document.getElementById('loading');
+        const resultsContainer = document.getElementById('results-container');
+        const resultsTitle = document.getElementById('results-title');
+        const chartContainer = document.getElementById('chart-container');
+        const attendanceMatrixContainer = document.getElementById('attendance-matrix-container');
+        const attendanceMatrixTable = document.getElementById('attendance-matrix');
+        const tableContainer = document.getElementById('table-container');
+        const tableBody = document.getElementById('table-body');
+        const messageBox = document.getElementById('message-box');
+        
+        let chartInstance = null; // Riferimento all'istanza del grafico
+
+        // Dati forniti dall'utente
+        const players = [
+            "AGRIGOROAEI", "AIT", "ARCIDIACONO", "BARUZZI", "BENALLAL", "BUSHI", "CENTANNI",
+            "FALZONI", "FARINA", "FORESTIERO", "GALLALA", "GEMINIANI", "GNOFFO", "GRANO",
+            "GRECA", "GUEYE", "IANIGRO", "MASHA", "MHILLAJ", "NDOJ", "ZITOUNI"
+        ];
+        
+        const parameters = [
+            { name: "PRESENZE", type: "attendance" },
+            { name: "Sforzo", type: "rpe" },
+            { name: "Recupero", type: "recovery" },
+            { name: "Stanchezza", type: "fatigue" },
+            { name: "Peso", type: "weight" },
+            { name: "Altezza", type: "height" },
+            { name: "Balzo - alto", type: "balzo_alto" },
+            { name: "Balzo - avanti", type: "balzo_avanti" },
+            { name: "Velocità - 5mt", type: "speed_5" },
+            { name: "Velocità - 20mt", type: "speed_20" },
+            { name: "Velocità - 30mt", type: "speed_30" },
+            { name: "Navetta - 15mt", type: "navetta_15" },
+            { name: "Agilità [M]", type: "agility" },
+            { name: "Test Cooper - 6 min", type: "cooper_6" },
+            { name: "Test Cooper - 12 min", type: "cooper_12" },
+            { name: "Test Gacon", type: "gacon" }
+        ];
+
+        // Esegue il popolamento dei dropdown all'avvio della pagina
+        document.addEventListener('DOMContentLoaded', populateDropdowns);
+
+        /**
+         * Funzione per popolare i menu a tendina con giocatori e parametri
+         * hardcoded nel codice.
+         */
+        function populateDropdowns() {
+            // Popola il menu a tendina dei giocatori
+            playerSelect.innerHTML = '<option value="" disabled selected>Seleziona un giocatore</option>';
+            players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player;
+                option.textContent = player;
+                playerSelect.appendChild(option);
+            });
+
+            // Popola il menu a tendina dei parametri
+            parameterSelect.innerHTML = '<option value="" disabled selected>Seleziona un parametro</option>';
+            parameters.forEach(param => {
+                const option = document.createElement('option');
+                option.value = param.type; // Usa il 'type' come valore della richiesta
+                option.textContent = param.name; // Usa il 'name' come testo visualizzato
+                parameterSelect.appendChild(option);
+            });
+        }
+        
+        // Event listener per mostrare/nascondere il selettore di date personalizzato
+        periodSelect.addEventListener('change', () => {
+            if (periodSelect.value === 'custom') {
+                customDateRange.classList.remove('hidden');
+            } else {
+                customDateRange.classList.add('hidden');
+            }
+        });
+
+        // Event listener per il bottone "Visualizza Giocatore vs. Team"
+        fetchPlayerDataBtn.addEventListener('click', () => {
+            clearState(); // Pulisce lo stato prima di ogni nuova richiesta
+            const player = playerSelect.value;
+            const parameterType = parameterSelect.value;
+            const parameterName = parameterSelect.options[parameterSelect.selectedIndex].text;
+
+            if (parameterType === 'attendance') {
+                 displayMessage("La visualizzazione di confronto per le presenze non è supportata. Utilizza il pulsante 'Visualizza solo Team'.", 'info');
+                 return;
+            }
+
+            if (player && parameterType) {
+                fetchPlayerAndTeamData(player, parameterType, parameterName);
+            } else {
+                displayMessage("Per favore, seleziona un giocatore e un parametro.", 'error');
+            }
+        });
+
+        // Event listener per il bottone "Visualizza solo Team"
+        fetchTeamDataBtn.addEventListener('click', async () => {
+            clearState(); // Pulisce lo stato prima di ogni nuova richiesta
+            const parameterType = parameterSelect.value;
+            const parameterName = parameterSelect.options[parameterSelect.selectedIndex].text;
+            
+            if (!parameterType) {
+                displayMessage("Per favor, seleziona un parametro.", 'error');
+                return;
+            }
+
+            // Aggiungi un messaggio se un giocatore è selezionato ma si visualizza solo il team
+            if (playerSelect.value) {
+                displayMessage(`Visualizzazione dei dati del team, ignorando la selezione del giocatore '${playerSelect.value}'.`, 'info');
+            } else {
+                // Nascondi il messaggio se non c'è un giocatore selezionato
+                messageBox.classList.add('hidden');
+            }
+            
+            loadingSpinner.classList.remove('hidden');
+            try {
+                const period = periodSelect.value;
+                const startDate = startDateInput.value;
+                const endDate = endDateInput.value;
+                const data = await fetchData('team', null, parameterType);
+
+                // Logica condizionale per il parametro "PRESENZE"
+                if (parameterType === 'attendance') {
+                    handleAttendanceData(data, period, startDate, endDate, parameterName);
+                } else {
+                    // Logica esistente per gli altri parametri
+                    const filteredData = filterAndAggregateData(data, period, startDate, endDate, 'Team');
+                    displayResults(filteredData, 'team', null, parameterName, period);
+                }
+            } catch (error) {
+                console.error("Errore nel recupero dei dati:", error);
+                displayMessage(`Si è verificato un errore: ${error.message}`, 'error');
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
+        });
+        
+        /**
+         * Pulisce lo stato dell'interfaccia utente, nascondendo i risultati e i messaggi
+         * e distruggendo l'istanza del grafico.
+         */
+        function clearState() {
+            resultsContainer.classList.add('hidden');
+            messageBox.classList.add('hidden');
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+            // Nasconde sia il grafico che la matrice di presenze
+            chartContainer.classList.add('hidden');
+            attendanceMatrixContainer.classList.add('hidden');
+            tableContainer.classList.add('hidden');
+        }
+
+
+        /**
+         * Funzione principale per il recupero dei dati di giocatore e team.
+         * @param {string} player - Il nome del giocatore.
+         * @param {string} parameterType - Il nome del foglio di calcolo per il parametro.
+         * @param {string} parameterName - Il nome descrittivo del parametro.
+         */
+        async function fetchPlayerAndTeamData(player, parameterType, parameterName) {
+            loadingSpinner.classList.remove('hidden');
+
+            const period = periodSelect.value;
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+
+            try {
+                // Esegue entrambe le chiamate in parallelo
+                const [playerResponse, teamResponse] = await Promise.all([
+                    fetchData('player', player, parameterType),
+                    fetchData('team', null, parameterType)
+                ]);
+
+                // Controlla che le risposte siano array validi prima di procedere
+                if (!Array.isArray(playerResponse) || !Array.isArray(teamResponse)) {
+                    throw new Error("Errore nel formato dei dati ricevuti dal server.");
+                }
+
+                // Processa i dati individualmente
+                const playerFilteredData = filterAndAggregateData(playerResponse, period, startDate, endDate, player);
+                const teamFilteredData = filterAndAggregateData(teamResponse, period, startDate, endDate, 'Team');
+
+                // Passa entrambi i set di dati alla funzione di visualizzazione
+                displayComparisonResults(playerFilteredData, teamFilteredData, player, parameterName, period);
+
+            } catch (error) {
+                console.error("Errore nel recupero dei dati:", error);
+                displayMessage(`Si è verificato un errore: ${error.message}`, 'error');
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+        
+        /**
+         * Funzione principale per il recupero dei dati dallo script di Google Apps.
+         * Ora restituisce solo i dati, lasciando la gestione della visualizzazione alle funzioni chiamanti.
+         * @param {string} scope - "player" o "team" per determinare l'ambito della richiesta.
+         * @param {string} player - Il nome del giocatore (o null per il team).
+         * @param {string} parameterType - Il nome del foglio di calcolo per il parametro.
+         * @returns {Promise<Array>} - Una Promise che risolve con l'array dei dati.
+         */
+        async function fetchData(scope, player, parameterType) {
+            if (useMockData) {
+                // Usa i dati fittizi
+                return getMockData(parameterType, scope === 'player' ? player : null);
+            } else {
+                // Costruisce l'URL della richiesta utilizzando il nome del foglio (type)
+                let url = `${APP_SCRIPT_URL}?parameter=${encodeURIComponent(parameterType)}`;
+                if (scope === 'player') {
+                    url += `&player=${encodeURIComponent(player)}`;
+                } else if (scope === 'team') {
+                    url += `&player=team`;
+                }
+
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`Errore di rete: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    return data;
+                } catch (error) {
+                    console.error("Errore nel recupero dei dati:", error);
+                    throw error; // Rilancia l'errore per essere gestito dalla funzione chiamante
+                }
+            }
+        }
+
+
+        /**
+         * Funzione che genera dati fittizi per testare l'interfaccia.
+         * Simula la risposta JSON attesa dallo script di Google Apps.
+         * @param {string} parameter - Il nome del foglio (type).
+         * @param {string} player - Il nome del giocatore (o null).
+         * @returns {Array} - Un array di oggetti con i dati.
+         */
+        function getMockData(parameter, player) {
+            const today = new Date();
+            const mockData = [];
+            // Simula il caso in cui un giocatore selezionato non ha dati
+            if (player && player === "NDOJ") {
+                return []; 
+            }
+            const playersList = player && player !== 'team' ? [player] : players;
+            
+            // Genera dati fittizi per 10 giorni, per diversi giocatori
+            for (let i = 0; i < 10; i++) {
+                const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - i));
+                const dateString = `${String(date.getUTCDate()).padStart(2, '0')}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${date.getUTCFullYear()}`;
+
+                playersList.forEach(p => {
+                    let value;
+                    // Genera valori casuali in base al parametro
+                    switch (parameter) {
+                        case 'attendance':
+                            // Per le presenze, usa 'P' per presente, 'A' per assente e 'X' per altro.
+                            if (p === 'BUSHI' && i > 5) {
+                                value = 'A'; // Simula assenza di un giocatore
+                            } else if (p === 'ZITOUNI' && i === 3) {
+                                value = 'I'; // Simula un altro tipo di assenza (es. Infortunato)
+                            } else {
+                                value = Math.random() > 0.2 ? 'P' : 'A'; // 80% di probabilità di presenza
+                            }
+                            break;
+                        case 'rpe':
+                            // Simula più valori per lo stesso giorno per testare l'aggregazione
+                            const numValues = Math.floor(Math.random() * 3) + 1; // 1 a 3 valori
+                            for (let j = 0; j < numValues; j++) {
+                                value = (Math.random() * 10).toFixed(1);
+                                mockData.push({
+                                    player: p,
+                                    data: dateString,
+                                    valore: value
+                                });
+                            }
+                            return; // Salta il push finale per evitare duplicati
+                        case 'recovery':
+                            value = (Math.random() * 5).toFixed(1);
+                            break;
+                        case 'fatigue':
+                            value = (Math.random() * 5).toFixed(1);
+                            break;
+                        case 'weight':
+                            value = (Math.random() * 5 + 70).toFixed(1); // Peso tra 70 e 75 kg
+                            break;
+                        case 'height':
+                            value = (Math.random() * 20 + 170).toFixed(0); // Altezza tra 170 e 190 cm
+                            break;
+                        default:
+                            value = (Math.random() * 100).toFixed(1);
+                    }
+                    mockData.push({
+                        player: p,
+                        data: dateString,
+                        valore: value
+                    });
+                });
+            }
+            return mockData;
+        }
+
+        /**
+         * Filtra e aggrega i dati in base al periodo selezionato.
+         * @param {Array} data - I dati grezzi ricevuti dallo script.
+         * @param {string} period - Il periodo di aggregazione ("all", "weekly", "monthly", "custom").
+         * @param {string} startDate - Data di inizio per il periodo personalizzato.
+         * @param {string} endDate - Data di fine per il periodo personalizzato.
+         * @param {string} playerLabel - L'etichetta da usare per il giocatore/team.
+         * @returns {Array} - I dati filtrati e aggregati.
+         */
+        function filterAndAggregateData(data, period, startDate, endDate, playerLabel) {
+            let filteredData = data;
+            // Filtra per il periodo personalizzato se specificato
+            if (period === 'custom' && startDate && endDate) {
+                const start = parseDate(startDate);
+                const end = parseDate(endDate);
+                filteredData = data.filter(item => {
+                    const itemDate = parseDate(item.data); 
+                    return itemDate >= start && itemDate <= end;
+                });
+            }
+
+            if (filteredData.length === 0) {
+                return [];
+            }
+            
+            const groupedData = {};
+            filteredData.forEach(item => {
+                const date = parseDate(item.data);
+                if (!date) return; // Salta le date non valide
+
+                let key = '';
+                let displayDate = '';
+                let sortableDate = date.toISOString(); // Data ordinabile predefinita
+
+                if (period === 'weekly') {
+                    const startOfWeek = new Date(date);
+                    // Regola l'inizio della settimana al lunedì (ISO 8601)
+                    const day = (startOfWeek.getUTCDay() === 0) ? 6 : startOfWeek.getUTCDay() - 1; // 0 per lunedì, ..., 6 per domenica
+                    startOfWeek.setUTCDate(startOfWeek.getUTCDate() - day);
+                    sortableDate = startOfWeek.toISOString();
+                    displayDate = getWeekNumberAndRange(startOfWeek);
+                    key = sortableDate;
+                } else if (period === 'monthly') {
+                    key = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
+                    sortableDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1)).toISOString();
+                    displayDate = formatDateToAbbreviatedMonth(date);
+                } else {
+                    // Aggrega i dati per ogni giorno per il periodo "all"
+                    key = date.toISOString();
+                    displayDate = formatDateTo_ddMMyyyy(date);
+                }
+
+                if (!groupedData[key]) {
+                    groupedData[key] = { valori: [], players: new Set(), displayDate: displayDate, sortableDate: sortableDate };
+                }
+                const parsedValue = parseFloat(item.valore);
+                if (!isNaN(parsedValue)) {
+                    groupedData[key].valori.push(parsedValue);
+                }
+                groupedData[key].players.add(item.player);
+            });
+
+            const aggregatedData = Object.entries(groupedData).map(([key, value]) => {
+                const sum = value.valori.reduce((total, num) => total + num, 0);
+                const count = value.valori.length;
+                const average = count > 0 ? (sum / count).toFixed(2) : 'N/A';
+
+                return {
+                    data: value.displayDate || key,
+                    valore: average,
+                    player: playerLabel,
+                    sortableDate: value.sortableDate
+                };
+            });
+
+            // Ordina i dati aggregati utilizzando la data sortable
+            return aggregatedData.sort((a, b) => new Date(a.sortableDate) - new Date(b.sortableDate));
+        }
+
+        /**
+         * Gestisce la visualizzazione dei dati di presenze in base al periodo.
+         * @param {Array} data - I dati grezzi di presenze.
+         * @param {string} period - Il periodo selezionato.
+         * @param {string} startDate - Data di inizio per il periodo personalizzato.
+         * @param {string} endDate - Data di fine per il periodo personalizzato.
+         * @param {string} parameterName - Il nome descrittivo del parametro.
+         */
+        function handleAttendanceData(data, period, startDate, endDate, parameterName) {
+            resultsContainer.classList.remove('hidden');
+            resultsTitle.textContent = `Dati di Presenza del Team per il parametro "${parameterName}"`;
+
+            let filteredData = data;
+            // Applica il filtro per le date personalizzate
+            if (period === 'custom' && startDate && endDate) {
+                const start = parseDate(startDate);
+                const end = parseDate(endDate);
+                filteredData = data.filter(item => {
+                    const itemDate = parseDate(item.data); 
+                    return itemDate >= start && itemDate <= end;
+                });
+            }
+
+            if (filteredData.length === 0) {
+                resultsContainer.classList.add('hidden');
+                displayMessage("Nessun dato trovato per la selezione corrente.", 'info');
+                return;
+            }
+
+            // Decide se mostrare la matrice o il riassunto
+            if (period === 'all' || period === 'custom') {
+                renderAttendanceMatrix(filteredData);
+            } else {
+                renderAttendanceSummary(filteredData);
+            }
+        }
+
+        /**
+         * Visualizza una matrice di presenze con il conteggio delle 'P' per giocatore.
+         * I giocatori sono ordinati per numero di presenze in ordine decrescente.
+         * @param {Array} data - I dati grezzi di presenze.
+         */
+        function renderAttendanceMatrix(data) {
+            chartContainer.classList.add('hidden');
+            tableContainer.classList.add('hidden');
+            attendanceMatrixContainer.classList.remove('hidden');
+
+            const matrix = {};
+            const dates = new Set();
+            const presentCounts = {};
+            
+            data.forEach(item => {
+                if (!matrix[item.player]) {
+                    matrix[item.player] = {};
+                    presentCounts[item.player] = 0; // Inizializza il conteggio per ogni giocatore
+                }
+                matrix[item.player][item.data] = item.valore;
+                dates.add(item.data);
+
+                // Incrementa il conteggio se il valore è 'P'
+                if (item.valore === 'P') {
+                    presentCounts[item.player]++;
+                }
+            });
+
+            // Ordina le date in ordine crescente
+            const sortedDates = [...dates].sort((a, b) => parseDate(a) - parseDate(b));
+            
+            // Ordina i giocatori in base al numero di presenze in ordine decrescente
+            const sortedPlayers = Object.keys(presentCounts).sort((a, b) => presentCounts[b] - presentCounts[a]);
+
+            const thead = attendanceMatrixTable.querySelector('thead');
+            const tbody = attendanceMatrixTable.querySelector('tbody');
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
+
+            // Crea l'intestazione della tabella con le date e il totale P
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = `<th class="attendance-cell text-left">Giocatore</th>`;
+            sortedDates.forEach(date => {
+                headerRow.innerHTML += `<th class="attendance-cell">${date.slice(0, 5)}</th>`; // Mostra solo giorno e mese
+            });
+            headerRow.innerHTML += `<th class="attendance-cell">Totale P</th>`; // Nuova colonna per il totale
+            thead.appendChild(headerRow);
+
+            // Crea le righe per ogni giocatore
+            sortedPlayers.forEach(player => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${player}</td>`;
+                sortedDates.forEach(date => {
+                    const value = matrix[player][date] || '';
+                    let bgColorClass = 'bg-white';
+                    if (value === 'P') {
+                        bgColorClass = 'bg-present';
+                    } else if (value === 'A') {
+                        bgColorClass = 'bg-absent';
+                    } else {
+                        bgColorClass = 'bg-other';
+                    }
+                    row.innerHTML += `<td class="attendance-cell ${bgColorClass} border border-gray-200 text-gray-800">${value}</td>`;
+                });
+                // Aggiunge la cella con il totale delle presenze
+                row.innerHTML += `<td class="attendance-cell font-bold text-gray-900">${presentCounts[player]}</td>`;
+                tbody.appendChild(row);
+            });
+        }
+
+        /**
+         * Visualizza una tabella riassuntiva delle presenze con il totale conteggiato.
+         * @param {Array} data - I dati grezzi di presenze.
+         */
+        function renderAttendanceSummary(data) {
+            chartContainer.classList.add('hidden');
+            attendanceMatrixContainer.classList.add('hidden');
+            tableContainer.classList.remove('hidden');
+            
+            const summary = {
+                presenti: 0,
+                assenti: 0,
+                altri: 0
+            };
+            
+            // Applica l'aggregazione per il conteggio
+            data.forEach(item => {
+                const value = item.valore;
+                if (value === 'P') {
+                    summary.presenti++;
+                } else if (value === 'A') {
+                    summary.assenti++;
+                } else {
+                    summary.altri++;
+                }
+            });
+            
+            summary.totale = summary.presenti + summary.assenti + summary.altri; // Calcola il totale
+
+            const thead = document.getElementById('data-table').querySelector('thead');
+            const tbody = document.getElementById('table-body');
+            thead.innerHTML = `
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Stato</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Conteggio</th>
+                </tr>
+            `;
+            tbody.innerHTML = '';
+            
+            const dataToDisplay = [
+                {stato: 'Presenti', conteggio: summary.presenti},
+                {stato: 'Assenti', conteggio: summary.assenti},
+                {stato: 'Altri', conteggio: summary.altri},
+                {stato: 'Totale', conteggio: summary.totale, totalRow: true} // Aggiunge la riga del totale con flag
+            ];
+
+            dataToDisplay.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = item.totalRow ? 'bg-emerald-600 text-white font-bold' : 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${item.stato}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${item.conteggio}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+
+        /**
+         * Visualizza i dati in una tabella e in un grafico (per un singolo dataset).
+         * @param {Array} data - I dati da tracciare.
+         * @param {string} scope - "player" o "team".
+         * @param {string} player - Il nome del giocatore.
+         * @param {string} parameterName - Il nome descrittivo del parametro.
+         * @param {string} period - Il periodo di visualizzazione.
+         */
+        function displayResults(data, scope, player, parameterName, period) {
+            // Controlla se non ci sono dati e nasconde il container in tal caso
+            if (data.length === 0) {
+                resultsContainer.classList.add('hidden');
+                displayMessage("Nessun dato trovato per la selezione corrente.", 'info');
+                return;
+            }
+            
+            resultsContainer.classList.remove('hidden');
+            chartContainer.classList.remove('hidden');
+            tableContainer.classList.remove('hidden');
+            
+            // Aggiorna il titolo
+            if (scope === 'player') {
+                resultsTitle.textContent = `Andamento di ${player} per il parametro "${parameterName}"`;
+            } else {
+                resultsTitle.textContent = `Andamento del Team per il parametro "${parameterName}"`;
+            }
+            
+            // Popola la tabella
+            const tableHeaders = `
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Giocatore</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Periodo</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Valore</th>
+                </tr>
+            `;
+            document.getElementById('data-table').querySelector('thead').innerHTML = tableHeaders;
+            tableBody.innerHTML = '';
+
+            const tableData = data.map(item => ({
+                player: item.player,
+                periodo: item.data, // Usa il campo 'data' che è già formattato come periodo
+                valore: item.valore
+            }));
+
+            tableData.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.player}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.periodo}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.valore}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // Aggiunge la riga di riepilogo con lo sfondo verde smeraldo per la media totale
+            if (scope === 'team') {
+                const totalValues = data.map(item => parseFloat(item.valore)).filter(v => !isNaN(v));
+                const totalAverage = (totalValues.reduce((sum, val) => sum + val, 0) / totalValues.length).toFixed(2);
+                
+                const totalRow = document.createElement('tr');
+                totalRow.className = 'bg-emerald-600 text-white font-bold';
+                
+                const periodoLabel = period === 'all' ? 'Media Totale' : `Media del Periodo`;
+                
+                totalRow.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">Team</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${periodoLabel}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${totalAverage}</td>
+                `;
+                tableBody.appendChild(totalRow);
+            }
+
+            // Visualizza il grafico
+            renderChart(data, scope, period);
+        }
+
+        /**
+         * Visualizza i dati di confronto (giocatore vs. team) in una tabella e in un grafico.
+         * @param {Array} playerData - Dati del giocatore.
+         * @param {Array} teamData - Dati del team.
+         * @param {string} player - Il nome del giocatore.
+         * @param {string} parameterName - Il nome descrittivo del parametro.
+         * @param {string} period - Il periodo di visualizzazione.
+         */
+        function displayComparisonResults(playerData, teamData, player, parameterName, period) {
+            // Se non ci sono dati del giocatore, mostra solo i dati del team
+            if (playerData.length === 0) {
+                 displayMessage(`Nessun dato trovato per il giocatore '${player}'. Visualizzazione dei dati del team.`, 'info');
+                 displayResults(teamData, 'team', null, parameterName, period);
+                 return;
+            }
+
+            // Controlla se non ci sono dati in entrambi gli array e nasconde il container in tal caso
+            if (playerData.length === 0 && teamData.length === 0) {
+                resultsContainer.classList.add('hidden');
+                displayMessage("Nessun dato trovato per la selezione corrente.", 'info');
+                return;
+            }
+            
+            resultsContainer.classList.remove('hidden');
+            chartContainer.classList.remove('hidden');
+            tableContainer.classList.remove('hidden');
+
+
+            // Aggiorna il titolo
+            resultsTitle.textContent = `Confronto tra ${player} e Team per il parametro "${parameterName}"`;
+            
+            // Popola la tabella con entrambi i set di dati
+            const tableHeaders = `
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Giocatore</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Periodo</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Valore</th>
+                </tr>
+            `;
+            document.getElementById('data-table').querySelector('thead').innerHTML = tableHeaders;
+            tableBody.innerHTML = '';
+            
+            // Unisce i dati e popola la tabella. Ordina per data per visualizzare in modo coerente
+            const combinedData = [...playerData, ...teamData].sort((a, b) => new Date(a.sortableDate) - new Date(b.sortableDate));
+            combinedData.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.player}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.data}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.valore}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        /**
+         * Funzione che crea o aggiorna un grafico con Chart.js.
+         * @param {Array} data - I dati da tracciare.
+         * @param {string} scope - "player" o "team".
+         * @param {string} period - Il periodo di visualizzazione.
+         */
+        function renderChart(data, scope, period) {
+            const ctx = document.getElementById('data-chart').getContext('2d');
+            
+            // Distrugge l'istanza precedente del grafico se esiste
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const labels = data.map(item => item.data);
+            const values = data.map(item => item.valore);
+            
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: scope === 'player' ? 'Valore Giocatore' : 'Valore Medio Team',
+                        data: values,
+                        borderColor: scope === 'player' ? 'rgb(59, 130, 246)' : 'rgb(16, 185, 129)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        tension: 0.3,
+                        pointBackgroundColor: scope === 'player' ? 'rgb(59, 130, 246)' : 'rgb(16, 185, 129)',
+                        spanGaps: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Data'
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Valore'
+                            },
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false,
+                        }
+                    }
+                }
+            });
+        }
+        
+        /**
+         * Funzione che crea o aggiorna un grafico con Chart.js per il confronto.
+         * @param {Array} playerData - I dati del giocatore.
+         * @param {Array} teamData - I dati del team.
+         * @param {string} player - Il nome del giocatore.
+         * @param {string} period - Il periodo di visualizzazione.
+         */
+        function renderComparisonChart(playerData, teamData, player, period) {
+            const ctx = document.getElementById('data-chart').getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            // Unisce tutte le date uniche dai due set di dati e le ordina
+            const allSortableDates = [...new Set([...playerData.map(d => d.sortableDate), ...teamData.map(d => d.sortableDate)])].sort();
+            
+            const labels = allSortableDates.map(sortableDate => {
+                const item = playerData.find(d => d.sortableDate === sortableDate) || teamData.find(d => d.sortableDate === sortableDate);
+                return item ? item.data : '';
+            });
+            
+            // Mappa i valori dei dati alle date per creare un array coerente per il grafico
+            const playerValues = allSortableDates.map(sortableDate => {
+                const item = playerData.find(d => d.sortableDate === sortableDate);
+                // Usa null se non ci sono dati per quella data
+                return item ? parseFloat(item.valore) : null; 
+            });
+            
+            const teamValues = allSortableDates.map(sortableDate => {
+                const item = teamData.find(d => d.sortableDate === sortableDate);
+                // Usa null se non ci sono dati per quella data
+                return item ? parseFloat(item.valore) : null; 
+            });
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: `Valore di ${player}`,
+                            data: playerValues,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            tension: 0.3,
+                            pointBackgroundColor: 'rgb(59, 130, 246)',
+                            spanGaps: true // Collega i punti anche se ci sono dati mancanti
+                        },
+                        {
+                            label: 'Valore Medio Team',
+                            data: teamValues,
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            tension: 0.3,
+                            pointBackgroundColor: 'rgb(16, 185, 129)',
+                            spanGaps: true // Collega i punti anche se ci sono dati mancanti
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Data'
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Valore'
+                            },
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false,
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Visualizza un messaggio all'utente.
+         * @param {string} message - Il testo del messaggio.
+         * @param {string} type - 'info' o 'error' per la formattazione.
+         */
+        function displayMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden', 'bg-red-100', 'bg-blue-100', 'text-red-700', 'text-blue-700');
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'text-red-700');
+            } else {
+                messageBox.classList.add('bg-blue-100', 'text-blue-700');
+            }
+        }
+        
+        /**
+         * Converte una data dal formato "DD-MM-YYYY" a un oggetto Date in UTC.
+         * Questo previene problemi di fuso orario.
+         * @param {string} dateString - La stringa della data nel formato "DD-MM-YYYY".
+         * @returns {Date} - Un oggetto Date valido in UTC.
+         */
+        function parseDate(dateString) {
+            if (!dateString) return null;
+            const parts = dateString.split('-');
+            if (parts.length === 3) {
+                 // Usa Date.UTC per creare la data senza applicare il fuso orario locale
+                 // La data sarà sempre mezzanotte UTC, indipendentemente dalla posizione
+                return new Date(Date.UTC(parts[2], parts[1] - 1, parts[0]));
+            }
+            return new Date(dateString);
+        }
+        
+        /**
+         * Funzione che restituisce il numero della settimana e l'intervallo di date.
+         * @param {Date} date - Una data all'interno della settimana (deve essere in UTC).
+         * @returns {string} - Una stringa formattata.
+         */
+        function getWeekNumberAndRange(date) {
+            const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+
+            const startOfWeek = new Date(date);
+            const day = (startOfWeek.getUTCDay() === 0) ? 6 : startOfWeek.getUTCDay() - 1; // 0 per lunedì
+            startOfWeek.setUTCDate(startOfWeek.getUTCDate() - day);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 6);
+
+            return `Settimana ${weekNo} (${formatDateTo_ddMMyyyy(startOfWeek)} - ${formatDateTo_ddMMyyyy(endOfWeek)})`;
+        }
+
+        /**
+         * Funzione che formatta un oggetto Date con mese abbreviato e anno in UTC.
+         * @param {Date} date - L'oggetto Date da formattare.
+         * @returns {string} - La stringa della data con il mese abbreviato.
+         */
+        function formatDateToAbbreviatedMonth(date) {
+            const monthNames = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
+            return `${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+        }
+
+        /**
+         * Formatta un oggetto Date nel formato "dd-MM-yyyy" in UTC.
+         * @param {Date} date - L'oggetto Date da formattare.
+         * @returns {string} - La stringa della data nel formato "dd-MM-yyyy".
+         */
+        function formatDateTo_ddMMyyyy(date) {
+            if (!date) return '';
+            const day = String(date.getUTCDate()).padStart(2, '0');
+            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+            const year = date.getUTCFullYear();
+            return `${day}-${month}-${year}`;
+        }
+    </script>
+</body>
+</html>
