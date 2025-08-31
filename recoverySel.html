@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recovery - Recupero - </title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 550px;
+      margin: 80px auto;
+      padding: 30px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #0078D4;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: block;
+      color: #333;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      font-size: 16px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+    }
+
+    select option:disabled {
+      color: #aaa;
+    }
+
+    #infoMsg {
+      font-weight: bold;
+      color: #D32F2F;
+      margin-bottom: 10px;
+      min-height: 24px;
+    }
+
+    #filterCheckbox {
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background-color: #0078D4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+
+    .link {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #0078D4;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    window.onload = function () {
+      const select = document.getElementById("player");
+      const infoMsg = document.getElementById("infoMsg");
+      const checkbox = document.getElementById("filterCheckbox");
+      const allOptions = Array.from(select.options).filter(o => o.value); // esclude il placeholder
+
+      const submittedPlayers_rec = JSON.parse(localStorage.getItem("submittedPlayers_rec")) || [];
+
+      // disabilita quelli già registrati
+      for (let option of select.options) {
+        if (submittedPlayers_rec.includes(option.value)) {
+          option.disabled = true;
+        }
+      }
+
+      // messaggio visivo alla selezione
+      select.addEventListener("change", () => {
+        const selected = select.value;
+        if (submittedPlayers_rec.includes(selected)) {
+          infoMsg.textContent = "🚫 Questo giocatore ha già inviato i dati.";
+        } else {
+          infoMsg.textContent = "";
+        }
+      });
+
+      // salva invio nel localStorage
+      document.getElementById("playerForm").addEventListener("submit", () => {
+        const selectedPlayer = select.value;
+        if (selectedPlayer && !submittedPlayers_rec.includes(selectedPlayer)) {
+          submittedPlayers_rec.push(selectedPlayer);
+          localStorage.setItem("submittedPlayers_rec", JSON.stringify(submittedPlayers_rec));
+        }
+      });
+
+      // filtro per mostrare solo disponibili
+      checkbox.addEventListener("change", () => {
+        select.innerHTML = "";
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.disabled = true;
+        placeholder.selected = true;
+        placeholder.textContent = "----";
+        select.appendChild(placeholder);
+
+        allOptions.forEach(opt => {
+          const copy = opt.cloneNode(true);
+          if (checkbox.checked) {
+            if (!submittedPlayers_rec.includes(copy.value)) {
+              select.appendChild(copy);
+            }
+          } else {
+            copy.disabled = submittedPlayers_rec.includes(copy.value);
+            select.appendChild(copy);
+          }
+        });
+      });
+
+      // grafico stato
+      const ctx = document.getElementById("graficoRegistrati").getContext("2d");
+      const totaleGiocatori = allOptions.length;
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ["Registrati", "Totale"],
+          datasets: [{
+            label: "Stato Invii",
+            data: [submittedPlayers_rec.length, totaleGiocatori],
+            backgroundColor: ["#4CAF50", "#90CAF9"]
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { precision: 0 }
+            }
+          }
+        }
+      });
+    };
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Recupero </h1>
+    <form id="playerForm" action="recoveryShow.html" method="GET">
+      <label for="player">Giocatore disponibile:</label>
+      <select name="player" id="player" required>
+        <option value="" disabled selected>----</option>
+        <option value="AGRIGOROAEI">AGRIGOROAEI</option>
+        <option value="AIT">AIT</option>
+        <option value="ARCIDIACONO">ARCIDIACONO</option>
+        <option value="BARUZZI">BARUZZI</option>
+        <option value="BENALLAL">BENALLAL</option>
+        <option value="BUSHI">BUSHI</option>
+        <option value="CENTANNI">CENTANNI</option>
+        <option value="FALZONI">FALZONI</option>
+        <option value="FARINA">FARINA</option>
+        <option value="FORESTIERO">FORESTIERO</option>
+        <option value="GALLALA">GALLALA</option>
+        <option value="GEMINIANI">GEMINIANI</option>
+        <option value="GNOFFO">GNOFFO</option>
+        <option value="GRANO">GRANO</option>
+        <option value="GRECA">GRECA</option>
+        <option value="GUEYE">GUEYE</option>
+        <option value="IANIGRO">IANIGRO</option>
+        <option value="MASHA">MASHA</option>
+        <option value="MHILLAJ">MHILLAJ</option>
+        <option value="NDOJ">NDOJ</option>
+        <option value="ZITOUNI">ZITOUNI</option>
+      </select>
+
+      <div id="infoMsg"></div>
+
+      <label>
+        <input type="checkbox" id="filterCheckbox"> Mostra solo disponibili
+      </label>
+
+      <button type="submit">Invia</button>
+    </form>
+
+    <canvas id="graficoRegistrati" width="400" height="100" style="margin-top: 30px;"></canvas>
+
+    <a class="link" href="finito_recovery.html">↩ Vai al riepilogo - Finito</a>
+  </div>
+</body>
+</html>

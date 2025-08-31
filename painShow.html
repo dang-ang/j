@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dolore Muscolare</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 60px auto;
+      padding: 30px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #0078D4;
+      margin-bottom: 20px;
+    }
+
+    #selectedPlayer {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #444;
+      margin-bottom: 30px;
+    }
+
+    form label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 16px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fafafa;
+    }
+
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+
+    input[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background-color: #0078D4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #005fa3;
+    }
+
+    #backLink {
+      display: block;
+      text-align: center;
+      margin-top: 25px;
+      font-weight: bold;
+      color: #0078D4;
+      text-decoration: none;
+    }
+
+    #backLink:hover {
+      text-decoration: underline;
+    }
+
+    /* Toast Styles */
+    #toast {
+      visibility: hidden;
+      min-width: 300px;
+      margin-left: -150px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 4px;
+      padding: 12px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 30px;
+      font-size: 16px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.4s ease;
+    }
+
+    #toast.show {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Dolore muscolare</h1>
+    <p id="selectedPlayer">NESSUNO SELEZIONATO.</p>
+
+    <h1>📤 - 📍</h1>
+    <form id="submitForm">
+      <label for="name">Nome:</label>
+      <input type="text" id="name" name="name"/>
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" value="testpain@mail.it" readonly/>
+
+      <!-- 📍 Dolore muscolare -->
+      <label for="pain">Dolore muscolare:</label>
+        <div style="position: relative; margin-bottom: 30px;">
+          <div id="painBars" style="display: flex; justify-content: space-between; height: 40px; margin-bottom: 10px;">
+            <!-- Barre generate via JS -->
+          </div>
+          <input type="range" id="pain" name="pain" min="0" max="10" value="0" style="width: 100%;" />
+          <div id="painTooltip" style="
+            position: absolute;
+            top: -35px;
+            left: 0;
+            padding: 6px 12px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+            white-space: nowrap;
+            pointer-events: none;
+            transition: all 0.3s ease;
+          ">😌 0</div>
+          <div id="painLabels" style="display: flex; justify-content: space-between; font-size: 13px; margin-top: 6px; color: #555;">
+            <!-- Testi generati via JS -->
+          </div>
+        </div>
+
+
+      <label for="message">Nota:</label>
+      <textarea id="message" name="message"></textarea>
+
+      <input type="submit" value="Submit" />
+    </form>
+
+    <a id="backLink" href="#">← Torna alla selezione</a>
+  </div>
+
+  <div id="toast">✅ Dati inviati con successo!</div>
+
+  <script>
+      // --------------------------------------------------------
+      // Emoji dinamica in base al valore del RPE
+      // 💢 Dolore muscolare
+      // --------------------------------------------------------
+      // Gestione P A I N
+      const painSlider = document.getElementById("pain");
+      const painTooltip = document.getElementById("painTooltip");
+      const painBars = document.getElementById("painBars");
+      const painLabels = document.getElementById("painLabels");
+
+      const painEmoji = {
+        0: "😌", 1: "🙂", 2: "😐", 3: "😕", 4: "😣", 5: "😖",
+        6: "😫", 7: "😩", 8: "🥵", 9: "😭", 10: "💢"
+      };
+
+      const painText = {
+        0: "nessun dolore", 3: "moderato", 5: "intenso", 7: "molto forte", 10: "massimo"
+      };
+
+      const painColor = level => `rgb(${level * 25}, ${(10 - level) * 20}, 50)`;
+
+      // Barre + Etichette
+      for (let i = 0; i <= 10; i++) {
+        const bar = document.createElement("div");
+        bar.style.flex = "1";
+        bar.style.margin = "0 1px";
+        bar.style.backgroundColor = painColor(i);
+        bar.style.opacity = "0.3";
+        bar.style.borderRadius = "2px";
+        bar.dataset.level = i;
+        painBars.appendChild(bar);
+
+        const label = document.createElement("div");
+        label.style.flex = "1";
+        label.style.textAlign = "center";
+        label.textContent = painText[i] || "";
+        painLabels.appendChild(label);
+      }
+
+      function updatePain() {
+        const value = parseInt(painSlider.value);
+        const emoji = painEmoji[value] || "😐";
+        painTooltip.textContent = `${emoji} ${value}`;
+        painTooltip.style.backgroundColor = painColor(value);
+        const percent = value / 10;
+        const offset = percent * painSlider.offsetWidth;
+        painTooltip.style.left = `${offset}px`;
+
+        [...painBars.children].forEach(bar => {
+          bar.style.opacity = parseInt(bar.dataset.level) <= value ? "1" : "0.3";
+        });
+      }
+
+      painSlider.addEventListener("input", updatePain);
+      updatePain();
+
+
+      // --------------------------------------------------------
+
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const player = urlParams.get('player');
+    const playerDisplay = document.getElementById('selectedPlayer');
+
+    if (player) {
+      playerDisplay.textContent = `Selezionato: ${player}`;
+      document.getElementById('name').value = player;
+      document.getElementById('name').readOnly = true;        // Disabilita modifica manuale
+    }
+
+    document.getElementById("submitForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      submitForm();
+    });
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    function submitForm() {
+      const formData = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        rpe: '',  // document.getElementById("rpe").value,
+        pain: document.getElementById("pain").value,
+        message: document.getElementById("message").value
+      };
+
+//      fetch("https://script.google.com/macros/s/AKfycbxoXC2KT-8dPYE_q47WHANaPHBVBdumNbVMvqkD2EWC8naS-gYrvgrBdzMdIckctFjjUQ/exec", {
+      fetch("https://script.google.com/macros/s/AKfycbzk61jWP5cOwn0qzDDw7QJfkgiuVJmswCblBxYKItglyp3VNxTMJaZDTdgm1capZ36Inw/exec", {
+        method: "POST",
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.text())
+      .then(data => {
+        showToast("✅ Dati inviati con successo!");
+        document.getElementById("submitForm").reset();
+
+        const registrato = '1';
+        const backLink = document.getElementById('backLink');
+        if (player) {
+//          backLink.href = `painSel.html?player=${encodeURIComponent(player)}&registrato=${encodeURIComponent(registrato)}`;
+          backLink.href = `javascript:History.go(-1)`;
+        }
+      })
+      .catch(error => {
+        console.error("Errore:", error);
+        showToast("❌ Errore durante l'invio.");
+      });
+    }
+  </script>
+</body>
+</html>

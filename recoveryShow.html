@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recovery - Recupero - </title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 60px auto;
+      padding: 30px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #0078D4;
+      margin-bottom: 20px;
+    }
+
+    #selectedPlayer {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #444;
+      margin-bottom: 30px;
+    }
+
+    form label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 16px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fafafa;
+    }
+
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+
+    input[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background-color: #0078D4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #005fa3;
+    }
+
+    #backLink {
+      display: block;
+      text-align: center;
+      margin-top: 25px;
+      font-weight: bold;
+      color: #0078D4;
+      text-decoration: none;
+    }
+
+    #backLink:hover {
+      text-decoration: underline;
+    }
+
+    /* Toast Styles */
+    #toast {
+      visibility: hidden;
+      min-width: 300px;
+      margin-left: -150px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 4px;
+      padding: 12px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 30px;
+      font-size: 16px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.4s ease;
+    }
+
+    #toast.show {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Recupero</h1>
+    <p id="selectedPlayer">NESSUNO SELEZIONATO.</p>
+
+    <h1>📤 - 📍</h1>
+    <form id="submitForm">
+      <label for="name">Nome:</label>
+      <input type="text" id="name" name="name"/>
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" value="testrecovery@mail.it" readonly/>
+
+      <!-- 🔄 Recupero -->
+      <label for="recovery">Recupero percepito:</label>
+      <div style="position: relative; margin-bottom: 30px;">
+        <input type="range" id="recovery" name="recovery" min="0" max="10" value="10" style="width: 100%;" />
+        <div id="recoveryTooltip" style="
+          position: absolute;
+          top: -35px;
+          left: 0;
+          padding: 6px 12px;
+          background: #2196F3;
+          color: white;
+          border-radius: 4px;
+          font-size: 14px;
+          white-space: nowrap;
+          pointer-events: none;
+          transition: all 0.3s ease;
+        ">💪 10</div>
+      </div>
+
+
+
+      <label for="message">Nota:</label>
+      <textarea id="message" name="message"></textarea>
+
+      <input type="submit" value="Submit" />
+    </form>
+
+    <a id="backLink" href="#">← Torna alla selezione</a>
+  </div>
+
+  <div id="toast">✅ Dati inviati con successo!</div>
+
+  <script>
+      // --------------------------------------------------------
+      // Emoji dinamica in base al valore del RPE
+      // 🔄 Recupero
+        const recoverySlider = document.getElementById("recovery");
+        const recoveryTooltip = document.getElementById("recoveryTooltip");
+
+        const recoveryEmoji = {
+          0: "😵", 1: "😩", 2: "😣", 3: "😐", 4: "😕", 5: "🙂",
+          6: "😊", 7: "😄", 8: "😎", 9: "💪", 10: "🏆"
+        };
+
+        function updateRecovery() {
+          const value = parseInt(recoverySlider.value);
+          recoveryTooltip.textContent = `${recoveryEmoji[value] || "😐"} ${value}`;
+          const percent = value / 10;
+          const offset = percent * recoverySlider.offsetWidth;
+          recoveryTooltip.style.left = `${offset}px`;
+          recoveryTooltip.style.backgroundColor = `rgb(${(10 - value) * 20}, ${value * 20}, 120)`;
+        }
+        recoverySlider.addEventListener("input", updateRecovery);
+        updateRecovery();
+      // --------------------------------------------------------
+
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const player = urlParams.get('player');
+    const playerDisplay = document.getElementById('selectedPlayer');
+
+    if (player) {
+      playerDisplay.textContent = `Selezionato: ${player}`;
+      document.getElementById('name').value = player;
+      document.getElementById('name').readOnly = true;        // Disabilita modifica manuale
+    }
+
+    document.getElementById("submitForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      submitForm();
+    });
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    function submitForm() {
+      const formData = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        rpe: '',  // document.getElementById("rpe").value,
+        pain: '',
+        recovery: document.getElementById("recovery").value,
+        message: document.getElementById("message").value
+      };
+
+//      fetch("https://script.google.com/macros/s/AKfycbxoXC2KT-8dPYE_q47WHANaPHBVBdumNbVMvqkD2EWC8naS-gYrvgrBdzMdIckctFjjUQ/exec", {
+      fetch("https://script.google.com/macros/s/AKfycbzk61jWP5cOwn0qzDDw7QJfkgiuVJmswCblBxYKItglyp3VNxTMJaZDTdgm1capZ36Inw/exec", {
+        method: "POST",
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.text())
+      .then(data => {
+        showToast("✅ Dati inviati con successo!");
+        document.getElementById("submitForm").reset();
+
+        const registrato = '1';
+        const backLink = document.getElementById('backLink');
+        if (player) {
+          backLink.href = `recoverySel.html?player=${encodeURIComponent(player)}&registrato=${encodeURIComponent(registrato)}`;
+        }
+      })
+      .catch(error => {
+        console.error("Errore:", error);
+        showToast("❌ Errore durante l'invio.");
+      });
+    }
+  </script>
+</body>
+</html>
