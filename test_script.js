@@ -4,7 +4,8 @@ function toggleMenu() {
 
 function loadPage(url) {
   const content = document.getElementById('content');
-  var urls=urlPath + url;
+  //var urls=urlPath + url;
+  var urls=url;
   
   fetch(urls)
     .then(res => res.text())
@@ -18,6 +19,6 @@ function loadPage(url) {
 
 // Carica la home all'avvio
   var urlPath='https://dang-ang.github.io/j/';
-let urlHome='tuttocampo.html';
+  let urlHome='tuttocampo.html';
 
 window.onload = () => loadPage(urlHome);
