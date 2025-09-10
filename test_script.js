@@ -20,5 +20,4 @@ function loadPage(url) {
   var urlPath='https://dang-ang.github.io/j/';
 let urlHome='tuttocampo.html';
 
-
 window.onload = () => loadPage(urlHome);
