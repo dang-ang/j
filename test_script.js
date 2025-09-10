@@ -17,7 +17,7 @@ function loadPage(url) {
 }
 
 // Carica la home all'avvio
-  var urlPath='http://localhost:8079/Github/GitHub/j/';
+  var urlPath='https://dang-ang.github.io/j/';
 let urlHome='tuttocampo.html';
 
 
