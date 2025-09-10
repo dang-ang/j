@@ -6,6 +6,7 @@ function loadPage(url) {
   const content = document.getElementById('content');
   //var urls=urlPath + url;
   var urls=url;
+
   
   fetch(urls)
     .then(res => res.text())
