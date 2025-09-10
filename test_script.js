@@ -2,9 +2,11 @@ function toggleMenu() {
   document.getElementById('navLinks').classList.toggle('active');
 }
 
-function loadPage(page) {
+function loadPage(url) {
   const content = document.getElementById('content');
-  fetch(`${page}.html`)
+  var urls=urlPath + url;
+  
+  fetch(urls)
     .then(res => res.text())
     .then(html => {
       content.innerHTML = html;
@@ -15,4 +17,8 @@ function loadPage(page) {
 }
 
 // Carica la home all'avvio
-window.onload = () => loadPage('tuttocampo');
+  var urlPath='http://localhost:8079/Github/GitHub/j/';
+let urlHome='tuttocampo.html';
+
+
+window.onload = () => loadPage(urlHome);
