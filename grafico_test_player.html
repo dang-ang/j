@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Grafico Parametri Giocatori</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.1.0"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 1rem;
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 400px;
+      margin: auto;
+    }
+
+    select, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      margin: 2rem auto;
+    }
+
+    #loadingMessage {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #555;
+      margin-top: 1rem;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: auto !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <select id="paramSelect">
+      <option value="attendance">Presenze</option>
+      <option value="weight">Weight</option>
+      <option value="height">Height</option>
+      <option value="bmi">BMI</option>
+    </select>
+    <button onclick="loadPlayerFromURL()">Genera Grafico</button>
+  </div>
+
+  <div id="loadingMessage"></div>
+
+  <div class="chart-container">
+    <canvas id="playerChart"></canvas>
+  </div>
+
+  <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycby-14UNnIFbdh9-O0kNXnJNENYGy7OceIIBNJ_tTa1lZQOWkAuHgvHIrL68TOadoYNv/exec";
+    let chartInstance = null;
+
+    function getNomeFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('nome');
+    }
+
+    async function loadPlayerFromURL() {
+      const param = document.getElementById('paramSelect').value;
+      const playerName = getNomeFromURL();
+      const loading = document.getElementById('loadingMessage');
+
+      if (!playerName) {
+        alert("Parametro 'nome' non presente nella URL.");
+        return;
+      }
+
+      loading.textContent = "Caricamento dati...";
+
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+
+      const url = `${endpoint}?parameter=${encodeURIComponent(param)}&player=${encodeURIComponent(playerName)}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          loading.textContent = "Nessun dato disponibile.";
+          return;
+        }
+
+        const labels = [data[0].player];
+        const values = [data[0].valore];
+
+        drawChart(labels, values, param);
+        loading.textContent = "";
+      } catch (err) {
+        console.error("Errore nella chiamata:", err);
+        loading.textContent = "Errore nel caricamento.";
+      }
+    }
+
+    function drawChart(labels, values, param) {
+      const ctx = document.getElementById('playerChart').getContext('2d');
+
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const avg = values.reduce((a, b) => a + b, 0) / values.length;
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: `${param}`,
+            data: values,
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'x',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            annotation: {
+              annotations: {
+                lineMin: {
+                  type: 'line',
+                  yMin: min,
+                  yMax: min,
+                  borderColor: 'red',
+                  borderWidth: 2,
+                  label: { content: 'Min', enabled: true }
+                },
+                lineMax: {
+                  type: 'line',
+                  yMin: max,
+                  yMax: max,
+                  borderColor: 'green',
+                  borderWidth: 2,
+                  label: { content: 'Max', enabled: true }
+                },
+                lineAvg: {
+                  type: 'line',
+                  yMin: avg,
+                  yMax: avg,
+                  borderColor: 'orange',
+                  borderWidth: 2,
+                  label: { content: 'Media', enabled: true }
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              reverse: true // ✅ Ordina da destra a sinistra
+            },
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Esegui automaticamente al caricamento se ?nome=... è presente
+    window.addEventListener('DOMContentLoaded', () => {
+      if (getNomeFromURL()) {
+        loadPlayerFromURL();
+      }
+    });
+  </script>
+</body>
+</html>
