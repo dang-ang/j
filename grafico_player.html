@@ -143,20 +143,23 @@ async function caricaDati() {
       return;
     }
 
-    const date = [];
-    const valori = [];
-    const target = [];
+    const aggregati = {};
     let titoloData = "";
 
     dati.forEach(entry => {
       if (entry.player === nome) {
-        const valoreNumerico = parseInt(entry.valore);
-        const targetNumerico = parseInt(entry.Team);
+        const data = entry.data;
+        const valoreNumerico = parseFloat(entry.valore);
+        const targetNumerico = parseFloat(entry.Team);
 
         if (!isNaN(valoreNumerico)) {
-          date.push(entry.data);
-          valori.push(valoreNumerico);
-          target.push(isNaN(targetNumerico) ? null : targetNumerico);
+          if (!aggregati[data]) {
+            aggregati[data] = { valori: [], targets: [] };
+          }
+          aggregati[data].valori.push(valoreNumerico);
+          if (!isNaN(targetNumerico)) {
+            aggregati[data].targets.push(targetNumerico);
+          }
         }
 
         if (!titoloData && entry._Data_) {
@@ -165,8 +168,31 @@ async function caricaDati() {
       }
     });
 
-    messageDiv.textContent = ""; // Rimuove il messaggio
-    disegnaGrafico(date, valori, target, parametro, nome, titoloData);
+    const date = [];
+    const valoriMedi = [];
+    const targetMedi = [];
+    const dateDuplicate = [];
+
+    for (const data in aggregati) {
+      const valori = aggregati[data].valori;
+      const targets = aggregati[data].targets;
+
+      const mediaValori = valori.reduce((a, b) => a + b, 0) / valori.length;
+      const mediaTarget = targets.length > 0 ? targets.reduce((a, b) => a + b, 0) / targets.length : null;
+
+      const etichetta = valori.length > 1 ? `${data}*` : data;
+      if (valori.length > 1) dateDuplicate.push(data);
+
+      date.push(etichetta);
+      valoriMedi.push(parseFloat(mediaValori.toFixed(2)));
+      targetMedi.push(mediaTarget !== null ? parseFloat(mediaTarget.toFixed(2)) : null);
+    }
+
+    messageDiv.textContent = dateDuplicate.length > 0
+      ? `⚠️ Valori multipli trovati per le seguenti date: ${dateDuplicate.join(", ")}`
+      : "";
+
+    disegnaGrafico(date, valoriMedi, targetMedi, parametro, nome, titoloData);
   } catch (error) {
     console.error("Errore nel recupero dei dati:", error);
     messageDiv.textContent = "Errore nel caricamento dei dati.";

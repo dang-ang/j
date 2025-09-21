@@ -115,7 +115,40 @@ select:focus {
     const endpoint = "https://script.google.com/macros/s/AKfycby-14UNnIFbdh9-O0kNXnJNENYGy7OceIIBNJ_tTa1lZQOWkAuHgvHIrL68TOadoYNv/exec"; // Inserisci il tuo URL Web App
 //  https://script.google.com/macros/s/AKfycby-14UNnIFbdh9-O0kNXnJNENYGy7OceIIBNJ_tTa1lZQOWkAuHgvHIrL68TOadoYNv/exec?player=BUSHI&parameter=rpe
 
+// per controllare se inserito un giocatore nell url 
+// Imposta il nome e parametro dai parametri URL se presenti
+window.addEventListener("DOMContentLoaded", () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const nomeParam = urlParams.get("nome");
+  const parametroParam = urlParams.get("parameter");
 
+  const selectNome = document.getElementById("nomeGiocatore");
+  const selectParametro = document.getElementById("parametro");
+
+  if (nomeParam) {
+    const option = [...selectNome.options].find(opt => opt.value === nomeParam);
+    if (option) {
+      selectNome.value = nomeParam;
+
+      // Disabilita tutte le altre opzioni
+      [...selectNome.options].forEach(opt => {
+        if (opt.value !== nomeParam && opt.value !== "") {
+          opt.disabled = true;
+        }
+      });
+    }
+  }
+
+  if (parametroParam) {
+    const option = [...selectParametro.options].find(opt => opt.value === parametroParam);
+    if (option) {
+      selectParametro.value = parametroParam;
+    }
+  }
+});
+
+
+// -------------
 document.querySelector("button").addEventListener("click", caricaDati);
 
 async function caricaDati() {
@@ -137,20 +170,24 @@ async function caricaDati() {
       return;
     }
 
-    const date = [];
-    const valori = [];
-    const target = [];
+
+    const aggregati = {};
     let titoloData = "";
 
     dati.forEach(entry => {
       if (entry.player === nome) {
-        const valoreNumerico = parseInt(entry.valore);
-        const targetNumerico = parseInt(entry.Team);
+        const data = entry.data;
+        const valoreNumerico = parseFloat(entry.valore);
+        const targetNumerico = parseFloat(entry.Team);
 
         if (!isNaN(valoreNumerico)) {
-          date.push(entry.data);
-          valori.push(valoreNumerico);
-          target.push(isNaN(targetNumerico) ? null : targetNumerico);
+          if (!aggregati[data]) {
+            aggregati[data] = { valori: [], targets: [] };
+          }
+          aggregati[data].valori.push(valoreNumerico);
+          if (!isNaN(targetNumerico)) {
+            aggregati[data].targets.push(targetNumerico);
+          }
         }
 
         if (!titoloData && entry._Data_) {
@@ -159,8 +196,32 @@ async function caricaDati() {
       }
     });
 
-    messageDiv.textContent = ""; // Rimuove il messaggio
-    disegnaGrafico(date, valori, target, parametro, nome, titoloData);
+
+      const date = [];
+    const valoriMedi = [];
+    const targetMedi = [];
+    const dateDuplicate = [];
+
+    for (const data in aggregati) {
+      const valori = aggregati[data].valori;
+      const targets = aggregati[data].targets;
+
+      const mediaValori = valori.reduce((a, b) => a + b, 0) / valori.length;
+      const mediaTarget = targets.length > 0 ? targets.reduce((a, b) => a + b, 0) / targets.length : null;
+
+      const etichetta = valori.length > 1 ? `${data}*` : data;
+      if (valori.length > 1) dateDuplicate.push(data);
+
+      date.push(etichetta);
+      valoriMedi.push(parseFloat(mediaValori.toFixed(2)));
+      targetMedi.push(mediaTarget !== null ? parseFloat(mediaTarget.toFixed(2)) : null);
+    }
+
+    messageDiv.textContent = dateDuplicate.length > 0
+      ? `⚠️ Valori multipli trovati per le seguenti date: ${dateDuplicate.join(", ")}`
+      : "";
+
+    disegnaGrafico(date, valoriMedi, targetMedi, parametro, nome, titoloData);
   } catch (error) {
     console.error("Errore nel recupero dei dati:", error);
     messageDiv.textContent = "Errore nel caricamento dei dati.";
