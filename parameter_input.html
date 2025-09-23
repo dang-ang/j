@@ -192,6 +192,22 @@
         .back-button:hover {
             background-color: #5a6268;
         }
+
+          #entryDate {
+            width: 50%;
+            font-size: 1.2rem;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        #weekdayDisplay {
+            font-size: 1.1rem;
+            color: #333;
+            margin-top: 5px;
+             text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
@@ -201,7 +217,8 @@
         <h3 id="parameterTitle"></h3>
 
         <label for="entryDate">Data:</label>
-        <input type="date" id="entryDate">
+        <input type="date" id="entryDate" size = 10>
+            <div id="weekdayDisplay"></div>
 
         <div id="inputFieldContainer">
             </div>
@@ -210,7 +227,7 @@
 
         <div id="message"></div>
 
-        <a id="backButton" class="back-button" href="javascript:history.back()">Torna Indietro</a>
+        <a id="backButton" class="back-button" href="#">Torna Indietro</a>
     </div>
 
     <script>
@@ -237,7 +254,7 @@
             'gacon': { label: 'Test GACON - Step (nr):', type: 'number', min: 1, max: 40, placeholder: 'Inserisci lo step/nr raggiunto' },
             'height': { label: 'Altezza (cm):', type: 'number', min: 100, max: 250, placeholder: 'Inserisci altezza in cm' },
             'weight': { label: 'Peso (kg):', type: 'number', min: 30, max: 200, placeholder: 'Inserisci peso in kg' },
-            'rpe': { label: 'RPE (Percezione dello Sforzo):', type: 'range', min: 1, max: 10, defaultValue: 5, invertGradient: false },
+            'rpe': { label: 'Sforzo:', type: 'range', min: 1, max: 10, defaultValue: 5, invertGradient: false },
             'recovery': { label: 'Recupero:', type: 'range', min: 1, max: 10, defaultValue: 5, invertGradient: true },
             'fatigue': { label: 'Stanchezza:', type: 'range', min: 1, max: 10, defaultValue: 5, invertGradient: false },
             'attendance': {
@@ -250,6 +267,20 @@
             }
         };
 
+
+        function decodeNumberToString(number) {
+            const numStr = String(number);
+            let result = '';
+            for (let i = 0; i < numStr.length; i += 2) {
+                const pair = numStr.slice(i, i + 2);
+                const decodedNumber = parseInt(pair, 10);
+                const character = String.fromCharCode(decodedNumber);
+                result += character;
+            }
+            return result;
+            }
+            
+
         function getUrlParameter(name) {
             name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
             var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
@@ -257,8 +288,10 @@
             return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
         }
 
+       
         document.addEventListener('DOMContentLoaded', () => {
-            currentPlayerName = getUrlParameter('name');
+           //  currentPlayerName = getUrlParameter('name');
+            currentPlayerName = decodeNumberToString( getUrlParameter('name'));
             currentParameterType = getUrlParameter('paramType');
 
             if (!currentPlayerName || !currentParameterType || !parameterConfig[currentParameterType]) {
@@ -386,8 +419,11 @@
                     inputFieldContainer.appendChild(inputElement);
                 }
             }
+            // player_in.html?name=6582677368736567797879 
+            // getUrlParameter('name')
+            // backButton.href = `player_in.html?name='+${encodeURIComponent(currentPlayerName)}`;
+               backButton.href = `player_in.html?name=`+getUrlParameter('name');
 
-            backButton.href = `player_dashboard.html?name=${encodeURIComponent(currentPlayerName)}`;
         });
 
         async function submitData() {
@@ -458,12 +494,12 @@
                     }
                 } else {
                     const errorText = await response.text();
-                    showMessage('Errore nell\'invio dei dati: ' + errorText, 'error');
+                    //showMessage('Errore nell\'invio dei dati: ' + errorText, 'error');
                     console.error('Server error:', errorText);
                 }
             } catch (error) {
                 console.error('Errore di rete:', error);
-                showMessage('Si è verificato un errore di rete durante l\'invio dei dati.', 'error');
+                //showMessage('Si è verificato un errore di rete durante l\'invio dei dati.', 'error');
             }
         }
 
@@ -481,5 +517,26 @@
             }, 3000);
         }
     </script>
+
+    <script>
+    const entryDate = document.getElementById("entryDate");
+    const weekdayDisplay = document.getElementById("weekdayDisplay");
+
+    function aggiornaGiornoSettimana() {
+        const selectedDate = new Date(entryDate.value);
+        if (!isNaN(selectedDate)) {
+        const options = { weekday: 'long' };
+        const giornoSettimana = selectedDate.toLocaleDateString('it-IT', options);
+        weekdayDisplay.textContent = `🗓️ ${giornoSettimana.toUpperCase()}`;
+        } else {
+        weekdayDisplay.textContent = "";
+        }
+    }
+
+    // Mostra il giorno anche se la data è già selezionata
+    document.addEventListener("DOMContentLoaded", aggiornaGiornoSettimana);
+    entryDate.addEventListener("change", aggiornaGiornoSettimana);
+    </script>
+
 </body>
 </html>
