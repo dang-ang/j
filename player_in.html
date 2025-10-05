@@ -66,6 +66,23 @@
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
+
+    /* overlay caricamento dati */
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      color: white;
+      font-size: 2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -88,7 +105,8 @@
     const parameters = [
       { name: "Sforzo", type: "rpe" },
       { name: "Recupero", type: "recovery" },
-      { name: "Stanchezza", type: "fatigue" }
+      { name: "Stanchezza", type: "fatigue" },
+      { name: "Scheda Partita", type: "selfcheck" }
     ];
 
     function getUrlParameter(name) {
@@ -111,6 +129,11 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // carico overlay ... caricamento
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      loadingOverlay.style.display = 'flex'; // Mostra overlay all'avvio
+      // ------
+
       const encodedName = getUrlParameter('name');
       const decodedName = decodeNumberToString(encodedName);
 
@@ -119,14 +142,36 @@
 
         // Carica la pagina dei grafici nel frame
         graficoFrame.src = `grafico_giocatori_all1.html?nome=${encodeURIComponent(decodedName)}`;
+        graficoFrame.addEventListener('load', () => {
+          document.getElementById('loadingOverlay').style.display = 'none';
+        });
+
 
         parameters.forEach(param => {
           const paramLink = document.createElement('a');
           // paramLink.href = `parameter_input.html?name=${encodeURIComponent(decodedName)}&paramType=${encodeURIComponent(param.type)}`;
            paramLink.href = `parameter_input.html?name=`+encodedName+`&paramType=${encodeURIComponent(param.type)}`;
            paramLink.className = 'parameter-card';
-          paramLink.textContent = param.name;
-          parameterGrid.appendChild(paramLink);
+           paramLink.textContent = param.name;
+          
+           /* ------------------------------ */
+          // parameterGrid.appendChild(paramLink);
+          // gestione scheda autovalutazione
+          if (param.type === "selfcheck") {
+                paramLink.href = `game_selfCheck.html?name=${encodedName}`;
+              } else {
+                paramLink.href = `parameter_input.html?name=${encodedName}&paramType=${encodeURIComponent(param.type)}`;
+              }
+              
+              //-----
+              // overlay al click : caricamento dati
+              paramLink.addEventListener('click', () => {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+              });
+              //-----
+
+              parameterGrid.appendChild(paramLink);
+          /* ------------------------------ */
         });
       } else {
         playerNameElement.textContent = 'Giocatore Sconosciuto';
@@ -144,5 +189,7 @@
     }
   });
 </script>
+
+<div id="loadingOverlay">Caricamento dati...</div>
 </body>
 </html>
