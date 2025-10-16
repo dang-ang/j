@@ -1,3 +1,5 @@
+var graficoEventiChart = null; // distruggi grafico x rinfrescare
+
 var parametri = [
   { codice: "TP", descrizione: "Tiro in Porta" },
   { codice: "TF", descrizione: "Tiro Fuori" },
@@ -106,7 +108,9 @@ function registra(codice) {
   var minuto = Math.floor(elapsed / 60000);
   var secondo = Math.floor((elapsed % 60000) / 1000);
   stats[codice].push({ minuto: minuto, secondo: secondo, tempo: tempo });
+
   aggiornaStatistiche();
+  aggiornaVisualizzazione(); // ← aggiunto
 }
 
 function registraVitalita(ruolo) {
@@ -121,6 +125,7 @@ function registraVitalita(ruolo) {
   vitalita[ruolo].push({ minuto: minuto, secondo: secondo, tempo: tempo });
 
   aggiornaStatistiche();
+  aggiornaVisualizzazione(); // ← aggiunto
 }
 
 function aggiornaStatistiche() {
@@ -277,4 +282,190 @@ function inviaGoogle() {
     }
   };
   xhr.send();
+}
+
+
+/*  xx Chart */
+function generaTabellaEventi(dati) {
+  var html = "<table><tr><th>Evento</th><th>1° Tempo</th><th>2° Tempo</th><th>Totale</th></tr>";
+  for (var tipo in dati) {
+    var tempo1 = dati[tipo].filter(e => e.tempo === 1).length;
+    var tempo2 = dati[tipo].filter(e => e.tempo === 2).length;
+    var totale = tempo1 + tempo2;
+    html += `<tr><td>${tipo}</td><td>${tempo1}</td><td>${tempo2}</td><td>${totale}</td></tr>`;
+  }
+  html += "</table>";
+  document.getElementById("tabellaEventi").innerHTML = html;
+}
+
+function generaGraficoEventi(dati) {
+
+  // Distruggi grafico precedente se esiste
+  if (graficoEventiChart) {
+    graficoEventiChart.destroy();
+    graficoEventiChart = null;
+  }
+
+  var etichette = Array.from({length: 20}, (_, i) => i); // minuti 0–19
+  var datasets = [];
+
+  for (var tipo in dati) {
+    var serie1 = Array(20).fill(0);
+    var serie2 = Array(20).fill(0);
+
+    dati[tipo].forEach(e => {
+      if (e.minuto < 20) {
+        if (e.tempo === 1) serie1[e.minuto]++;
+        else if (e.tempo === 2) serie2[e.minuto]++;
+      }
+    });
+
+    // cumulativo
+    for (var i = 1; i < 20; i++) {
+      serie1[i] += serie1[i - 1];
+      serie2[i] += serie2[i - 1];
+    }
+
+    datasets.push({
+      label: tipo + " (T1)",
+      data: serie1,
+      borderColor: randomColor(),
+      fill: false
+    });
+    datasets.push({
+      label: tipo + " (T2)",
+      data: serie2,
+      borderColor: randomColor(),
+      borderDash: [5, 5],
+      fill: false
+    });
+  }
+
+ graficoEventiChart = new Chart(document.getElementById("graficoEventi"), {
+    type: "line",
+    data: {
+      labels: etichette,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "bottom" },
+        title: { display: true, text: "Andamento cumulativo degli eventi" }
+      }
+    }
+  });
+}
+
+function randomColor() {
+  return "hsl(" + Math.floor(Math.random() * 360) + ", 70%, 50%)";
+}
+
+
+function aggiornaVisualizzazione() {
+  var unificato = Object.assign({}, stats);
+
+  // integra vitalità come eventi
+  for (var ruolo in vitalita) {
+    unificato["VT_" + ruolo] = vitalita[ruolo];
+  }
+
+  generaTabellaEventi(unificato);
+  // generaGraficoEventi(unificato);  // unico 
+  generaGraficiSeparati(unificato); // ← usa questa  x multi chart
+}
+
+/* end xx Cjart  */
+
+
+
+
+
+/* x grafici separti per evento  */
+var graficiPerEvento = {}; // per tenere traccia dei grafici attivi
+
+function generaGraficiSeparati(dati) {
+  var container = document.getElementById("graficiEventi");
+  container.innerHTML = ""; // pulisci tutto
+
+  for (var tipo in dati) {
+    var idCanvas = "grafico_" + tipo;
+    var canvas = document.createElement("canvas");
+    canvas.id = idCanvas;
+    canvas.style.marginBottom = "30px";
+    canvas.height = 300;
+    container.appendChild(canvas);
+
+    // distruggi grafico precedente se esiste
+    if (graficiPerEvento[tipo]) {
+      graficiPerEvento[tipo].destroy();
+      graficiPerEvento[tipo] = null;
+    }
+
+    var serie1 = Array(20).fill(0);
+    var serie2 = Array(20).fill(0);
+
+    dati[tipo].forEach(e => {
+      if (e.minuto < 20) {
+        if (e.tempo === 1) serie1[e.minuto]++;
+        else if (e.tempo === 2) serie2[e.minuto]++;
+      }
+    });
+
+    for (var i = 1; i < 20; i++) {
+      serie1[i] += serie1[i - 1];
+      serie2[i] += serie2[i - 1];
+    }
+
+    graficiPerEvento[tipo] = new Chart(document.getElementById(idCanvas), {
+      type: "line",
+      data: {
+        labels: Array.from({ length: 20 }, (_, i) => i),
+        datasets: [
+          {
+            label: tipo + " (T1)",
+            data: serie1,
+            borderColor: randomColor(),
+            fill: false
+          },
+          {
+            label: tipo + " (T2)",
+            data: serie2,
+            borderColor: randomColor(),
+            borderDash: [5, 5],
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" },
+          title: { display: true, text: "Evento: " + tipo }
+        },
+        scales: {
+          x: { title: { display: true, text: "Minuto" } },
+          // solo valori interi
+          // y: { title: { display: true, text: "Eventi cumulati" }, beginAtZero: true }
+          y: {
+            title: { display: true, text: "Eventi cumulati" },
+            beginAtZero: true,
+            ticks: {
+                stepSize: 1,
+                callback: function(value) {
+                return Number.isInteger(value) ? value : null;
+                }
+             }
+           }
+
+
+
+        }
+      }
+    });
+  }
+}
+
+function randomColor() {
+  return "hsl(" + Math.floor(Math.random() * 360) + ", 70%, 50%)";
 }

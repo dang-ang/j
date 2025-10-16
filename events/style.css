@@ -121,3 +121,23 @@ input, button {
     font-size: 14px;
   }
 }
+
+
+/*  xx Chart */
+#tabellaEventi table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+#tabellaEventi th, #tabellaEventi td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+
+canvas {
+  max-width: 100%;
+  margin-top: 20px;
+}
+
