@@ -26,7 +26,7 @@ function init() {
 }
 
 
-var GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzT4RkapILVzkS4ZxgUp9iSxpJeGT-9UsbRBzJ-xtuhBgGOrX2tjyyx-FW57l0I4P_Tig/exec";
+var GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyNYqRpKA2txADHLPr-EczpOUsmZHpT2RtPvF2OLdrl_OvxSXme2pB4P5gn1qUrtZDOqw/exec";
 
 // ----------------------------------------------------------------------
 
