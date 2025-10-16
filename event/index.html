@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+  </head>
+  <body>
+    <h2>📊 Statistiche Partita</h2>
+
+    <label for="squadra">Nome Squadra:</label>
+    <input type="text" id="squadra" placeholder="Inserisci nome squadra">
+
+    <div>
+      <button onclick="startCronometro()">▶️ Start Cronometro</button>
+      <span id="cronometro">00:00</span>
+    </div>
+
+    <div id="bottoni"></div>
+
+    <h3>Vitalità per Ruolo</h3>
+    <div id="vitalita">
+      <button onclick="registraVitalita('portiere')">Portiere</button>
+      <button onclick="registraVitalita('difesa')">Difesa</button>
+      <button onclick="registraVitalita('centrocampo')">Centrocampo</button>
+      <button onclick="registraVitalita('attacco')">Attacco</button>
+    </div>
+
+    <div id="statistiche"></div>
+
+    <div class="azioni">
+      <button onclick="salvaLocaleJSON()">💾 Salva JSON</button>
+      <button onclick="salvaLocaleCSV()">💾 Salva CSV</button>
+      <button onclick="inviaGoogle()">📤 Invia a Google Sheets</button>
+    </div>
+  </body>
+</html>
