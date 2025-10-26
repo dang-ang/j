@@ -64,6 +64,7 @@
                 <!-- I punti chiave verranno generati dinamicamente da JavaScript -->
             </div>
 
+            <br />
             <!-- Pulsante di Invio -->
             <div class="mt-10">
                 <button type="submit" id="submit-button" class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out disabled:opacity-50">
@@ -75,8 +76,8 @@
                 </button>
             </div>
         </form>
-            <br />
-        <a id="backButton" class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-gray-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out disabled:opacity-50" href="#">Torna Indietro -  Finito </a>
+        <br />
+        <a id="backButton" class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-gray-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out disabled:opacity-50" href="">Torna Indietro - MENU </a>
     </div>
 
 
@@ -84,8 +85,10 @@
 
 
     <script>
-        const backButton = document.getElementById('backButton');
-        const strgame_set='Medicina'
+        //const backButton = document.getElementById('backButton');
+                   backButton.href = `player_in.html?name=`+getUrlParameter('name');
+
+        const strgame_set='Molinella'
 
         // Array degli elementi chiave da valutare
         const evaluationPoints = [
@@ -295,7 +298,7 @@
                 toggleLoading(false);
             }
 
-           backButton.href = `player_in.html?name=`+getUrlParameter('name');
+//           backButton.href = `player_in.html?name=`+getUrlParameter('name');
 
         }
 
