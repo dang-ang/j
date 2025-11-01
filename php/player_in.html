@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Redirecting...</title>
+</head>
+<body>
+
+
+    <form id="redirectForm" action="index.php" method="POST" style="display:none;">
+        <input type="hidden" name="player_id" id="player_id" value="">
+    </form>
+
+    <script>
+    //wrapping your code in a DOM-ready handle
+    window.addEventListener('DOMContentLoaded', function () {
+
+        // recupero info e poi faccio il post
+        var urlParams = new URLSearchParams(window.location.search);
+        var id = urlParams.get("name");
+        // console.log(id); // Controlla il valore di id
+
+        if (id) {
+            document.getElementById("player_id").value= id;
+            document.getElementById("redirectForm").submit();
+        } else {
+            document.body.innerHTML = "<p>ID mancante.</p>";
+        }
+
+    });
+    </script>
+</body>
+</html>

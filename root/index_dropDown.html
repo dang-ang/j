@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SPA Responsive Navbar</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: #333;
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      z-index: 1000;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      padding: 0 10px;
+      margin-right: auto;
+    }
+
+    .menu-icon {
+      font-size: 24px;
+      color: white;
+      cursor: pointer;
+      padding: 10px;
+      border: none;
+      background: none;
+      display: none;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      background-color: transparent;
+    }
+
+    .nav-links a,
+    .nav-links .submenu-toggle {
+      padding: 12px 16px;
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
+      display: block;
+    }
+
+    .nav-links a:hover,
+    .nav-links .submenu-toggle:hover {
+      background-color: red;
+    }
+
+    .submenu {
+      position: relative;
+    }
+
+    .submenu-content {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: #444;
+      display: none;
+      flex-direction: column;
+      min-width: 160px;
+    }
+
+    .submenu-content a {
+      padding: 10px;
+      color: white;
+      text-decoration: none;
+    }
+
+    .submenu-content a:hover {
+      background-color: red;
+    }
+
+    .submenu:hover .submenu-content {
+      display: flex;
+    }
+
+    #mainContent {
+      padding: 80px 20px 20px;
+    }
+
+    @media (max-width: 600px) {
+      .menu-icon {
+        display: block;
+      }
+
+      .nav-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        background-color: #444;
+      }
+
+      .nav-links.show {
+        display: flex;
+      }
+
+      .submenu-content {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <div class="logo">🌐 Logo</div>
+    <button class="menu-icon" onclick="toggleMenu()">
+      <i class="fa fa-bars"></i>
+    </button>
+
+    <div class="nav-links" id="navLinks">
+      <a onclick="loadPage('tuttocampo.html')">Campionato</a>
+      <a onclick="loadPage('dashboard.html')">DashBoard Stato Fisico</a>
+      <a onclick="loadPage('presenze.html')">Presenze</a>
+
+      <div class="submenu">
+        <div class="submenu-toggle">Stato Fisico ▼</div>
+        <div class="submenu-content">
+          <a onclick="loadPage('rpeSel.html')">Sforzo</a>
+          <a onclick="loadPage('painSel.html')">Recupero</a>
+          <a onclick="loadPage('recoverySel.html')">Dolore</a>
+        </div>
+      </div>
+
+      <a onclick="loadPage('rpeSel.html')">RPE</a>
+
+    </div> <!-- end navlink -->
+
+  </div> <!-- end NAVBAR -->
+
+  <main id="mainContent">
+    <h3>Benvenuto!</h3>
+    <p>Seleziona una voce dal menu per visualizzare il contenuto.</p>
+  </main>
+
+  <script>
+    function toggleMenu() {
+      document.getElementById("navLinks").classList.toggle("show");
+    }
+
+    function loadPage(url) {
+      fetch(url)
+        .then(response => {
+          if (!response.ok) throw new Error("Errore nel caricamento");
+          return response.text();
+        })
+        .then(html => {
+          document.getElementById("mainContent").innerHTML = html;
+          if (window.innerWidth < 600) {
+            document.getElementById("navLinks").classList.remove("show");
+          }
+        })
+        .catch(err => {
+          document.getElementById("mainContent").innerHTML = `<p style="color:red;">Errore: ${err.message}</p>`;
+        });
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  <title>Dashboard Giocatore</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;     }
+
+    .container{
+          margin: auto;
+            background-color: #555;
+            height: 500px;
+            color: white;
+            border-radius: 10px;
+    }
+
+
+    h2#playerName {
+      color: #007bff;
+      margin-bottom: 30px;
+      font-size: 2em;
+    }
+
+    .parameter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .parameter-card {
+      background-color: #28a745;
+      color: white;
+      padding: 25px;
+      border-radius: 6px;
+      font-size: 1.2em;
+      font-weight: bold;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100px;
+    }
+
+    .parameter-card:hover {
+      background-color: #11461c;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .iframeMenu {
+      margin-top: 1px;
+      width: 100%;
+      height: 50px;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .iframex {
+      margin-top: 40px;
+      width: 100%;
+      height: 600px;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    /* overlay caricamento dati */
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      color: white;
+      font-size: 2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      display: none;
+    }
+
+    /*    -- for_menu_green    */
+      .topnav {
+        overflow: hidden;
+        background-color: #333;
+      }
+
+      .topnav a {
+        float: left;
+        display: block;
+        color: #f2f2f2;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 17px;
+      }
+
+      .active {
+        background-color: #4CAF50;
+        color: white;
+      }
+
+      .topnav .icon {
+        display: none;
+      }
+
+      .dropdown {
+        float: left;
+        overflow: hidden;
+      }
+
+      .dropdown .dropbtn {
+        font-size: 17px;    
+        border: none;
+        outline: none;
+        color: white;
+        padding: 14px 16px;
+        background-color: inherit;
+        font-family: inherit;
+        margin: 0;
+      }
+
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+      }
+
+      .dropdown-content a {
+        float: none;
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        text-align: left;
+      }
+
+      .topnav a:hover, .dropdown:hover .dropbtn {
+        background-color: #555;
+        color: white;
+      }
+
+      .dropdown-content a:hover {
+        background-color: #ddd;
+        color: black;
+      }
+
+      .dropdown:hover .dropdown-content {
+        display: block;
+      }
+
+      @media screen and (max-width: 600px) {
+        .topnav a:not(:first-child), .dropdown .dropbtn {
+          display: none;
+        }
+        .topnav a.icon {
+          float: right;
+          display: block;
+        }
+      }
+
+      @media screen and (max-width: 600px) {
+        .topnav.responsive {position: relative;}
+        .topnav.responsive .icon {
+          position: absolute;
+          right: 0;
+          top: 0;
+        }
+        .topnav.responsive a {
+          float: none;
+          display: block;
+          text-align: left;
+        }
+        .topnav.responsive .dropdown {float: none;}
+        .topnav.responsive .dropdown-content {position: relative;}
+        .topnav.responsive .dropdown .dropbtn {
+          display: block;
+          width: 100%;
+          text-align: left;
+        }
+      }
+
+  </style>
+</head>
+<body>
+
+<!-- Top Navigation Menu -->
+<!-- #include file="topNavigationMenu.html" -->
+<!-- end Top Navigation Menu -->
+
+  <div class="container">
+    <h4>Giocatore</h4>
+    <h2 id="playerName"></h2>
+
+    <h4>Seleziona il dato da inserire:</h4>
+    <div class="parameter-grid" id="parameterGrid"></div>
+
+    <!-- Qui verrà caricato il contenuto della pagina esterna -->
+    <iframe title="grafici" class="iframex" id="graficoFrame" src=""></iframe>
+  </div>
+
+
+
+
+
+
+
+
+
+  <script>
+
+    const playerNameElement = document.getElementById('playerName');
+    const parameterGrid = document.getElementById('parameterGrid');
+    const graficoFrame = document.getElementById('graficoFrame');
+
+    const parameters = [
+      { name: "Sforzo", type: "rpe" },
+      { name: "Recupero", type: "recovery" },
+      { name: "Stanchezza", type: "fatigue" },
+      { name: "Scheda Partita", type: "selfcheck" }
+    ];
+
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+      const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+      const results = regex.exec(location.search);
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+    function decodeNumberToString(number) {
+      const numStr = String(number);
+      let result = '';
+      for (let i = 0; i < numStr.length; i += 2) {
+        const pair = numStr.slice(i, i + 2);
+        const decodedNumber = parseInt(pair, 10);
+        const character = String.fromCharCode(decodedNumber);
+        result += character;
+      }
+      return result;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // carico overlay ... caricamento
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      loadingOverlay.style.display = 'flex'; // Mostra overlay all'avvio
+      // ------
+
+      const encodedName = getUrlParameter('name');
+      const decodedName = decodeNumberToString(encodedName);
+
+      if (decodedName) {
+        playerNameElement.textContent = decodedName;
+
+        // Carica la pagina dei grafici nel frame
+        graficoFrame.src = `grafico_giocatori_all1.html?nome=${encodeURIComponent(decodedName)}`;
+        graficoFrame.addEventListener('load', () => {
+          document.getElementById('loadingOverlay').style.display = 'none';
+        });
+
+
+        parameters.forEach(param => {
+          const paramLink = document.createElement('a');
+          // paramLink.href = `parameter_input.html?name=${encodeURIComponent(decodedName)}&paramType=${encodeURIComponent(param.type)}`;
+           paramLink.href = `parameter_input.html?name=`+encodedName+`&paramType=${encodeURIComponent(param.type)}`;
+           paramLink.className = 'parameter-card';
+           paramLink.textContent = param.name;
+          
+           /* ------------------------------ */
+          // parameterGrid.appendChild(paramLink);
+          // gestione scheda autovalutazione
+          if (param.type === "selfcheck") {
+                paramLink.href = `game_selfCheck.html?name=${encodedName}`;
+              } else {
+                paramLink.href = `parameter_input.html?name=${encodedName}&paramType=${encodeURIComponent(param.type)}`;
+              }
+              
+              //-----
+              // overlay al click : caricamento dati
+              paramLink.addEventListener('click', () => {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+              });
+              //-----
+
+              parameterGrid.appendChild(paramLink);
+          /* ------------------------------ */
+        });
+      } else {
+        playerNameElement.textContent = 'Giocatore Sconosciuto';
+        window.location.href = 'main.html';
+      }
+    });
+  </script>
+
+
+  <script>
+  window.addEventListener("message", (event) => {
+    if (event.data && event.data.altezza) {
+      const graficoFrame = document.getElementById("graficoFrame");
+      graficoFrame.style.height = event.data.altezza + "px";
+    }
+  });
+</script>
+
+<div id="loadingOverlay">Caricamento dati...</div>
+</body>
+</html>

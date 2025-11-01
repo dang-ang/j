@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Allenamento Giocatori</title>
+  <link rel="stylesheet" href="stile.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Dashboard Allenamento & Recupero</h1>
+
+    <label for="viewMode">Visualizzazione per:</label>
+    <select id="viewMode">
+      <option value="day">Giorno</option>
+      <option value="week">Settimana</option>
+      <option value="month">Mese</option>
+      <option value="year">Anno</option>
+    </select>
+
+    <label for="startDate">Da (data):</label>
+    <input type="date" id="startDate">
+
+    <label for="endDate">A (data):</label>
+    <input type="date" id="endDate">
+
+    <label for="playerSelect">Giocatori:</label>
+    <select id="playerSelect" multiple size="5"></select>
+    <button onclick="selectAllPlayers()">✅ Seleziona tutti</button>
+
+    <div class="btn-group">
+      <button onclick="exportPNG('chartPlayers')">📸 Player PNG</button>
+      <button onclick="exportPNG('chartSquadra')">📸 Team PNG</button>
+      <button onclick="exportPNG('heatmapChart')">📸 heatmapChart PNG</button>
+      <br/>
+      <button onclick="exportPDF()">📝 Player PDF</button>
+      <button onclick="exportPDF('chartSquadra')">📸 Team PDF</button>
+      <button onclick="exportPDF('heatmapChart')">📸 heatmapChart PDF</button>
+    </div>
+
+    <h2>👥 Confronto Giocatori</h2>
+    <canvas id="chartPlayers" height="300"></canvas>
+
+    <h2>🎯 Media Squadra</h2>
+    <canvas id="chartSquadra" height="300"></canvas>
+
+    <h2>📆 Heatmap Settimanale</h2>
+    <canvas id="heatmapChart" height="300"></canvas>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+

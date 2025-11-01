@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro Allenamento Statica</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+    h2 { margin-top: 0; }
+    .player-row { background: #fff; padding: 10px; margin-bottom: 12px; border-radius: 6px; box-shadow: 0 0 4px rgba(0,0,0,0.1); }
+    .player-name { font-weight: bold; margin-bottom: 6px; }
+    .status-options { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+    .status-options label { padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    .status-options input[type="radio"] { accent-color: black; }
+    .presente { background-color: #c6f6c6; }
+    .assente { background-color: #f6c6c6; }
+    .ritardo { background-color: #a6e4ff; }
+    .infortunato { background-color: #fff7b0; }
+    .nd { background-color: #dcdcdc; }
+    .note-field { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+    .date-field { margin: 20px 0; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    #result { margin-top: 15px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>Registro Allenamento - Statica</h2>
+
+  <div class="date-field">
+    <label for="trainingDate">📅 Data allenamento: </label>
+    <input type="date" id="trainingDate" required>
+  </div>
+
+  <form id="attendanceForm">
+    <div id="playersList">
+
+<!-- ↓↓↓ GIOCATORI ORDINATI ↓↓↓ -->
+
+
+<div class="player-row" style="display: flex; align-items: center; gap: 16px;">
+ <div class="player-name">AGRIGOROAEI</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="AGRIGOROAEI" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="AGRIGOROAEI" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="AGRIGOROAEI" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="AGRIGOROAEI" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="AGRIGOROAEI" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="AGRIGOROAEI_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row" style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">AIT</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="AIT" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="AIT" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="AIT" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="AIT" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="AIT" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="AIT_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row" style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">ARCIDIACONO</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="ARCIDIACONO" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="ARCIDIACONO" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="ARCIDIACONO" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="ARCIDIACONO" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="ARCIDIACONO" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="ARCIDIACONO_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row" style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">BARUZZI</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="BARUZZI" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="BARUZZI" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="BARUZZI" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="BARUZZI" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="BARUZZI" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="BARUZZI_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row" style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">BENALLAL</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="BENALLAL" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="BENALLAL" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="BENALLAL" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="BENALLAL" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="BENALLAL" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="BENALLAL_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row" style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">BUSHI</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="BUSHI" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="BUSHI" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="BUSHI" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="BUSHI" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="BUSHI" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="BUSHI_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row" style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">CENTANNI</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="CENTANNI" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="CENTANNI" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="CENTANNI" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="CENTANNI" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="CENTANNI" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="CENTANNI_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">FALZONI</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="FALZONI" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="FALZONI" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="FALZONI" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="FALZONI" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="FALZONI" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="FALZONI_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">FARINA</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="FARINA" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="FARINA" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="FARINA" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="FARINA" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="FARINA" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="FARINA_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">FORESTIERO</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="FORESTIERO" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="FORESTIERO" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="FORESTIERO" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="FORESTIERO" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="FORESTIERO" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="FORESTIERO_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">GALLALA</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="GALLALA" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="GALLALA" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="GALLALA" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="GALLALA" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="GALLALA" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="GALLALA_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">GEMINIANI</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="GEMINIANI" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="GEMINIANI" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="GEMINIANI" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="GEMINIANI" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="GEMINIANI" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="GEMINIANI_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">GNOFFO</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="GNOFFO" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="GNOFFO" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="GNOFFO" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="GNOFFO" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="GNOFFO" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="GNOFFO_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">GRANO</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="GRANO" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="GRANO" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="GRANO" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="GRANO" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="GRANO" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="GRANO_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">GRECA</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="GRECA" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="GRECA" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="GRECA" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="GRECA" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="GRECA" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="GRECA_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">GUEYE</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="GUEYE" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="GUEYE" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="GUEYE" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="GUEYE" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="GUEYE" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="GUEYE_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">IANIGRO</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="IANIGRO" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="IANIGRO" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="IANIGRO" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="IANIGRO" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="IANIGRO" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="IANIGRO_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">MASHA</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="MASHA" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="MASHA" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="MASHA" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="MASHA" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="MASHA" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="MASHA_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">MHILLAJ</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="MHILLAJ" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="MHILLAJ" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="MHILLAJ" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="MHILLAJ" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="MHILLAJ" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="MHILLAJ_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">NDOJ</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="NDOJ" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="NDOJ" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="NDOJ" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="NDOJ" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="NDOJ" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="NDOJ_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+<div class="player-row"  style="display: flex; align-items: center; gap: 16px;">
+  <div class="player-name">ZITOUNI</div>
+  <div class="status-options">
+    <label class="presente"><input type="radio" name="ZITOUNI" value="P" CHECKED>Presente</label>
+    <label class="assente"><input type="radio" name="ZITOUNI" value="A">Assente</label>
+    <label class="ritardo"><input type="radio" name="ZITOUNI" value="R">Ritardo</label>
+    <label class="infortunato"><input type="radio" name="ZITOUNI" value="I">Infortunato</label>
+    <label class="nd"><input type="radio" name="ZITOUNI" value="N">Non Disponibile</label>
+  </div>
+  <input type="text" name="ZITOUNI_nota" class="note-field" placeholder="Nota (opzionale)">
+</div>
+
+<!--- finre giocatori -->
+    </div>
+    <input type="hidden" name="sheetName" value="presenze">
+    <button type="submit">📤 Invia presenze</button>
+  </form>
+  <div id="result"></div>
+
+  <script>
+//  const sheetEndpoint = "https://script.google.com/macros/s/AKfycbzbkybxb3CAioDPar8WxJaS_rAURnIR0KS_ZI523zsIEvZLGShU_iveqIlYZxKOHUoNxA/exec"; // 🔁 Sostituisci con il tuo ID Web App
+    const sheetEndpoint = "https://script.google.com/macros/s/AKfycbzk61jWP5cOwn0qzDDw7QJfkgiuVJmswCblBxYKItglyp3VNxTMJaZDTdgm1capZ36Inw/exec";
+
+    document.getElementById("attendanceForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const date = document.getElementById("trainingDate").value;
+      if (!date) return alert("Inserisci la data dell’allenamento.");
+      const data = { date, players: {} };
+      const inputs = document.querySelectorAll(".player-row");
+      inputs.forEach(row => {
+        const name = row.querySelector(".player-name").textContent;
+        const status = row.querySelector(`input[name="${name}"]:checked`);
+        const note = row.querySelector(`input[name="${name}_nota"]`).value.trim();
+        data.players[name] = {
+          stato: status ? status.value : "Non compilato",
+          nota: note
+        };
+      });
+      fetch(sheetEndpoint, {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      })
+      .then(r => r.ok ? r.text() : Promise.reject("Invio fallito"))
+      .then(() => {
+        document.getElementById("result").innerText = "✅ Presenze inviate con successo!";
+        document.getElementById("attendanceForm").reset();
+      })
+      .catch(err => {
+        document.getElementById("result").innerText = "❌ Errore: " + err;
+      });
+    });
+  </script>
+</body>
+</html>

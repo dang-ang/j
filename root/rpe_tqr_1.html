@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rilevazione RPE Giocatori</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the Inter font and general aesthetics */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-grey background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top to prevent content overflow */
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 90%; /* Responsive width */
+            width: 1000px; /* Max width for larger screens */
+            margin-top: 20px; /* Space from top */
+        }
+        table {
+            width: 100%;
+            border-collapse: separate; /* Allows border-radius on cells */
+            border-spacing: 0 10px; /* Space between rows */
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0; /* Light border for separation */
+        }
+        th {
+            background-color: #edf2f7; /* Lighter header background */
+            font-weight: 600;
+            color: #2d3748;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        tr:last-child td {
+            border-bottom: none; /* No border for the last row */
+        }
+        /* Style for the slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #cbd5e0; /* Light grey track */
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+            border-radius: 5px;
+        }
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4299e1; /* Blue thumb */
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #4299e1;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50; /* Green for success */
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .message-box.show {
+            opacity: 1;
+        }
+        .message-box.error {
+            background-color: #f44336; /* Red for error */
+        }
+        .send-row-btn {
+            background-color: #10B981; /* Emerald green */
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .send-row-btn:hover {
+            background-color: #059669; /* Darker emerald */
+        }
+        .send-row-btn:disabled {
+            background-color: #9CA3AF; /* Gray when disabled */
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Rilevazione RPE Giocatori</h1>
+
+        <div class="overflow-x-auto">
+            <table id="rpeTable" class="min-w-full bg-white rounded-lg shadow-md">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider rounded-tl-lg">Giocatore</th>
+                        <th class="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">RPE (0-10)</th>
+                        <th class="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Valore RPE</th>
+                        <th class="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Data/Ora Rilievo</th>
+                        <th class="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider rounded-tr-lg">Azione</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Player rows will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex justify-center mt-8 space-x-4">
+            <button id="submitAllBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                Invia Tutti i Dati Rilevati
+            </button>
+        </div>
+
+        <!-- Message Box for feedback -->
+        <div id="messageBox" class="message-box"></div>
+    </div>
+
+    <script>
+        // Array of player names
+        const players = [
+            "AGRIGOROAEI", "AIT", "ARCIDIACONO", "BARUZZI", "BENALLAL", "BUSHI", "CENTANNI",
+            "FALZONI", "FARINA", "FORESTIERO", "GALLALA", "GEMINIANI", "GNOFFO", "GRANO",
+            "GRECA", "GUEYE", "IANIGRO", "MASHA", "MHILLAJ", "NDOJ", "ZITOUNI"
+        ];
+
+        // IMPORTANT: Replace this with your Google Apps Script Web App URL
+        // You will get this URL after deploying your Google Apps Script.
+        // See instructions below for setting up the Google Apps Script.
+//        const GOOGLE_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxoXC2KT-8dPYE_q47WHANaPHBVBdumNbVMvqkD2EWC8naS-gYrvgrBdzMdIckctFjjUQ/exec';  // rpe_tqr.html
+// rpe_tqr_1.html =>> rpe_tqr xls 
+// const GOOGLE_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxoXC2KT-8dPYE_q47WHANaPHBVBdumNbVMvqkD2EWC8naS-gYrvgrBdzMdIckctFjjUQ/exec';
+
+// rpe_tqr.html =>> rpe_tqr xls 
+const GOOGLE_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxEgGXoyVTEYKmbBojZsFVbMg-GcBhotm07V96w19mOruU0OUeNhMi_zt5VuI6w864yxQ/exec';
+
+        const rpeTableBody = document.querySelector('#rpeTable tbody');
+        const submitAllButton = document.getElementById('submitAllBtn'); // Renamed from submitBtn
+        const messageBox = document.getElementById('messageBox');
+
+        /**
+         * Displays a message in a custom message box.
+         * @param {string} message The message to display.
+         * @param {boolean} isError True if it's an error message, false for success.
+         */
+        function showMessage(message, isError = false) {
+            messageBox.textContent = message;
+            messageBox.classList.remove('error');
+            if (isError) {
+                messageBox.classList.add('error');
+            }
+            messageBox.classList.add('show');
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000); // Message disappears after 3 seconds
+        }
+
+        /**
+         * Formats a Date object into a readable "DD/MM/YYYY HH:MM:SS" string.
+         * @param {Date} date The date object to format.
+         * @returns {string} The formatted date string.
+         */
+        function formatDateTime(date) {
+            const pad = (num) => num.toString().padStart(2, '0');
+            const day = pad(date.getDate());
+            const month = pad(date.getMonth() + 1); // Months are 0-indexed
+            const year = date.getFullYear();
+            const hours = pad(date.getHours());
+            const minutes = pad(date.getMinutes());
+            const seconds = pad(date.getSeconds());
+            return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+        }
+
+
+
+             async function sendDataToGoogleSheets(data, buttonToDisable = null) {
+                if (GOOGLE_WEB_APP_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE' || !GOOGLE_WEB_APP_URL) {
+                    showMessage('Errore: Devi configurare l\'URL della Web App di Google Apps Script.', true);
+                    return false;
+                }
+
+                if (data.length === 0) {
+                    showMessage('Nessun dato da inviare.', true);
+                    return false;
+                }
+
+                // Disabilita i bottoni
+                if (buttonToDisable) buttonToDisable.disabled = true;
+                else submitAllButton.disabled = true;
+
+                try {
+                    const response = await fetch(GOOGLE_WEB_APP_URL, {
+                        method: 'POST',
+                        // Rimuovi 'mode: no-cors'
+                        mode: 'no-cors',
+                        cache: 'no-cache',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ data: data }) // Invia i dati dentro un oggetto 'data'
+                    });
+                    console.log(response);
+                    console.log('status:'+response.status);
+                    console.log('statusText:'+response.statusText);
+                    console.log('ok:'+response.ok);
+                    console.log('json.length:'+response.json.length);
+
+                    const result = await response.json(); // Aspetta una risposta JSON dal server
+
+                    if (result.status === 'success') {
+                        showMessage('web_ok:Dati inviati con successo!', false);
+                        return true;
+                    } else {
+                        // Mostra l'errore specifico proveniente dallo script di Google
+                        throw new Error(result.message || 'web_err.1:Errore sconosciuto dallo script.');
+                    }
+
+                } catch (error) {
+                    console.error('web_err.2:Errore durante l\'invio dei dati:', data);
+                    showMessage(`web_err.2:Errore: ${error.message}`, true);
+                    return false;
+                } finally {
+                    // Riabilita i bottoni
+                    if (buttonToDisable) buttonToDisable.disabled = false;
+                    else submitAllButton.disabled = false;
+                }
+            }
+
+
+
+        /**
+         * Populates the table with player rows, sliders, and initial values.
+         *                          ----------------------------------
+         */
+        function populateTable() {
+            players.forEach(player => {
+                const row = rpeTableBody.insertRow();
+                row.classList.add('hover:bg-gray-50'); // Hover effect for rows
+
+                // Player Name Cell
+                const playerCell = row.insertCell();
+                playerCell.textContent = player;
+                playerCell.classList.add('px-6', 'py-4', 'whitespace-nowrap', 'text-sm', 'font-medium', 'text-gray-900', 'rounded-l-lg');
+
+                // RPE Slider Cell
+                const sliderCell = row.insertCell();
+                sliderCell.classList.add('px-6', 'py-4', 'whitespace-nowrap', 'text-sm', 'text-gray-700');
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.min = '0';
+                slider.max = '10';
+                slider.value = '0'; // Default RPE value
+                slider.step = '1';
+                slider.classList.add('w-full');
+                slider.title = `RPE: ${slider.value}`; // Set initial tooltip
+                sliderCell.appendChild(slider);
+
+                // RPE Value Display Cell
+                const valueCell = row.insertCell();
+                valueCell.textContent = slider.value;
+                valueCell.classList.add('px-6', 'py-4', 'whitespace-nowrap', 'text-sm', 'text-gray-700');
+                valueCell.setAttribute('data-rpe-value', ''); // Custom attribute to easily find this cell
+
+                // Timestamp Cell
+                const timestampCell = row.insertCell();
+                timestampCell.textContent = ''; // Initially empty
+                timestampCell.classList.add('px-6', 'py-4', 'whitespace-nowrap', 'text-sm', 'text-gray-500');
+                timestampCell.setAttribute('data-timestamp', ''); // Custom attribute to easily find this cell
+
+                // Action Cell (for individual send button)
+                const actionCell = row.insertCell();
+                actionCell.classList.add('px-6', 'py-4', 'whitespace-nowrap', 'text-sm', 'text-gray-700', 'rounded-r-lg');
+                const sendRowButton = document.createElement('button');
+                sendRowButton.textContent = 'Invia';
+                sendRowButton.classList.add('send-row-btn');
+                sendRowButton.disabled = true; // Disable initially until RPE is set
+                actionCell.appendChild(sendRowButton);
+
+
+                // Event listener for slider changes
+                slider.oninput = function() {
+                    valueCell.textContent = this.value;
+                    this.title = `RPE: ${this.value}`; // Update tooltip on slider change
+                    const now = new Date();
+                    timestampCell.textContent = formatDateTime(now);
+                    sendRowButton.disabled = false; // Enable send button when RPE is set
+                };
+
+                // Event listener for individual row send button
+                sendRowButton.onclick = async function() {
+                    const playerName =playerCell.textContent;
+                    const rpeValue = slider.value;
+                    const timestamp = timestampCell.textContent;
+                           
+                    if (!timestamp) {
+                        showMessage('Imposta prima il valore RPE per inviare questa riga.', true);
+                        return;
+                    }
+
+                    const playerData = {
+                        name: playerName,
+                        email: "ppippo@email",  // new 
+                        rpe: rpeValue,
+                        timestamp: timestamp
+                    };
+
+                    const success = await sendDataToGoogleSheets([playerData], sendRowButton);
+                    if (success) {
+                        // Optionally, reset the slider and timestamp for this row after sending
+                            /* slider.value = '0';
+                            slider.title = `RPE: ${slider.value}`; // Reset tooltip
+                            valueCell.textContent = '0';
+                            timestampCell.textContent = '';
+                            */
+                       console.log('Data:'+playerData)
+                       sendRowButton.disabled = true; // Disable button again after sending
+                    }
+                };
+            });
+        }
+
+        /*********************************************************************
+         * Handles the submission of all detected RPE data to Google Sheets.
+         *                       --------
+         */
+        async function submitAllData() {
+            const dataToSend = [];
+            const rows = rpeTableBody.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const playerName = row.cells[0].textContent;
+                const rpeValue = row.querySelector('input[type="range"]').value;
+                const timestamp = row.querySelector('[data-timestamp]').textContent;
+               
+                // Only include data if RPE has been set (i.e., timestamp is not empty)
+                if (timestamp) {
+                    dataToSend.push({
+                        name: playerName,
+                        email: "ppippo@email",  // new 
+                        rpe: rpeValue,
+                        timestamp: timestamp
+                    });
+                }
+            });
+
+            if (dataToSend.length === 0) {
+                showMessage('Nessun dato RPE da inviare. Muovi gli slider per registrare i valori.', true);
+                return;
+            }
+
+            const success = await sendDataToGoogleSheets(dataToSend);
+            if (success) {
+                // Optionally, reset sliders and timestamps after successful submission
+                rows.forEach(row => {
+                    row.querySelector('input[type="range"]').value = '0';
+                    row.querySelector('input[type="range"]').title = `RPE: 0`; // Reset tooltip
+                    row.querySelector('[data-rpe-value]').textContent = '0';
+                    row.querySelector('[data-timestamp]').textContent = '';
+                    row.querySelector('.send-row-btn').disabled = true; // Disable individual send button
+                });
+            }
+        }
+
+        // Initialize the table when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            populateTable();
+            submitAllButton.addEventListener('click', submitAllData);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+/* 🎨 Reset base */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f6f9;
+}
+
+/* 🔘 Hamburger */
+.menu-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background: none;
+  border: none;
+  font-size: 1.8em;
+  z-index: 1100;
+  color: #2e8b57;
+  cursor: pointer;
+}
+
+/* 🟩 Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -250px;
+  width: 250px;
+  height: 100vh;
+  background-color: #2e8b57;
+  color: white;
+  padding: 20px;
+  transition: left 0.3s ease;
+  z-index: 1000;
+}
+.sidebar.active {
+  left: 0;
+}
+.nav-list {
+  list-style: none;
+  padding: 0;
+}
+.nav-list li {
+  margin: 20px 0;
+}
+.nav-list a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+.nav-list a:hover {
+  text-decoration: underline;
+}
+
+/* 🕶️ Overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.3);
+  display: none;
+  z-index: 999;
+}
+.overlay.active {
+  display: block;
+}
+
+/* 🧱 Contenuto */
+.main-content {
+  padding: 30px;
+}
+.breadcrumb {
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: #2e8b57;
+}
+
+
+.main-content iframe {
+  width: 100%;
+  height: calc(100vh - 80px); /* adatta secondo header */
+  border: none;
+}

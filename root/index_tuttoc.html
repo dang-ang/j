@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sidebar da Sinistra + Hamburger a Destra</title>
+
+ <style>
+        body, html {
+        margin: 0;
+        height: 100%;
+        font-family: 'Segoe UI', sans-serif;
+        background-color: white;
+        }
+
+        .container {
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+        position: relative;
+        }
+
+        #sidebar {
+        position: absolute;
+        top: 0;
+        left: -220px; /* sidebar nascosto all'inizio */
+        width: 220px;
+        height: 100%;
+        transition: left 0.3s ease;
+        z-index: 1000;
+        border: none;
+        }
+
+        #sidebar.visibile {
+        left: 0;
+        }
+
+        #frame-content {
+        flex: 1;
+        width: 100%;
+        border: none;
+        background-color: white;
+        }
+
+        .toggle-button {
+        position: fixed;
+        top: 1rem;
+        right: 1rem; /* spostato a destra */
+        z-index: 1100;
+        font-size: 1.5rem;
+        background-color: #333;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        }
+
+        </style>
+
+  <script>
+    function caricaContenuto(pagina) {
+      document.getElementById("frame-content").src = pagina;
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      sidebar.classList.toggle("visibile");
+    }
+  </script>
+</head>
+<body>
+  <!-- Bottone hamburger in alto a destra -->
+  <button class="toggle-button" onclick="toggleSidebar()">☰</button>
+
+  <div class="container">
+    <iframe src="sidebar.html" id="sidebar" title="Menu" frameborder="0"></iframe>
+    <iframe id="frame-content" src="tuttocampo.html" title="Contenuto" frameborder="0"></iframe>
+  </div>
+</body>
+</html>

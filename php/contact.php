@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us</title>
+    <link rel="stylesheet" href="css/style_p.css"> <!-- Link your custom stylesheet -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        /* Email-like container styling */
+        .email-container {
+            background-color: #f4f7fc;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 30px auto;
+        }
+
+        .email-header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .email-body {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .email-footer {
+            background-color: #f9f9f9;
+            padding: 10px;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .email-footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <?php include 'navbar.php'; ?>
+
+    <div class="container my-4">
+        <h1>Contact Us</h1>
+
+        <!-- Email-like layout container -->
+        <div class="email-container">
+            <div class="email-header">
+                Vacation Hub - Contact Us
+            </div>
+
+            <div class="email-body">
+                <h4>Send us an email:</h4>
+                <p>If you have any questions or inquiries, feel free to contact us at:</p>
+                <p><strong>Email:</strong> <a href="hr-team@vacation.io">hr-team@vacation.io</a></p>
+                <p>We’ll get back to you as soon as possible!</p>
+            </div>
+
+            <div class="email-footer">
+                <p>Thank you for reaching out to us!</p>
+                <p><a href="../index.php">Back to Home</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Test POST a Google Apps Script</title>
+</head>
+<body>
+  <h1>Invia POST al Web App</h1>
+  <button onclick="sendData()">Invia Dati</button>
+
+  <script>
+/*
+const webapp_urp="https://script.google.com/macros/s/AKfycbxoXC2KT-8dPYE_q47WHANaPHBVBdumNbVMvqkD2EWC8naS-gYrvgrBdzMdIckctFjjUQ/exec"; 
+const webapp_url="https://script.google.com/macros/s/AKfycbwJtVADrZoF7tbGVkuOIVjU0KAsDBM_YsRL8aTq8ZMZPkPk8dDnocdZxRFQuOHBLIKiMQ/exec";
+*/
+const webapp_url = "https://script.google.com/macros/s/AKfycbxDXchY5hWghV00icCQn_0mKt8NsBS0DbQUmoMhfUcE3n5soK2xJyGcHityWBIJFwlm/exec"; <!-- v14.47 -->
+                                                      
+
+    function sendData() {
+      
+      console.log('Attempting fetch with POST method : '+ JSON.stringify({ nome: "Ad", ora: new Date().toLocaleString(), dataOra:new Date().toLocaleString()  }) );
+
+      fetch(webapp_url, {
+        redirect: "follow",
+        method: "POST",
+        mode: "no-cors", // Crucial for opaque response
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        body: JSON.stringify({ nome: "Ad", ora: new Date().toLocaleString(), dataOra:new Date().toLocaleString()  })
+      })
+      /*
+      .then(response => response.json())
+      .then(data => {
+        console.log("Risposta dal server:", data);
+        alert("Dati inviati con successo!");
+      })
+
+      */
+
+      /*
+     .then(response => response.text()),
+      .then(text => {
+        if (text.trim()) {
+          const json = JSON.parse(text);
+          console.log('Success !:', json);
+        } else {
+          console.warn('Warning ! Empty response received !!');
+        }
+      })
+      .catch(error => {
+        console.error("Error !! Errore durante il POST:", error );
+        alert("Error !! Errore durante l'invio del POST !!");
+      });
+      */
+
+      /*
+      .then(response => response.text())
+      .then(data => {
+        console.log("Risposta dal server:", response.text());
+        alert("Dati inviati con successo!");
+      })
+      */
+
+      .then(response => {
+      // Controlla se la risposta è OK (status 200)
+      if (!response.ok) {
+        throw new Error('Errore HTTP, status: ' + response.status);
+      }
+      // Se ti aspetti testo
+      return response.text(); 
+      // Se ti aspetti JSON
+      // return response.json(); 
+      })
+      .then(data => {
+        console.log('Risposta da GAS:', data);
+        // Fai qualcosa con la risposta
+      })
+      .catch(error => {
+        console.error('Errore durante la richiesta:', error);
+      });
+
+    }
+  </script>
+</body>
+</html>

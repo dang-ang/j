@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+  </head>
+  <body>
+    <form id="myForm">
+      <input type="text" name="Giocatore" placeholder="Giocatore" />
+      <input type="text" name="RPE" placeholder="RPE" />
+      <button type="submit">Submit</button>
+    </form>
+
+    <script nonce="dBHn_ASTN0klMDGdYoPsZw"> <!-- dire al browser auorizzato-->
+      document.getElementById("myForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const data = {
+          name: e.target.Giocatore.value,
+          country: e.target.RPE.value
+        };
+
+        fetch('https://script.google.com/macros/s/AKfycbwssqh4NY-GP7uxNsx7lqBrS5QpiE-GSYgY5uTh9uhfCHm3r0NXLvN6ci693VSYDaWkow/exec', {
+          method: "POST",
+          // method: "GET",
+           mode: 'no-cors', // Importante per questo tipo di richiesta
+          cache: 'no-cache',
+          headers: {
+            "Content-Type": "application/json"
+          },
+          // body: JSON.stringify(data)
+        })
+        .then(response => response.text())
+        .then(result => alert(result))
+        .catch(error => alert("Errore: " + error));
+      });
+    </script>
+  </body>
+</html>

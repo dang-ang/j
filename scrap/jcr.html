@@ -1,0 +1,36 @@
+import requests
+from bs4 import BeautifulSoup
+
+# URL della pagina della squadra Juvenilia
+url = "https://www.romagnasport.com/tuttocalcio/classifica.php?gir=219"
+
+headers = {
+    "User-Agent": "Mozilla/5.0"
+}
+
+response = requests.get(url, headers=headers)
+soup = BeautifulSoup(response.text, 'html.parser')
+
+# Cerca il link alla rosa della squadra
+juvenilia_link = None
+for a in soup.find_all('a', href=True):
+    if "Juvenilia" in a.text:
+        juvenilia_link = a['href']
+        break
+
+if juvenilia_link:
+    full_url = "https://www.romagnasport.com" + juvenilia_link
+    team_page = requests.get(full_url, headers=headers)
+    team_soup = BeautifulSoup(team_page.text, 'html.parser')
+
+    # Estrai i nomi dei giocatori (esempio, da adattare alla struttura reale)
+    players = []
+    for row in team_soup.select(".giocatore"):  # Verifica la classe corretta
+        name = row.get_text(strip=True)
+        players.append(name)
+
+    print("Giocatori Juvenilia 2024:")
+    for player in players:
+        print(player)
+else:
+    print("Link alla rosa della Juvenilia non trovato.")

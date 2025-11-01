@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selected Player</title>
+</head>
+<body>
+  <h1>Selected Player</h1>
+  <p id="selectedPlayer"></p>
+
+  <script>
+    // Extract the player name from the URL query string
+    const urlParams = new URLSearchParams(window.location.search);
+    const player = urlParams.get('player');
+
+    // Display the selected player
+    const playerDisplay = document.getElementById('selectedPlayer');
+    if (player) {
+      playerDisplay.textContent = `You selected: ${player}`;
+    } else {
+      playerDisplay.textContent = 'No player selected.';
+    }
+  </script>
+</body>
+</html>

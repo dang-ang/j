@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grafici Parametri Giocatore</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f0f0f0;
+    }
+
+    h2 {
+      color: #333;
+      text-align: center;
+    }
+
+    #graficiContainer {
+     /* display: flex; */
+      display: block;
+      overflow-x: auto;
+     /* flex-direction: column; */
+      gap: 30px;
+      padding: 20px;
+    }
+
+    canvas {
+      min-width: 600px;
+      height: 400px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    #message {
+      text-align: center;
+      color: red;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h2 id="playerName"></h2>
+
+  <div id="graficiContainer">
+    <div><canvas id="graficoSforzo"></canvas> </div>
+    <div><canvas id="graficoRecupero"></canvas></div>
+    <div><canvas id="graficoStanchezza"></canvas></div>
+    
+  </div>
+  <p id="message"></p>
+
+  <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycby-14UNnIFbdh9-O0kNXnJNENYGy7OceIIBNJ_tTa1lZQOWkAuHgvHIrL68TOadoYNv/exec";
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const nome = urlParams.get("nome");
+
+      if (!nome) {
+        document.getElementById("message").textContent = "⚠️ Nessun nome giocatore specificato nell'URL.";
+        return;
+      }
+
+//      caricaDati(nome, "attendance", "graficoPresenze","Presenze ");
+      caricaDati(nome, "rpe", "graficoSforzo","Sforzo ");
+      caricaDati(nome, "recovery", "graficoRecupero"," Recupero");
+      caricaDati(nome, "fatigue", "graficoStanchezza"," Stanchezza");
+    });
+
+    async function caricaDati(nome, parametro, canvasId, titleChart) {
+      const messageDiv = document.getElementById("message");
+
+      try {
+        const response = await fetch(`${endpoint}?player=${nome}&parameter=${parametro}`);
+        const dati = await response.json();
+
+        if (dati.error) {
+          messageDiv.textContent = "";
+          alert(dati.error);
+          return;
+        }
+
+        const aggregati = {};
+        let titoloData = "";
+
+        dati.forEach(entry => {
+          if (entry.player === nome) {
+            const data = entry.data;
+            const valoreNumerico = parseFloat(entry.valore);
+            const targetNumerico = parseFloat(entry.Team);
+
+            if (!isNaN(valoreNumerico)) {
+              if (!aggregati[data]) {
+                aggregati[data] = { valori: [], targets: [] };
+              }
+              aggregati[data].valori.push(valoreNumerico);
+              if (!isNaN(targetNumerico)) {
+                aggregati[data].targets.push(targetNumerico);
+              }
+            }
+
+            if (!titoloData && entry._Data_) {
+              titoloData = entry._Data_;
+            }
+          }
+        });
+
+        const date = [];
+        const valoriMedi = [];
+        const targetMedi = [];
+        const dateDuplicate = [];
+
+        for (const data in aggregati) {
+          const valori = aggregati[data].valori;
+          const targets = aggregati[data].targets;
+
+          const mediaValori = valori.reduce((a, b) => a + b, 0) / valori.length;
+          const mediaTarget = targets.length > 0 ? targets.reduce((a, b) => a + b, 0) / targets.length : null;
+
+          const etichetta = valori.length > 1 ? `${data}*` : data;
+          if (valori.length > 1) dateDuplicate.push(data);
+
+          date.push(etichetta);
+          valoriMedi.push(parseFloat(mediaValori.toFixed(2)));
+          targetMedi.push(mediaTarget !== null ? parseFloat(mediaTarget.toFixed(2)) : null);
+        }
+
+        messageDiv.textContent = dateDuplicate.length > 0
+          ? `⚠️ Valori multipli trovati per le seguenti date: ${dateDuplicate.join(", ")}`
+          : "";
+
+        const maxVisualizzati = 20;
+        const startIndex = Math.max(0, date.length - maxVisualizzati);
+
+        const dateVisibili = date.slice(startIndex);
+        const valoriVisibili = valoriMedi.slice(startIndex);
+        const targetVisibili = targetMedi.slice(startIndex);
+
+        disegnaGrafico(dateVisibili, valoriVisibili, targetVisibili, parametro, nome, titoloData, canvasId, titleChart);
+      } catch (error) {
+        console.error("Errore nel recupero dei dati:", error);
+        messageDiv.textContent = "Errore nel caricamento dei dati.";
+        alert("Errore nel caricamento dei dati.");
+      }
+    }
+
+    function disegnaGrafico(date, valori, target, parametro, nome, titoloData, canvasId, titleChart) {
+      const ctx = document.getElementById(canvasId).getContext("2d");
+ 
+        playerName.textContent = nome + ' registrazione dati';
+
+      if (window[canvasId] instanceof Chart) {
+        window[canvasId].destroy();
+        }
+
+  const coloriTarget = target.map((t, i) => {
+    const v = valori[i];
+    if (t === null || v === null) return "rgba(200,200,200,0.5)";
+    return v < t ? "rgba(255, 0, 0, 1)" : "rgba(0, 200, 0, 1)";
+  });
+
+  const datasets = [
+    {
+      label: `${nome}`,
+      data: valori,
+      type: "bar",
+      backgroundColor: "rgba(54, 162, 235, 0.6)",
+      borderColor: "rgba(54, 162, 235, 1)",
+      borderWidth: 1
+    },
+    {
+      label: "Media Squadra",
+      data: target,
+      type: "line",
+      borderColor: "rgba(255, 165, 0, 1)",
+      backgroundColor: "rgba(255, 165, 0, 0.2)",
+      borderWidth: 2,
+      pointRadius: 4,
+      pointBackgroundColor: coloriTarget,
+      pointBorderColor: coloriTarget,
+      tension: 0.3
+    }
+  ];
+
+  window[canvasId] = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: date,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          // text: `${parametro.toUpperCase()} - ${nome}`,
+          text: `${titleChart}`,
+         // text: `${titleChart} - ${nome}`,
+          font: { size: 18 }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const valore = context.raw;
+              return valore === null ? "Dato mancante" : `${context.dataset.label}: ${valore}`;
+            }
+          }
+        },
+        legend: {
+          labels: {
+            filter: function(item) {
+              return item.text !== "-";
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: "Data" },
+          ticks: {
+            autoSkip: false,
+            maxRotation: 45,
+            minRotation: 45
+          }
+        },
+        y: {
+          min: 1,
+          max: 10,
+          title: { display: true, text: parametro },
+          ticks: { stepSize: 1 }
+        }
+      }
+    }
+  });
+}
+
+  </script>
+
+  <script>
+  function inviaAltezza() {
+    const altezza = document.body.scrollHeight;
+    window.parent.postMessage({ altezza: altezza }, "*");
+  }
+
+  window.addEventListener("load", inviaAltezza);
+  window.addEventListener("resize", inviaAltezza);
+</script>
+
+
+</body>
+</html>

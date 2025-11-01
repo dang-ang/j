@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>RPE per Giocatore per Data</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h2>RPE per Giocatore per Data</h2>
+  <canvas id="rpeChart" width="1000" height="500"></canvas>
+
+  <script>
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycby-14UNnIFbdh9-O0kNXnJNENYGy7OceIIBNJ_tTa1lZQOWkAuHgvHIrL68TOadoYNv/exec?parameter=rpe?player=AIT'; // Sostituisci con il tuo URL GAS
+
+    fetch(GAS_URL)
+      .then(response => response.json())
+      .then(data => {
+        console.log('Dati ricevuti:', data); // <-- Aggiungi questo
+        const players = [...new Set(data.map(d => d.player))];
+        const dates = [...new Set(data.map(d => d.date))];
+
+        const datasets = dates.map(date => {
+          const rpePerPlayer = players.map(player => {
+            const entry = data.find(d => d.player === player && d.date === date);
+            return entry ? parseFloat(entry.rpe) : null;
+          });
+
+          return {
+            label: date,
+            data: rpePerPlayer,
+            backgroundColor: getColor(date),
+          };
+        });
+
+        function getColor(label) {
+          const hash = [...label].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+          const r = (hash * 3) % 255;
+          const g = (hash * 5) % 255;
+          const b = (hash * 7) % 255;
+          return `rgba(${r}, ${g}, ${b}, 0.6)`;
+        }
+
+        const ctx = document.getElementById('rpeChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: players,
+            datasets: datasets
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              title: {
+                display: true,
+                text: 'RPE per Giocatore per Data'
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false
+              }
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Giocatori'
+                }
+              },
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'RPE'
+                }
+              }
+            }
+          }
+        });
+      })
+      .catch(error => console.error('Errore nel recupero dati:', error));
+  </script>
+</body>
+</html>

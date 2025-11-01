@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Giocatore</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 25px;
+        }
+        h2#playerName {
+            color: #007bff;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .parameter-card {
+            background-color: #28a745;
+            color: white;
+            padding: 25px;
+            border-radius: 6px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100px;
+        }
+        .parameter-card:hover {
+            background-color: #11461c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .back-button {
+            margin-top: 30px;
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #3a4044;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h4>Giocatore</h4>
+        <h2 id="playerName"></h2>
+
+        <h4>Seleziona il dato da inserire:</h4>
+        <div class="parameter-grid" id="parameterGrid">
+            </div>
+
+        <a href="main.html" class="back-button">Torna alla selezione giocatori</a>
+    </div>
+
+    <script>
+        const playerNameElement = document.getElementById('playerName');
+        const parameterGrid = document.getElementById('parameterGrid');
+
+        // Aggiunto il nuovo parametro 'Presenze'
+        const parameters = [
+            { name: "PRESENZE", type: "attendance" }, // Nuovo!
+            { name: "Sforzo", type: "rpe" },
+            { name: "Recupero", type: "recovery" },
+            { name: "Stanchezza", type: "fatigue" },
+            { name: "Peso", type: "weight" },
+            { name: "Altezza", type: "height" },
+            
+            { name: "Balzo - alto", type: "balzo_alto" },
+            { name: "Balzo - avanti", type: "balzo_avanti" },
+            { name: "Velocità - 5mt", type: "speed_5" },
+            { name: "Velocità - 20mt", type: "speed_20" },
+            { name: "Velocità - 30mt", type: "speed_30" },
+            { name: "Navetta - 15mt", type: "navetta_15" },
+            { name: "Agilità [M]", type: "agility" },
+            { name: "Test Cooper - 6 min", type: "cooper_6" },
+            { name: "Test Cooper - 12 min", type: "cooper_12" },
+            { name: "Test Gacon", type: "gacon" }
+        ];
+
+        let currentPlayerName = '';
+
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            currentPlayerName = getUrlParameter('name');
+            if (currentPlayerName) {
+                playerNameElement.textContent = currentPlayerName;
+            } else {
+                playerNameElement.textContent = 'Giocatore Sconosciuto';
+                window.location.href = 'main.html';
+                return;
+            }
+
+            parameters.forEach(param => {
+                const paramLink = document.createElement('a');
+                paramLink.href = `parameter_input.html?name=${encodeURIComponent(currentPlayerName)}&paramType=${encodeURIComponent(param.type)}`;
+                paramLink.className = 'parameter-card';
+                paramLink.textContent = param.name;
+                parameterGrid.appendChild(paramLink);
+            });
+        });
+    </script>
+</body>
+</html>

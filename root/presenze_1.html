@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro Allenamento Statica</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+    h2 { margin-top: 0; }
+    .player-row {
+      background: #fff;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      box-shadow: 0 0 4px rgba(0,0,0,0.1);
+    }
+    .player-name { font-weight: bold; margin-bottom: 6px; }
+    .status-options {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .status-options label {
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-options input[type="radio"] { accent-color: black; }
+    .presente     { background-color: #c6f6c6; }
+    .assente      { background-color: #f6c6c6; }
+    .ritardo      { background-color: #a6e4ff; }
+    .infortunato  { background-color: #fff7b0; }
+    .nd           { background-color: #dcdcdc; }
+    .note-field {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .date-field { margin: 20px 0; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    #result { margin-top: 15px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>Registro Allenamento - Statica</h2>
+
+  <div class="date-field">
+    <label for="trainingDate">📅 Data allenamento: </label>
+    <input type="date" id="trainingDate" required>
+  </div>
+
+  <form id="attendanceForm">
+    <!-- Sezione giocatori -->
+    <div id="playersList">
+      <!-- Inserimento statico manuale -->
+      <!-- Generato automaticamente da Copilot con 21 giocatori -->
+      <!-- ↓↓↓ INIZIO BLOCCO GIOCATORI ↓↓↓ -->
+      <!-- Usando lo stesso schema per ciascuno -->
+      <!-- Per brevità, qui ti inserisco 3 giocatori come esempio; segue poi tutto il blocco completo in pagina Copilot Pages -->
+
+      <div class="player-row">
+        <div class="player-name">AGRIGOROAEI</div>
+        <div class="status-options">
+          <label class="presente"><input type="radio" name="AGRIGOROAEI" value="Presente">Presente</label>
+          <label class="assente"><input type="radio" name="AGRIGOROAEI" value="Assente">Assente</label>
+          <label class="ritardo"><input type="radio" name="AGRIGOROAEI" value="Ritardo">Ritardo</label>
+          <label class="infortunato"><input type="radio" name="AGRIGOROAEI" value="Infortunato">Infortunato</label>
+          <label class="nd"><input type="radio" name="AGRIGOROAEI" value="Non disponibile">ND</label>
+        </div>
+        <input type="text" name="AGRIGOROAEI_nota" class="note-field" placeholder="Nota (opzionale)">
+      </div>
+
+      <div class="player-row">
+        <div class="player-name">AIT</div>
+        <div class="status-options">
+          <label class="presente"><input type="radio" name="AIT" value="Presente">Presente</label>
+          <label class="assente"><input type="radio" name="AIT" value="Assente">Assente</label>
+          <label class="ritardo"><input type="radio" name="AIT" value="Ritardo">Ritardo</label>
+          <label class="infortunato"><input type="radio" name="AIT" value="Infortunato">Infortunato</label>
+          <label class="nd"><input type="radio" name="AIT" value="Non disponibile">ND</label>
+        </div>
+        <input type="text" name="AIT_nota" class="note-field" placeholder="Nota (opzionale)">
+      </div>
+
+      <div class="player-row">
+        <div class="player-name">ARCIDIACONO</div>
+        <div class="status-options">
+          <label class="presente"><input type="radio" name="ARCIDIACONO" value="Presente">Presente</label>
+          <label class="assente"><input type="radio" name="ARCIDIACONO" value="Assente">Assente</label>
+          <label class="ritardo"><input type="radio" name="ARCIDIACONO" value="Ritardo">Ritardo</label>
+          <label class="infortunato"><input type="radio" name="ARCIDIACONO" value="Infortunato">Infortunato</label>
+          <label class="nd"><input type="radio" name="ARCIDIACONO" value="Non disponibile">ND</label>
+        </div>
+        <input type="text" name="ARCIDIACONO_nota" class="note-field" placeholder="Nota (opzionale)">
+      </div>
+
+      <!-- 🔁 Copilot Pages includerà tutti i 21 giocatori secondo questo schema -->
+    </div>
+
+    <button type="submit">📤 Invia presenze</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    const sheetEndpoint = "https://script.google.com/macros/s/WEB_APP_ID/exec"; // 🔁 Sostituisci con il tuo URL Web App
+
+    document.getElementById("attendanceForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const date = document.getElementById("trainingDate").value;
+      if (!date) return alert("Inserisci la data dell’allenamento.");
+
+      const data = { date, players: {} };
+      const inputs = document.querySelectorAll(".player-row");
+      inputs.forEach(row => {
+        const name = row.querySelector(".player-name").textContent;
+        const status = row.querySelector(`input[name="${name}"]:checked`);
+        const note = row.querySelector(`input[name="${name}_nota"]`).value.trim();
+        data.players[name] = {
+          stato: status ? status.value : "Non compilato",
+          nota: note
+        };
+      });
+
+      fetch(sheetEndpoint, {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      })
+      .then(r => r.ok ? r.text() : Promise.reject("Invio fallito"))
+      .then(() => {
+        document.getElementById("result").innerText = "✅ Presenze inviate con successo!";
+        document.getElementById("attendanceForm").reset();
+      })
+      .catch(err => {
+        document.getElementById("result").innerText = "❌ Errore: " + err;
+      });
+    });
+  </script>
+
+</body>
+</html>

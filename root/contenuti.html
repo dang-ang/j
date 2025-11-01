@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contenuti Dinamici</title>
+  <link rel="stylesheet" href="style_content.css" />
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="logo">PlayYield</div>
+      <button class="hamburger" onclick="toggleMenu()">☰</button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index_content.html">Menu</a></li>
+        <li><a href="contenuti.html">Contenuti</a></li>
+        <li><a href="#" onclick="caricaContenuto('contenuto1.html')">Statistiche</a></li>
+        <li><a href="#" onclick="caricaContenuto('contenuto2.html')">Grafici</a></li>
+        <li><a href="#" onclick="caricaContenuto('contenuto3.html')">Moduli</a></li>
+        <li><a href="#" onclick="caricaContenuto('tuttocampo_giovanissimi.html')">Giovanissimi - BO</a></li>
+        <li><a href="#" onclick="caricaContenuto('tuttocampo_giovanissimi_ra.html')">Giovanissimi - RA</a></li>
+        <li><a href="#" onclick="caricaContenuto('tuttocampo.html')">Campionato JCR</a></li>
+        <li><a href="#" onclick="caricaContenuto('sshow_presenze.html')">Presenze</a></li>
+        <li><a href="#" onclick="caricaContenuto('sshow_rpe_rec.html')">Carico-Recupero</a></li>
+        <li><a href="#" onclick="caricaContenuto('sshow_rpe.html')">Carico</a></li>
+        <li><a href="#" onclick="caricaContenuto('sshow_rec.html')">Recupero</a></li>
+        <li><a href="#" onclick="caricaContenuto('#grafico_player.html')">Grafici Player</a></li> 
+        <li><a href="#" onclick="caricaContenuto('#grafico_giocatori.html')">Grafici grafico_giocatori</a></li> 
+        <li><a href="#" onclick="caricaContenuto('#grafico_test.html')">Test</a></li> 
+        <li><a href="#" onclick="caricaContenuto('grafico_test_player.html')">Test Pla</a></li> 
+        <li><a href="#" onclick="caricaContenuto('vgrafico_player_team.html')">GraficiTeam</a></li> 
+        <li><a href="#" onclick="caricaContenuto('main.html')">IN Training</a></li> 
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Contenuti Dinamici</h1>
+    <div id="contenuto-dinamico">
+      <p>Seleziona una sezione dal menu per visualizzare i contenuti.</p>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 PlayYield. Tutti i diritti riservati.</p>
+  </footer>
+
+  <script src="script_content.js"></script>
+</body>
+</html>

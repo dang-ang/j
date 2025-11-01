@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Player</title>
+
+  <script>
+    // Funzione per ottenere parametri URL
+    window.onload = function () {
+          const params = new URLSearchParams(window.location.search);
+          const player = params.get("player");
+          const registrato = params.get("registrato");
+
+          if (player && registrato === "1") {
+            const select = document.getElementById("player");
+            const options = select.options;
+            for (let i = 0; i < options.length; i++) {
+              if (options[i].value === player) {
+                options[i].disabled = true;
+                break;
+              }
+            }
+          }
+        };
+  </script>
+
+
+</head>
+<body>
+  <h1>Giocatore</h1>
+  <form id="playerForm" action="rpeShow.html" method="GET">
+    <label for="player">seleziona giocatore :</label>
+    <select name="player" id="player" required>
+      <option value="" disabled selected>----</option>
+      <option value="AGRIGOROAEI">AGRIGOROAEI</option>
+      <option value="AIT">AIT</option>
+      <option value="ARCIDIACONO">ARCIDIACONO</option>
+      <option value="BARUZZI">BARUZZI</option>
+      <option value="BENALLAL">BENALLAL</option>
+      <option value="BUSHI">BUSHI</option>
+      <option value="CENTANNI">CENTANNI</option>
+      <option value="FALZONI">FALZONI</option>
+      <option value="FARINA">FARINA</option>
+      <option value="FORESTIERO">FORESTIERO</option>
+      <option value="GALLALA">GALLALA</option>
+      <option value="GEMINIANI">GEMINIANI</option>
+      <option value="GNOFFO">GNOFFO</option>
+      <option value="GRANO">GRANO</option>
+      <option value="GRECA">GRECA</option>
+      <option value="GUEYE">GUEYE</option>
+      <option value="IANIGRO">IANIGRO</option>
+      <option value="MASHA">MASHA</option>
+      <option value="MHILLAJ">MHILLAJ</option>
+      <option value="NDOJ">NDOJ</option>
+      <option value="ZITOUNI">ZITOUNI</option>
+    </select>
+    <button type="submit">Submit</button>
+  </form>
+</body>
+</html>

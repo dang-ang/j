@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giocatore Selezionato</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 60px auto;
+      padding: 30px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #0078D4;
+      margin-bottom: 20px;
+    }
+
+    #selectedPlayer {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #444;
+      margin-bottom: 30px;
+    }
+
+    form label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 16px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fafafa;
+    }
+
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+
+    input[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background-color: #0078D4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #005fa3;
+    }
+
+    #backLink {
+      display: block;
+      text-align: center;
+      margin-top: 25px;
+      font-weight: bold;
+      color: #0078D4;
+      text-decoration: none;
+    }
+
+    #backLink:hover {
+      text-decoration: underline;
+    }
+
+    /* Toast Styles */
+    #toast {
+      visibility: hidden;
+      min-width: 300px;
+      margin-left: -150px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 4px;
+      padding: 12px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 30px;
+      font-size: 16px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.4s ease;
+    }
+
+    #toast.show {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Giocatore selezionato</h1>
+    <p id="selectedPlayer">NESSUNO SELEZIONATO.</p>
+
+    <h1>📤 Dati</h1>
+    <form id="submitForm">
+      <label for="name">Nome:</label>
+      <input type="text" id="name" name="name"/>
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" value="test@mail.it" readonly/>
+
+      <label for="rpe">RPE (sforzo percepito):</label>
+      <div style="position: relative; margin-bottom: 30px;">
+        <div id="rpeBars" style="display: flex; justify-content: space-between; height: 40px; margin-bottom: 10px;">
+        <!-- Barre generate via JS -->
+        </div>
+      <input type="range" id="rpe" name="rpe" min="1" max="10" value="5" style="width: 100%;" />
+      <div id="rpeTooltip" style="
+        position: absolute;
+        top: -35px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 6px 12px;
+        background: #4CAF50;  /* colore iniziale: verde */
+        color: white;
+        border-radius: 4px;
+        font-size: 14px;
+        white-space: nowrap;
+        pointer-events: none;
+        transition: background 0.3s ease;
+      ">😅 5</div>
+        <!-- Etichette descrittive -->
+  <div id="rpeLabels" style="display: flex; justify-content: space-between; font-size: 13px; margin-top: 6px; color: #555;">
+    <!-- Testi generati via JS -->
+  </div>
+    </div>
+
+      <label for="message">Nota:</label>
+      <textarea id="message" name="message"></textarea>
+
+      <input type="submit" value="Submit" />
+    </form>
+
+    <a id="backLink" href="#">← Torna alla selezione</a>
+  </div>
+
+  <div id="toast">✅ Dati inviati con successo!</div>
+
+  <script>
+      // --------------------------------------------------------
+      // Emoji dinamica in base al valore del RPE
+      const rpeSlider = document.getElementById("rpe");
+      const rpeTooltip = document.getElementById("rpeTooltip");
+      const rpeBars = document.getElementById("rpeBars");
+      const rpeLabels = document.getElementById("rpeLabels");
+
+      const emojiMap = {
+        1: "😴", 2: "😊", 3: "🙂", 4: "😐", 5: "😅",
+        6: "🥵", 7: "😖", 8: "😫", 9: "😩", 10: "💀"
+      };
+
+      const colorMap = {
+        1: "#4CAF50", 2: "#6BBF4E", 3: "#8FD142", 4: "#FFB400",
+        5: "#FFA000", 6: "#FF7043", 7: "#FF5722", 8: "#F44336",
+        9: "#D32F2F", 10: "#B71C1C"
+      };
+
+      const textMap = {
+        0: "assente", 1: "", 2: "", 3: "moderato", 4: "",
+        5: "forte", 6: "", 7: "molto forte", 8: "", 9: "", 10: "massimo"
+      };
+
+      // Crea barre e descrizioni
+      for (let i = 1; i <= 10; i++) {
+        const bar = document.createElement("div");
+        bar.style.flex = "1";
+        bar.style.margin = "0 1px";
+        bar.style.backgroundColor = colorMap[i];
+        bar.style.opacity = "0.3";
+        bar.style.borderRadius = "2px";
+        bar.dataset.level = i;
+        rpeBars.appendChild(bar);
+
+
+        const label = document.createElement("div");
+        label.style.flex = "1";
+        label.style.textAlign = "center";
+        label.textContent = textMap[i] || "";
+        rpeLabels.appendChild(label);
+      }
+
+      function updateRPE() {
+        const value = parseInt(rpeSlider.value);
+        const emoji = emojiMap[value] || "😐";
+        rpeTooltip.textContent = `${emoji} ${value}`;
+        rpeTooltip.style.backgroundColor = colorMap[value] || "#0078D4";
+
+        // Posizionamento tooltip
+        const percent = (value - 1) / 9;
+        const offset = percent * rpeSlider.offsetWidth;
+        rpeTooltip.style.left = `${offset}px`;
+
+        // Evidenzia barre
+        [...rpeBars.children].forEach(bar => {
+          bar.style.opacity = parseInt(bar.dataset.level) <= value ? "1" : "0.3";
+        });
+      }
+
+      rpeSlider.addEventListener("input", updateRPE);
+      updateRPE(); // iniziale
+
+      // --------------------------------------------------------
+
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const player = urlParams.get('player');
+    const playerDisplay = document.getElementById('selectedPlayer');
+
+    if (player) {
+      playerDisplay.textContent = `Selezionato: ${player}`;
+      document.getElementById('name').value = player;
+      document.getElementById('name').readOnly = true;        // Disabilita modifica manuale
+    }
+
+    document.getElementById("submitForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      submitForm();
+    });
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    function submitForm() {
+      const formData = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        rpe: document.getElementById("rpe").value,
+        message: document.getElementById("message").value
+      };
+
+      fetch("https://script.google.com/macros/s/AKfycbxoXC2KT-8dPYE_q47WHANaPHBVBdumNbVMvqkD2EWC8naS-gYrvgrBdzMdIckctFjjUQ/exec", {
+        method: "POST",
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.text())
+      .then(data => {
+        showToast("✅ Dati inviati con successo!");
+        document.getElementById("submitForm").reset();
+
+        const registrato = '1';
+        const backLink = document.getElementById('backLink');
+        if (player) {
+          backLink.href = `rpeSel.html?player=${encodeURIComponent(player)}&registrato=${encodeURIComponent(registrato)}`;
+        }
+      })
+      .catch(error => {
+        console.error("Errore:", error);
+        showToast("❌ Errore durante l'invio.");
+      });
+    }
+  </script>
+</body>
+</html>

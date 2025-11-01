@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Tecnica RPE</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+    h1 {
+      text-align: center;
+      color: #0078D4;
+      margin-bottom: 25px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    select, button {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    canvas {
+      margin-top: 30px;
+      margin-bottom: 50px;
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Dashboard RPE, Dolore, Recupero</h1>
+
+    <label for="viewMode">Visualizza per:</label>
+    <select id="viewMode">
+      <option value="day">Giorno</option>
+      <option value="week">Settimana</option>
+      <option value="month">Mese</option>
+      <option value="year">Anno</option>
+    </select>
+
+    <label for="playerSelect">Seleziona giocatori:</label>
+    <select id="playerSelect" multiple size="6"></select>
+
+    
+    <label for="metricSelect">Visualizza metrica:</label>
+    <select id="metricSelect">
+    <option value="all">Tutte</option>
+    <option value="rpe">Solo RPE</option>
+    <option value="pain">Solo Dolore</option>
+    <option value="recovery">Solo Recupero</option>
+    </select>
+
+    <label for="startDate">Da (data):</label>
+    <input type="date" id="startDate">
+
+    <label for="endDate">A (data):</label>
+    <input type="date" id="endDate">
+
+    <div style="text-align: right; margin-top: 10px;">
+        <button onclick="selectAllPlayers()">Seleziona tutti i giocatori</button>
+    </div>
+
+
+    <div class="btn-group">
+      <button onclick="exportChartAsPNG('playerChart')">📸 PNG Giocatori</button>
+      <button onclick="exportChartAsPDF('playerChart')">📝 PDF Giocatori</button>
+      <button onclick="exportChartAsPNG('teamChart')">📸 PNG Squadra</button>
+      <button onclick="exportChartAsPDF('teamChart')">📝 PDF Squadra</button>
+    </div>
+    <canvas id="playerChart" height="350"></canvas>
+    <canvas id="teamChart" height="350"></canvas>
+  </div>
+
+
+  <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycbx00UVcT8Ae7d8ukZ9s-TJeL9HP5gAjP9L2KfL2tUZi0LbceKW2ePV-vFLn6SLXdcRONA/exec";
+    let playerChart, teamChart;
+
+
+
+    fetch(endpoint)
+      .then(res => res.json())
+      .then(data => {
+        const valid = data.filter(d => d.name && d.rpe && d.timestamp);
+        const players = [...new Set(valid.map(d => d.name))];
+        const playerSelect = document.getElementById("playerSelect");
+
+        players.forEach(p => {
+          const opt = document.createElement("option");
+          opt.value = p;
+          opt.textContent = p;
+          playerSelect.appendChild(opt);
+        });
+
+        document.getElementById("viewMode").addEventListener("change", renderCharts);
+        playerSelect.addEventListener("change", renderCharts);
+        renderCharts();
+
+        function formatKey(dateStr, mode) {
+          const d = new Date(dateStr);
+          switch (mode) {
+            case "day": return d.toISOString().split('T')[0];
+            case "week": return `W${Math.ceil(d.getDate()/7)} ${d.getFullYear()}`;
+            case "month": return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+            case "year": return `${d.getFullYear()}`;
+            default: return d.toISOString().split('T')[0];
+          }
+        }
+
+        function average(arr) {
+          return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
+        }
+
+
+            function renderCharts() {
+            const mode = document.getElementById("viewMode").value;
+            const selected = Array.from(playerSelect.selectedOptions).map(o => o.value);
+            const metric = document.getElementById("metricSelect").value;
+
+            const grouped = {};
+                /*
+            valid.forEach(e => {
+
+                const label = formatKey(e.timestamp, mode);
+                if (!grouped[label]) grouped[label] = {};
+                if (!grouped[label][e.name]) grouped[label][e.name] = { rpe: [], pain: [], recovery: [] };
+                grouped[label][e.name].rpe.push(+e.rpe || 0);
+                grouped[label][e.name].pain.push(+e.pain || 0);
+                grouped[label][e.name].recovery.push(+e.recovery || 0);
+                */
+               
+                const start = document.getElementById("startDate").value;
+                const end = document.getElementById("endDate").value;
+
+                valid.forEach(e => {
+                const d = new Date(e.timestamp);
+                if (start && d < new Date(start)) return;
+                if (end && d > new Date(end)) return;
+
+                const label = formatKey(e.timestamp, mode);
+                if (!grouped[label]) grouped[label] = {};
+                if (!grouped[label][e.name]) grouped[label][e.name] = { rpe: [], pain: [], recovery: [] };
+                grouped[label][e.name].rpe.push(+e.rpe || 0);
+                grouped[label][e.name].pain.push(+e.pain || 0);
+                grouped[label][e.name].recovery.push(+e.recovery || 0);
+
+            });
+
+            const labels = Object.keys(grouped).sort();
+            const playerDatasets = [];
+
+            const colorMap = {
+                rpe: "#0078D4",
+                pain: "#E53935",
+                recovery: "#43A047"
+            };
+
+            selected.forEach(name => {
+                if (metric === "all" || metric === "rpe") {
+                playerDatasets.push({
+                    label: `RPE - ${name}`,
+                    data: labels.map(l => grouped[l][name] ? average(grouped[l][name].rpe) : null),
+                    borderColor: colorMap.rpe,
+                    backgroundColor: "rgba(0,120,212,0.1)",
+                    tension: 0.3,
+                    fill: false
+                });
+                }
+                if (metric === "all" || metric === "pain") {
+                playerDatasets.push({
+                    label: `Dolore - ${name}`,
+                    data: labels.map(l => grouped[l][name] ? average(grouped[l][name].pain) : null),
+                    borderColor: colorMap.pain,
+                    backgroundColor: "rgba(229,57,53,0.1)",
+                    tension: 0.3,
+                    fill: false
+                });
+                }
+                if (metric === "all" || metric === "recovery") {
+                playerDatasets.push({
+                    label: `Recupero - ${name}`,
+                    data: labels.map(l => grouped[l][name] ? average(grouped[l][name].recovery) : null),
+                    borderColor: colorMap.recovery,
+                    backgroundColor: "rgba(67,160,71,0.1)",
+                    tension: 0.3,
+                    fill: false
+                });
+                }
+            });
+
+            const teamDatasets = [];
+            ["rpe", "pain", "recovery"].forEach((key) => {
+                if (metric === "all" || metric === key) {
+                teamDatasets.push({
+                    label: `Squadra - ${key.toUpperCase()}`,
+                    data: labels.map(l => {
+                    const all = Object.values(grouped[l] || {});
+                    const values = all.flatMap(p => p[key]);
+                    return average(values);
+                    }),
+                    borderColor: colorMap[key],
+                    backgroundColor: "rgba(200,200,200,0.05)",
+                    borderDash: [5,5],
+                    tension: 0.3,
+                    fill: false
+                });
+                }
+            });
+
+            if (playerChart) playerChart.destroy();
+            playerChart = new Chart(document.getElementById("playerChart"), {
+                type: "line",
+                data: { labels, datasets: playerDatasets },
+                options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: "top" },
+                    title: { display: true, text: `Giocatori - ${mode.toUpperCase()} - ${metric.toUpperCase()}` }
+                },
+                scales: {
+                    y: { beginAtZero: true, max: 10, ticks: { stepSize: 1 } }
+                }
+                }
+            });
+
+            if (teamChart) teamChart.destroy();
+            teamChart = new Chart(document.getElementById("teamChart"), {
+                type: "line",
+                data: { labels, datasets: teamDatasets },
+                options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: "top" },
+                    title: { display: true, text: `Squadra - ${mode.toUpperCase()} - ${metric.toUpperCase()}` }
+                },
+                scales: {
+                    y: { beginAtZero: true, max: 10, ticks: { stepSize: 1 } }
+                }
+                }
+            });
+            }
+      
+        });
+
+
+
+               function selectAllPlayers() {
+                const select = document.getElementById("playerSelect");
+                for (const option of select.options) {
+                option.selected = true;
+                }
+                renderCharts();
+            }
+        
+   function exportChartAsPNG(canvasId) {
+      html2canvas(document.getElementById(canvasId)).then(canvas => {
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/png");
+        link.download = `${canvasId}.png`;
+        link.click();
+      });
+    }
+
+    function exportChartAsPDF(canvasId) {
+      html2canvas(document.getElementById(canvasId)).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF("landscape");
+        pdf.addImage(imgData, "PNG", 10, 10, 270, 160);
+        pdf.save(`${canvasId}.pdf`);
+      });
+    }
+
+  </script>
+  </body>
+  </html>

@@ -1,0 +1,311 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Grafico Parametri Giocatore</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f0f0f0;
+    }
+    h2 {
+      color: #333;
+    }
+    select {
+      margin-right: 1rem;
+      padding: 0.5rem;
+    }
+    
+    canvas {
+      margin-top: 2rem;
+      max-width: 800px;
+    }
+
+    .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+select {
+  padding: 8px 12px;
+  font-size: 16px;
+  border: 2px solid #3498db;
+  border-radius: 6px;
+  background-color: #f0f8ff;
+  color: #333;
+  appearance: none; /* Rimuove la freccia di default */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2210%22%20height%3D%227%22%20viewBox%3D%220%200%2010%207%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M0%200l5%207%205-7z%22%20fill%3D%22%233498db%22/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 10px 7px;
+  cursor: pointer;
+}
+
+select:focus {
+  outline: none;
+  border-color: #2c80b4;
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+  </style>
+</head>
+<body>
+
+  <div class="container">
+  <h2>Visualizza Parametri Giocatore</h2>
+      <label for="nomeGiocatore">Nome:</label>
+  <select id="nomeGiocatore">
+    <option value="">-- seleziona --</option>
+    <option>AGRIGOROAEI</option>
+    <option>AIT</option>
+    <option>ARCIDIACONO</option>
+    <option>BARUZZI</option>
+    <option>BENALLAL</option>
+    <option>BUSHI</option>
+    <option>CENTANNI</option>
+    <option>FALZONI</option>
+    <option>FARINA</option>
+    <option>FORESTIERO</option>
+    <option>GALLALA</option>
+    <option>GEMINIANI</option>
+    <option>GNOFFO</option>
+    <option>GRANO</option>
+    <option>GRECA</option>
+    <option>GUEYE</option>
+    <option>IANIGRO</option>
+    <option>MASHA</option>
+    <option>MHILLAJ</option>
+    <option>NDOJ</option>
+    <option>ZITOUNI</option>
+    <option>GIORDANO</option>
+    <option>LANZA</option>
+    <!-- Aggiungi altri nomi se necessario -->
+  </select>
+
+  <label for="parametro">Parametro:</label>
+  <select id="parametro">
+    <option value="attendance">PRESENZE</option>
+    <option value="rpe">Sforzo</option>
+    <option value="recovery">Recupero</option>
+    <option value="fatigue">Stanchezza</option>
+  </select>
+
+  <button >Genera Grafico</button>
+
+    <p id="message" style="text-align: center; color: red;"></p>
+    <canvas id="graficoParametri"></canvas>
+</div>
+
+
+
+
+ 
+
+  <script>
+    // const endpoint = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"; // Inserisci il tuo URL Web App
+    const endpoint = "https://script.google.com/macros/s/AKfycby-14UNnIFbdh9-O0kNXnJNENYGy7OceIIBNJ_tTa1lZQOWkAuHgvHIrL68TOadoYNv/exec"; // Inserisci il tuo URL Web App
+//  https://script.google.com/macros/s/AKfycby-14UNnIFbdh9-O0kNXnJNENYGy7OceIIBNJ_tTa1lZQOWkAuHgvHIrL68TOadoYNv/exec?player=BUSHI&parameter=rpe
+
+// per controllare se inserito un giocatore nell url 
+// Imposta il nome e parametro dai parametri URL se presenti
+window.addEventListener("DOMContentLoaded", () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const nomeParam = urlParams.get("nome");
+  const parametroParam = urlParams.get("parameter");
+
+  const selectNome = document.getElementById("nomeGiocatore");
+  const selectParametro = document.getElementById("parametro");
+
+  if (nomeParam) {
+    const option = [...selectNome.options].find(opt => opt.value === nomeParam);
+    if (option) {
+      selectNome.value = nomeParam;
+
+      // Disabilita tutte le altre opzioni
+      [...selectNome.options].forEach(opt => {
+        if (opt.value !== nomeParam && opt.value !== "") {
+          opt.disabled = true;
+        }
+      });
+    }
+  }
+
+  if (parametroParam) {
+    const option = [...selectParametro.options].find(opt => opt.value === parametroParam);
+    if (option) {
+      selectParametro.value = parametroParam;
+    }
+  }
+});
+
+
+// -------------
+document.querySelector("button").addEventListener("click", caricaDati);
+
+async function caricaDati() {
+  console.log("caricaDati called");
+
+  const messageDiv = document.getElementById("message");
+  messageDiv.textContent = "Caricamento dati...";
+
+  const nome = document.getElementById("nomeGiocatore").value;
+  const parametro = document.getElementById("parametro").value;
+
+  try {
+    const response = await fetch(`${endpoint}?player=${nome}&parameter=${parametro}`);
+    const dati = await response.json();
+
+    if (dati.error) {
+      messageDiv.textContent = "";
+      alert(dati.error);
+      return;
+    }
+
+
+    const aggregati = {};
+    let titoloData = "";
+
+    dati.forEach(entry => {
+      if (entry.player === nome) {
+        const data = entry.data;
+        const valoreNumerico = parseFloat(entry.valore);
+        const targetNumerico = parseFloat(entry.Team);
+
+        if (!isNaN(valoreNumerico)) {
+          if (!aggregati[data]) {
+            aggregati[data] = { valori: [], targets: [] };
+          }
+          aggregati[data].valori.push(valoreNumerico);
+          if (!isNaN(targetNumerico)) {
+            aggregati[data].targets.push(targetNumerico);
+          }
+        }
+
+        if (!titoloData && entry._Data_) {
+          titoloData = entry._Data_;
+        }
+      }
+    });
+
+
+      const date = [];
+    const valoriMedi = [];
+    const targetMedi = [];
+    const dateDuplicate = [];
+
+    for (const data in aggregati) {
+      const valori = aggregati[data].valori;
+      const targets = aggregati[data].targets;
+
+      const mediaValori = valori.reduce((a, b) => a + b, 0) / valori.length;
+      const mediaTarget = targets.length > 0 ? targets.reduce((a, b) => a + b, 0) / targets.length : null;
+
+      const etichetta = valori.length > 1 ? `${data}*` : data;
+      if (valori.length > 1) dateDuplicate.push(data);
+
+      date.push(etichetta);
+      valoriMedi.push(parseFloat(mediaValori.toFixed(2)));
+      targetMedi.push(mediaTarget !== null ? parseFloat(mediaTarget.toFixed(2)) : null);
+    }
+
+    messageDiv.textContent = dateDuplicate.length > 0
+      ? `⚠️ Valori multipli trovati per le seguenti date: ${dateDuplicate.join(", ")}`
+      : "";
+
+    disegnaGrafico(date, valoriMedi, targetMedi, parametro, nome, titoloData);
+  } catch (error) {
+    console.error("Errore nel recupero dei dati:", error);
+    messageDiv.textContent = "Errore nel caricamento dei dati.";
+    alert("Errore nel caricamento dei dati.");
+  }
+}
+
+function disegnaGrafico(date, valori, target, parametro, nome, titoloData) {
+  const ctx = document.getElementById("graficoParametri").getContext("2d");
+  if (window.grafico) window.grafico.destroy();
+
+  const datasets = [{
+    label: `${nome}`,
+    data: valori,
+    type: "bar",
+    backgroundColor: "rgba(54, 162, 235, 0.6)",
+    borderColor: "rgba(54, 162, 235, 1)",
+    borderWidth: 1
+  }];
+
+  const coloriTarget = target.map((t, i) => {
+    const v = valori[i];
+    if (t === null || v === null) return "rgba(200,200,200,0.5)";
+    return v < t ? "rgba(255, 0, 0, 1)" : "rgba(0, 200, 0, 1)";
+  });
+
+  if (parametro === "attendance" && target.length > 0) {
+    datasets.push({
+      label: "-",
+      data: target,
+      type: "line",
+      showLine: false,
+      pointStyle: "circle",
+      pointRadius: 7,
+      pointBackgroundColor: coloriTarget,
+      pointBorderColor: coloriTarget,
+      borderWidth: 0
+    });
+  }
+
+  window.grafico = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: date,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: parametro === "attendance" && titoloData !== "",
+          text: parametro === "attendance" ? `Presenze - ${titoloData}` : `${parametro} - ${nome}`,
+          font: { size: 18 }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const valore = context.raw;
+              return valore === null ? "Dato mancante" : `${context.dataset.label}: ${valore}`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+            min: 1,
+            max: 10,
+          title: { display: true, text: parametro },
+          ticks: { stepSize: 1}
+        },
+        x: {
+          title: { display: true, text: "Data" },
+          ticks: {
+            autoSkip: false,
+            maxRotation: 45,
+            minRotation: 45
+          }
+        }
+      }
+    }
+  });
+}
+
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Valutazione Giocatori</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 1em;
+      max-width: 600px;
+    }
+    label {
+      display: block;
+      margin-top: 1em;
+    }
+    input[type="range"] {
+      width: 100%;
+    }
+    .slider-value {
+      font-weight: bold;
+      margin-left: 0.5em;
+    }
+
+    /* gradiente colorato */
+    input[type="range"].color-slider {
+    appearance: none;
+    height: 8px;
+    border-radius: 5px;
+    background: linear-gradient(to right, red, yellow, green);
+    outline: none;
+    }
+
+    input[type="range"].color-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #333;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 0 2px rgba(0,0,0,0.5);
+    }
+
+    input[type="range"].color-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #333;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 0 2px rgba(0,0,0,0.5);
+    }
+
+
+  </style>
+</head>
+<body>
+  <h2>Valutazione Prestazione</h2>
+  <form id="valutazioneForm">
+    <label for="partita">Partita:</label>
+    <select id="partita" name="partita" required></select>
+
+    <label for="data">Data partita:</label>
+    <input type="text" id="data" name="data" readonly>
+
+    <BR />    <BR />
+    <fieldset>
+        <!-- Giocatore nascosto -->
+        <input type="hidden" id="giocatore" name="giocatore">
+        <p id="giocatoreInfo" style="color:blue;font-weight: bold;"></p>
+
+        <label for="valutazione">Valutazione personale (4-9): 
+        <span id="valutazioneLabel" class="slider-value">6</span>
+        </label>
+        <input type="range" id="valutazione" name="valutazione" min="4" max="9" value="6" class="color-slider">
+    </fieldset>
+
+    <h3>Valutazione compagni:</h3>
+    <div id="compagniValutazioni"></div>
+
+    <button type="submit">Invia</button>
+  </form>
+
+  <script>
+    const webappURL="https://script.google.com/macros/s/AKfycby7UqIV2t1M6WbT3GBVTrAH7E4wVK5dbFlc8a3RDKni5jf4zO3cBfYKp5TYwlTk7gMjGg/exec";
+
+    const giocatori = ["AGRIGOROAEI",	"AIT",	"ARCIDIACONO",	"BARUZZI",	"BENALLAL",	"BUSHI",	"CENTANNI",	"FALZONI",	"FARINA",	"FORESTIERO",	"GALLALA",	"GEMINIANI",	"GNOFFO",	"GRANO",	"GRECA",	"GUEYE",	"IANIGRO",	"MASHA",	"MHILLAJ",	"NDOJ",	"ZITOUNI",	"GIORDANO",	"LANZA",	"MAFQOUD"];
+
+    const partite = [
+      { data: "27/05/2025", nome: "stella" },
+      { data: "27/05/2025", nome: "osteria" },
+      { data: "30/05/2025", nome: "torneo finale" }
+    ];
+
+
+     /**
+         * decodifica del name
+         */
+        function decodeNumberToString(number) {
+            const numStr = String(number);
+            let result = '';
+            for (let i = 0; i < numStr.length; i += 2) {
+                const pair = numStr.slice(i, i + 2);
+                const decodedNumber = parseInt(pair, 10);
+                const character = String.fromCharCode(decodedNumber);
+                result += character;
+            }
+            return result;
+            }
+
+            function getUrlParameter(name) {
+                name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+                var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+                var results = regex.exec(location.search);
+                return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+            }
+            
+
+
+    const urlParams = new URLSearchParams(window.location.search);
+    // const giocatoreParam = urlParams.get("giocatore");
+      const giocatoreParam =decodeNumberToString( urlParams.get("name"));
+    
+
+    if (!giocatoreParam || !giocatori.includes(giocatoreParam)) {
+      alert("Giocatore non valido o mancante nell'URL");
+      throw new Error("Giocatore non valido");
+    }
+
+    document.getElementById("giocatore").value = giocatoreParam;
+    document.getElementById("giocatoreInfo").textContent = `${giocatoreParam}`;
+
+    const partitaSelect = document.getElementById("partita");
+    const dataInput = document.getElementById("data");
+
+    partite.forEach(p => {
+      const option = document.createElement("option");
+      option.value = p.nome;
+      option.dataset.data = p.data;
+      option.textContent = `${p.nome} (${p.data})`;
+      partitaSelect.appendChild(option);
+    });
+
+    partitaSelect.addEventListener("change", () => {
+      const selected = partitaSelect.selectedOptions[0];
+      dataInput.value = selected.dataset.data;
+    });
+
+    partitaSelect.dispatchEvent(new Event("change"));
+
+    // Slider personale
+    const valSlider = document.getElementById("valutazione");
+    const valLabel = document.getElementById("valutazioneLabel");
+    valSlider.addEventListener("input", () => {
+      valLabel.textContent = valSlider.value;
+    });
+
+    // Slider compagni
+    const compagniDiv = document.getElementById("compagniValutazioni");
+    giocatori.filter(g => g !== giocatoreParam).forEach(compagno => {
+      const label = document.createElement("label");
+      label.textContent = ` ${compagno}: `;
+      const valueSpan = document.createElement("span");
+      valueSpan.className = "slider-value";
+      valueSpan.textContent = "6";
+
+      const input = document.createElement("input");
+      input.type = "range";
+      input.name = `compagno_${compagno}`;
+      input.min = 4;
+      input.max = 9;
+      input.value = 6;
+      input.classList.add("color-slider");
+      input.addEventListener("input", () => {
+        valueSpan.textContent = input.value;
+      });
+
+      label.appendChild(valueSpan);
+      compagniDiv.appendChild(label);
+      compagniDiv.appendChild(input);
+    });
+
+    document.getElementById("valutazioneForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = {};
+      formData.forEach((value, key) => data[key] = value);
+
+      const response = await fetch(webappURL, {
+        method: "POST",
+            mode: 'no-cors', // Necessario per l'invio a GAS
+            redirect: "follow",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*"
+
+        }
+      });
+
+      const result = await response.text();
+      alert("Risposta: " + result);
+    });
+  </script>
+</body>
+</html>

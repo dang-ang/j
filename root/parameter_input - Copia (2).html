@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registra Dati</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 25px;
+        }
+        h2#playerName, h3#parameterTitle {
+            color: #007bff;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        h3#parameterTitle {
+            font-size: 1.5em;
+            color: #28a745;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+            text-align: left;
+        }
+        input[type="date"], input[type="number"], input[type="range"], select, textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            -webkit-appearance: none; /* For custom slider styling */
+            appearance: none;
+            background: #f0f0f0;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            border: 1px solid #0056b3;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            border: 1px solid #0056b3;
+        }
+        .slider-value {
+            font-weight: bold;
+            margin-left: 10px;
+            color: #007bff;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1em;
+            width: 100%;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .back-button {
+            margin-top: 20px;
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registra Dati</h1>
+        <h2 id="playerName"></h2>
+        <h3 id="parameterTitle"></h3>
+
+        <label for="entryDate">Data:</label>
+        <input type="date" id="entryDate">
+
+        <div id="inputFieldContainer">
+            </div>
+
+        <button onclick="submitData()">Salva Dati</button>
+
+        <div id="message"></div>
+
+        <a id="backButton" class="back-button" href="javascript:history.back()">Torna Indietro</a>
+    </div>
+
+    <script>
+        const playerNameElement = document.getElementById('playerName');
+        const parameterTitleElement = document.getElementById('parameterTitle');
+        const entryDateInput = document.getElementById('entryDate');
+        const inputFieldContainer = document.getElementById('inputFieldContainer');
+        const messageDiv = document.getElementById('message');
+        const backButton = document.getElementById('backButton');
+
+        let currentPlayerName = '';
+        let currentParameterType = '';
+
+        const parameterConfig = {
+
+            'balzo_alto': { label: 'Distanza (cm):', type: 'number', min: 10, max: 250, placeholder: 'Inserisci distanza in cm' },
+            'balzo_avanti': { label: 'Distanza (cm):', type: 'number', min: 10, max: 250, placeholder: 'Inserisci distanza in cm' },
+            'speed_5': { label: 'Velocità 5 mt:', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+            'speed_20': { label: 'Velocità 20 mt:', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+            'speed_30': { label: 'Velocità 30 mt:', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+            'agility': { label: 'Agilità - circuito [ M ] sec :', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+
+            'cooper_6': { label: 'Test di COOPER (6) distanza (mt):', type: 'number', min: 100, max: 4000, placeholder: 'Inserisci distanza in metri' },
+            'cooper_12': { label: 'Test di COOPER (12) distanza (mt):', type: 'number', min: 100, max: 4000, placeholder: 'Inserisci distanza in metri' },
+
+            'navetta_15': { label: 'Navetta (15 mt) tempo (sec):', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+
+            'gacon': { label: 'Test GACON - Step (nr):', type: 'number', min: 1, max: 40, placeholder: 'Inserisci lo step/nr raggiunto' },
+
+            'height': { label: 'Altezza (cm):', type: 'number', min: 100, max: 250, placeholder: 'Inserisci altezza in cm' },
+            'weight': { label: 'Peso (kg):', type: 'number', min: 30, max: 200, placeholder: 'Inserisci peso in kg' },
+            'rpe': { label: 'RPE (Percezione dello Sforzo):', type: 'range', min: 1, max: 10, defaultValue: 5 },
+            'recovery': { label: 'Recupero:', type: 'range', min: 1, max: 10, defaultValue: 5 },
+            'fatigue': { label: 'Stanchezza:', type: 'range', min: 1, max: 10, defaultValue: 5 },
+            'attendance': { // Nuovo tipo per Presenze
+                label: 'Presenza:',
+                type: 'complex', // Indica che ha più campi
+                fields: [
+                    { id: 'attendanceStatus', label: 'Stato:', type: 'select', options: ['P', 'R', 'I', 'A', 'N'], placeholder: 'Seleziona stato' },
+                    { id: 'attendanceNote', label: 'Nota:', type: 'textarea', placeholder: 'Aggiungi una nota (opzionale)' }
+                ]
+            }
+        };
+
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            currentPlayerName = getUrlParameter('name');
+            currentParameterType = getUrlParameter('paramType');
+
+            if (!currentPlayerName || !currentParameterType || !parameterConfig[currentParameterType]) {
+                alert('Errore: Giocatore o parametro non specificato.');
+                window.location.href = 'main.html';
+                return;
+            }
+
+            playerNameElement.textContent = currentPlayerName;
+            parameterTitleElement.textContent = parameterConfig[currentParameterType].label.replace(':', '');
+
+            entryDateInput.valueAsDate = new Date();
+
+            // Dynamic input field creation logic
+            const config = parameterConfig[currentParameterType];
+            inputFieldContainer.innerHTML = ''; // Clear previous fields
+
+            if (config.type === 'complex') {
+                config.fields.forEach(field => {
+                    const labelElement = document.createElement('label');
+                    labelElement.htmlFor = field.id;
+                    labelElement.textContent = field.label;
+                    inputFieldContainer.appendChild(labelElement);
+
+                    if (field.type === 'select') {
+                        const selectElement = document.createElement('select');
+                        selectElement.id = field.id;
+                        field.options.forEach(optionText => {
+                            const option = document.createElement('option');
+                            option.value = optionText;
+                            option.textContent = optionText;
+                            selectElement.appendChild(option);
+                        });
+                        inputFieldContainer.appendChild(selectElement);
+                    } else if (field.type === 'textarea') {
+                        const textareaElement = document.createElement('textarea');
+                        textareaElement.id = field.id;
+                        textareaElement.placeholder = field.placeholder;
+                        textareaElement.rows = 4; // Default rows for textarea
+                        inputFieldContainer.appendChild(textareaElement);
+                    }
+                });
+            } else {
+                const labelElement = document.createElement('label');
+                labelElement.htmlFor = 'paramInput';
+                labelElement.textContent = config.label;
+                inputFieldContainer.appendChild(labelElement);
+
+                const inputElement = document.createElement('input');
+                inputElement.id = 'paramInput';
+                inputElement.type = config.type;
+                inputElement.min = config.min;
+                inputElement.max = config.max;
+
+                if (config.type === 'number') {
+                    inputElement.placeholder = config.placeholder;
+                } else if (config.type === 'range') {
+                    inputElement.value = config.defaultValue;
+                    const valueSpan = document.createElement('span');
+                    valueSpan.id = 'paramValue';
+                    valueSpan.className = 'slider-value';
+                    valueSpan.textContent = config.defaultValue;
+                    labelElement.appendChild(valueSpan);
+
+                    inputElement.oninput = () => {
+                        valueSpan.textContent = inputElement.value;
+                    };
+                }
+                inputFieldContainer.appendChild(inputElement);
+            }
+
+            backButton.href = `player_dashboard.html?name=${encodeURIComponent(currentPlayerName)}`;
+        });
+
+        async function submitData() {
+            const player = currentPlayerName;
+            const date = entryDateInput.value;
+            const paramType = currentParameterType;
+            let valueToSend; // This will hold the single value or an object for complex types
+
+            const config = parameterConfig[paramType];
+
+            if (config.type === 'complex') {
+                const status = document.getElementById('attendanceStatus').value;
+                const note = document.getElementById('attendanceNote').value;
+                if (!status) {
+                    showMessage('Si prega di selezionare lo stato di presenza.', 'error');
+                    return;
+                }
+                valueToSend = { status: status, note: note }; // Send as an object
+            } else {
+                const paramValue = document.getElementById('paramInput').value;
+                if (!paramValue) {
+                    showMessage('Si prega di inserire un valore.', 'error');
+                    return;
+                }
+                valueToSend = parseFloat(paramValue); // For number/range types
+            }
+
+
+              const [year, month, day] = date.split("-");
+              const formatted = `${day}-${month}-${year}`;
+                   
+            const dataToSend = {
+                player: player,
+                date: formatted,   // date:date 
+                paramType: paramType,
+                value: valueToSend, // This can be a number or an object
+                dataOra:new Date().toLocaleString() // dataOra registrazione
+            };
+
+            // --- IMPORTANT: Replace with your deployed Google Apps Script URL ---
+//              const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDXchY5hWghV00icCQn_0mKt8NsBS0DbQUmoMhfUcE3n5soK2xJyGcHityWBIJFwlm/exec"; <!-- v14.47 -->
+                // inserita la gestione della dashboard_pagine
+              const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-14UNnIFbdh9-O0kNXnJNENYGy7OceIIBNJ_tTa1lZQOWkAuHgvHIrL68TOadoYNv/exec"; 
+
+
+            try {
+            console.log('Attempting fetch with POST method : '+JSON.stringify(dataToSend));
+                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    redirect: "follow", //-
+                    method: 'POST',
+                    mode: "no-cors", // Crucial for opaque response
+                    headers: {
+                        'Content-Type': 'application/json',
+                        "Access-Control-Allow-Origin": "*"  //-
+                    },
+                    body: JSON.stringify(dataToSend),
+                });
+
+                if (response.ok) {
+                    showMessage('Dati salvati con successo!', 'success');
+                    // Reset inputs
+                    entryDateInput.valueAsDate = new Date();
+                    if (config.type === 'complex') {
+                        document.getElementById('attendanceStatus').value = config.fields[0].options[0]; // Reset to first option
+                        document.getElementById('attendanceNote').value = '';
+                    } else {
+                        const inputElement = document.getElementById('paramInput');
+                        if (config.type === 'range') {
+                            inputElement.value = config.defaultValue;
+                            document.getElementById('paramValue').textContent = config.defaultValue;
+                        } else if (config.type === 'number') {
+                            inputElement.value = '';
+                        }
+                    }
+                } else {
+                    const errorText = await response.text();
+                    showMessage('Errore nell\'invio dei dati: ' + errorText, 'error');
+                    console.error('Server error:', errorText);
+                }
+            } catch (error) {
+                console.error('Errore di rete:', error);
+                showMessage('Si è verificato un errore di rete durante l\'invio dei dati.', 'error');
+            }
+        }
+
+        function showMessage(msg, type) {
+            messageDiv.textContent = msg;
+            messageDiv.className = '';
+            messageDiv.classList.add('fade-in', type);
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.classList.add('fade-out');
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                    messageDiv.classList.remove('fade-out');
+                }, 500);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

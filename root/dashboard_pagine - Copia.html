@@ -1,0 +1,378 @@
+
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisi Dati Team</title>
+    <!-- Tailwind CSS CDN per uno stile moderno e responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN per la visualizzazione grafica -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-8 flex flex-col items-center min-h-screen">
+
+    <div class="max-w-4xl w-full bg-white rounded-xl shadow-2xl p-8 space-y-8">
+        <h1 class="text-4xl font-bold text-center text-blue-600">Dashboard Analisi Dati Team</h1>
+        <p class="text-center text-gray-600">Seleziona un giocatore, un parametro e un periodo per visualizzare l'andamento.</p>
+
+        <!-- Sezione Controlli -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Selezione Giocatore -->
+            <div class="flex flex-col">
+                <label for="player-select" class="font-medium text-gray-700 mb-2">Seleziona Giocatore:</label>
+                <input type="text" id="player-select" placeholder="Es: Mario Rossi" class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+            </div>
+
+            <!-- Selezione Parametro -->
+            <div class="flex flex-col">
+                <label for="parameter-select" class="font-medium text-gray-700 mb-2">Seleziona Parametro:</label>
+                <input type="text" id="parameter-select" placeholder="Es: Velocità" class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+            </div>
+
+            <!-- Selezione Periodo -->
+            <div class="flex flex-col">
+                <label for="period-select" class="font-medium text-gray-700 mb-2">Seleziona Periodo:</label>
+                <select id="period-select" class="p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                    <option value="all">Tutti i dati</option>
+                    <option value="weekly">Settimanale</option>
+                    <option value="monthly">Mensile</option>
+                    <option value="custom">Personalizzato</option>
+                </select>
+            </div>
+            
+            <!-- Intervallo Date Personalizzato (Nascosto di default) -->
+            <div id="custom-date-range" class="md:col-span-2 lg:col-span-3 flex flex-col md:flex-row gap-4 hidden">
+                <div class="flex flex-col w-full">
+                    <label for="start-date" class="font-medium text-gray-700 mb-2">Data di Inizio:</label>
+                    <input type="date" id="start-date" class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                </div>
+                <div class="flex flex-col w-full">
+                    <label for="end-date" class="font-medium text-gray-700 mb-2">Data di Fine:</label>
+                    <input type="date" id="end-date" class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottoni di Azione -->
+        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <button id="fetch-player-data" class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105">
+                Visualizza Giocatore
+            </button>
+            <button id="fetch-team-data" class="bg-emerald-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-emerald-700 transition-all duration-300 ease-in-out transform hover:scale-105">
+                Visualizza Team
+            </button>
+        </div>
+        
+        <!-- Indicatore di Caricamento -->
+        <div id="loading" class="flex justify-center items-center gap-2 text-blue-600 font-medium hidden">
+            <svg class="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Caricamento dati...
+        </div>
+
+        <!-- Sezione Risultati -->
+        <div id="results-container" class="space-y-6 hidden">
+            <h2 id="results-title" class="text-2xl font-bold text-gray-700 text-center"></h2>
+            
+            <!-- Contenitore per il grafico -->
+            <div class="w-full max-w-full overflow-hidden bg-gray-50 rounded-lg p-4 shadow-inner">
+                <canvas id="data-chart" class="w-full h-96"></canvas>
+            </div>
+
+            <!-- Contenitore per i dati tabellari -->
+            <div class="overflow-x-auto rounded-lg shadow-md border border-gray-200">
+                <table id="data-table" class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Giocatore</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Data</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Valore</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Righe dati inserite via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Messaggio di Errore/Info -->
+        <div id="message-box" class="p-4 bg-red-100 text-red-700 rounded-lg hidden">
+            <!-- Messaggi di errore o info inseriti qui -->
+        </div>
+    </div>
+
+    <script>
+        // Sostituisci questo URL con l'URL del tuo script di Google Apps
+        const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDXchY5hWghV00icCQn_0mKt8NsBS0DbQUmoMhfUcE3n5soK2xJyGcHityWBIJFwlm/exec"; <!-- V.51 -->
+
+        // Mappa i riferimenti agli elementi del DOM
+        const playerSelect = document.getElementById('player-select');
+        const parameterSelect = document.getElementById('parameter-select');
+        const periodSelect = document.getElementById('period-select');
+        const customDateRange = document.getElementById('custom-date-range');
+        const startDateInput = document.getElementById('start-date');
+        const endDateInput = document.getElementById('end-date');
+        const fetchPlayerDataBtn = document.getElementById('fetch-player-data');
+        const fetchTeamDataBtn = document.getElementById('fetch-team-data');
+        const loadingSpinner = document.getElementById('loading');
+        const resultsContainer = document.getElementById('results-container');
+        const resultsTitle = document.getElementById('results-title');
+        const tableBody = document.getElementById('table-body');
+        const messageBox = document.getElementById('message-box');
+        
+        let chartInstance = null; // Riferimento all'istanza del grafico
+
+        // Event listener per mostrare/nascondere il selettore di date personalizzato
+        periodSelect.addEventListener('change', () => {
+            if (periodSelect.value === 'custom') {
+                customDateRange.classList.remove('hidden');
+            } else {
+                customDateRange.classList.add('hidden');
+            }
+        });
+
+        fetchPlayerDataBtn.addEventListener('click', () => fetchData('player'));
+        fetchTeamDataBtn.addEventListener('click', () => fetchData('team'));
+
+        /**
+         * Funzione principale per il recupero dei dati dallo script di Google Apps.
+         * @param {string} scope - "player" o "team" per determinare l'ambito della richiesta.
+         */
+        async function fetchData(scope) {
+            // Nasconde i risultati e mostra il caricamento
+            resultsContainer.classList.add('hidden');
+            messageBox.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+
+            const player = playerSelect.value.trim();
+            const parameter = parameterSelect.value.trim();
+            const period = periodSelect.value;
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+
+            // Costruisce l'URL della richiesta
+            let url = `${APP_SCRIPT_URL}?parameter=${encodeURIComponent(parameter)}`;
+            if (scope === 'player' && player) {
+                url += `&player=${encodeURIComponent(player)}`;
+            } else if (scope === 'team') {
+                url += `&player=team`;
+            } else {
+                displayMessage("Per visualizzare i dati di un giocatore, inserisci un nome.", 'error');
+                loadingSpinner.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Errore di rete: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Processa i dati ricevuti
+                const filteredData = filterAndAggregateData(data, period, startDate, endDate);
+                displayResults(filteredData, scope, player, parameter);
+
+            } catch (error) {
+                console.error("Errore nel recupero dei dati:", error);
+                displayMessage(`Si è verificato un errore: ${error.message}`, 'error');
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Filtra e aggrega i dati in base al periodo selezionato.
+         * @param {Array} data - I dati grezzi ricevuti dallo script.
+         * @param {string} period - Il periodo di aggregazione ("all", "weekly", "monthly", "custom").
+         * @param {string} startDate - Data di inizio per il periodo personalizzato.
+         * @param {string} endDate - Data di fine per il periodo personalizzato.
+         * @returns {Array} - I dati filtrati e aggregati.
+         */
+        function filterAndAggregateData(data, period, startDate, endDate) {
+            // Filtra per il periodo personalizzato se specificato
+            let filteredData = data;
+            if (period === 'custom' && startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                filteredData = data.filter(item => {
+                    const itemDate = new Date(item.data);
+                    return itemDate >= start && itemDate <= end;
+                });
+            }
+
+            if (period === 'all' || filteredData.length === 0) {
+                return filteredData;
+            }
+
+            // Funzione per raggruppare i dati per data o periodo
+            const groupedData = {};
+            filteredData.forEach(item => {
+                const date = new Date(item.data);
+                let key = '';
+
+                if (period === 'weekly') {
+                    // Crea una chiave per la settimana (primo giorno della settimana)
+                    const startOfWeek = new Date(date);
+                    startOfWeek.setDate(date.getDate() - date.getDay());
+                    key = startOfWeek.toISOString().split('T')[0];
+                } else if (period === 'monthly') {
+                    // Crea una chiave per il mese (anno-mese)
+                    key = `${date.getFullYear()}-${date.getMonth() + 1}`;
+                }
+
+                // Aggrega i valori per la chiave creata
+                if (!groupedData[key]) {
+                    groupedData[key] = { valore: 0, count: 0, players: new Set() };
+                }
+                groupedData[key].valore += parseFloat(item.valore);
+                groupedData[key].count++;
+                groupedData[key].players.add(item.player);
+            });
+
+            // Converte l'oggetto raggruppato in un array
+            const aggregatedData = Object.entries(groupedData).map(([key, value]) => ({
+                data: key,
+                valore: (value.valore / value.count).toFixed(2),
+                player: Array.from(value.players).join(', ') // Per il caso del team
+            }));
+
+            // Ordina i dati aggregati per data
+            aggregatedData.sort((a, b) => new Date(a.data) - new Date(b.data));
+            
+            return aggregatedData;
+        }
+
+
+        /**
+         * Visualizza i dati in una tabella e in un grafico.
+         * @param {Array} data - I dati da visualizzare.
+         * @param {string} scope - "player" o "team".
+         * @param {string} player - Il nome del giocatore.
+         * @param {string} parameter - Il nome del parametro.
+         */
+        function displayResults(data, scope, player, parameter) {
+            resultsContainer.classList.remove('hidden');
+            
+            // Aggiorna il titolo
+            if (scope === 'player') {
+                resultsTitle.textContent = `Andamento di ${player} per il parametro "${parameter}"`;
+            } else {
+                resultsTitle.textContent = `Andamento del Team per il parametro "${parameter}"`;
+            }
+            
+            // Popola la tabella
+            tableBody.innerHTML = '';
+            if (data.length === 0) {
+                displayMessage("Nessun dato trovato per la selezione corrente.", 'info');
+                return;
+            }
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.player}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(item.data).toLocaleDateString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.valore}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Visualizza il grafico
+            renderChart(data, scope);
+        }
+
+        /**
+         * Crea o aggiorna un grafico con Chart.js.
+         * @param {Array} data - I dati da tracciare.
+         * @param {string} scope - "player" o "team".
+         */
+        function renderChart(data, scope) {
+            const ctx = document.getElementById('data-chart').getContext('2d');
+            
+            // Distrugge l'istanza precedente del grafico se esiste
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const labels = data.map(item => new Date(item.data).toLocaleDateString());
+            const values = data.map(item => item.valore);
+            
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: scope === 'player' ? 'Valore Giocatore' : 'Valore Medio Team',
+                        data: values,
+                        borderColor: scope === 'player' ? 'rgb(59, 130, 246)' : 'rgb(16, 185, 129)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        tension: 0.3,
+                        pointBackgroundColor: 'rgb(59, 130, 246)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Data'
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Valore'
+                            },
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false,
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Visualizza un messaggio all'utente.
+         * @param {string} message - Il testo del messaggio.
+         * @param {string} type - 'info' o 'error' per la formattazione.
+         */
+        function displayMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden', 'bg-red-100', 'bg-blue-100', 'text-red-700', 'text-blue-700');
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'text-red-700');
+            } else {
+                messageBox.classList.add('bg-blue-100', 'text-blue-700');
+            }
+        }
+    </script>
+</body>
+</html>

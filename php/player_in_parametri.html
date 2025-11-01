@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Redirecting...</title>
+    <script>
+        // Estrae il parametro "name" dalla URL e reindirizza
+        function getQueryParam(param) {
+            var urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        var name = getQueryParam("name");
+        if (name) {
+            window.location.href = "index.php?ID=" + encodeURIComponent(name);
+        } else {
+            document.body.innerHTML = "<p>Parametro 'name' mancante.</p>";
+        }
+    </script>
+</head>
+<body>
+    <p>Reindirizzamento in corso...</p>
+</body>
+</html>

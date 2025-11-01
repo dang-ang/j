@@ -1,0 +1,24 @@
+<?php
+// Detect if the browser is Safari
+$isSafari = strpos($_SERVER['HTTP_USER_AGENT'], 'Safari') !== false &&
+    strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') === false;
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Your Vacation</title>
+    <link rel="stylesheet" href="vacation/assets/style.css">
+    <?php if ($isSafari): ?>
+        <link rel="stylesheet" href="vacation/assets/safari.css">
+    <?php endif; ?>
+</head>
+
+<body>
+    <?php include 'vacation/navbar.php'; ?> <!-- Include the navbar -->
+    <p align="center">Website under construction</p>
+</body>
+
+</html>

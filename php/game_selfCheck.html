@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheda di Autovalutazione U14</title>
+    <!-- Caricamento di Tailwind CSS per uno stile moderno e responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configurazione del font Inter -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+        /* Stili personalizzati per il rating */
+        .rating-label {
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            text-align: center;
+            font-weight: 500;
+        }
+        input[type="radio"]:checked + .rating-label {
+            background-color: #10b981; /* Smeraldo 500 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.5), 0 2px 4px -2px rgba(16, 185, 129, 0.5);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex items-center justify-center">
+
+    <div id="app" class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-6 md:p-10">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800">Autovalutazione U14 - Partita</h1>
+            <p class="text-gray-500 mt-2">Valuta la tua prestazione nel campo : da 1 (Scarso) a 5 (Eccellente) e motiva la tua scelta.</p>
+            <div id="message-box" class="mt-4 p-3 rounded-lg hidden" role="alert"></div>
+        </header>
+
+        <!-- Form Inizio -->
+        <form id="evaluation-form">
+            
+            <!-- Dati Giocatore e Data -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <label for="player-name" class="block text-sm font-medium text-gray-700 mb-1">Giocatore</label>
+                    <input type="text" id="player-name" name="playerName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500" readonly>
+                </div>
+                <div>
+                    <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Data</label>
+                    <input type="date" id="date" name="date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+                <div>
+                    <label for="game" class="block text-sm font-medium text-gray-700 mb-1">Partita</label>
+                    <input type="text" id="game" name="game" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+            </div>
+
+            <!-- Sezione Punti Chiave -->
+            <div id="evaluation-points" class="space-y-8">
+                <!-- I punti chiave verranno generati dinamicamente da JavaScript -->
+            </div>
+
+            <!-- Pulsante di Invio -->
+            <div class="mt-10">
+                <button type="submit" id="submit-button" class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out disabled:opacity-50">
+                    <span id="button-text">Invia Autovalutazione</span>
+                    <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </div>
+        </form>
+            <br />
+        <a id="backButton" class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-gray-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out disabled:opacity-50" href="javascript:history.back()">Torna Indietro -  Finito </a>
+    </div>
+
+
+    
+
+
+    <script>
+        const backButton = document.getElementById('backButton');
+        const strgame_set='Medicina'
+
+        // Array degli elementi chiave da valutare
+        const evaluationPoints = [
+            { id: 'controllo-orientato', title: 'Controllo Orientato (Primo Tocco)', description: 'Come valuto la mia capacità di ricevere la palla e orientarla con il primo tocco nella direzione desiderata nella partita.' },
+            { id: 'smarcamento', title: 'Smarcamento e Attacco dello Spazio', description: 'Come è stato il mio movimento senza palla per liberarmi dalla marcatura e/o per creare una nuova linea di passaggio' },
+            { id: 'comunicazione', title: 'Comunicazione in Campo', description: 'Ho dato indicazioni chiare ai compagni (chiamata uomo, marcatura/copertura avversario, intercetto) durante tutta la partita.' },
+            { id: 'pos-difensiva', title: 'Posizione Difensiva e Coperture', description: 'Ho mantenuto la posizione del corpo corretta, effettuato le diagonali di passaggio ed ho supportato i compagni. Ho marcato sempre un avversario ... sono stato reattivo ?' },
+            { id: 'intensita', title: 'Intensità e Concentrazione', description: 'Come è stato il mio livello di impegno, corsa ed attenzione per tutta la durata della partita.' },
+            { id: 'pressione', title: 'Pressione e pressing', description: 'Ho disturbato gli avversari. Chi portava palla ha avuto tempo per alzare la testa, valutare le opzioni e lanciare i compagni in avanti..' },
+            { id: 'tiri_avversari', title: 'Alto numero di tiri della squadra avversaria', description: 'Come ho schermato/coperto/disturbato/messo il mio corpo davanti a chi sta per calciare o passare ...  mi sono messo in posizione efficace (schermando o deviando il tiro/ il passaggio)..' },
+            { id: 'tiri_fatti', title: 'Mentalità offensiva e movimento', description: 'Come valuto la mia capacità di dribbling, di tiro e conclusione. Come valuto il mio controllo e la rapidità con cui sono andato a tirare... ' }
+
+        ];
+
+        // URL del tuo Google Apps Script. SOSTITUISCI QUESTO PLACEHOLDER!
+        // Questo script sarà il tuo backend per salvare i dati su Google Sheets.
+        // const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyqVO9yLuHZcFqNd1UGTmqjxy7edjYfXAJXwsH7wF9qOCl_KZxC-6ba_vAmTyjxyZE/exec";  // v8
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxJ5a4lu9kqVWeyI02kZz2kw1veOw7SUF0tnepuu-SsLTHLGS16No2uFICWHaE9GLqn/exec";  // v9
+        
+        
+        const form = document.getElementById('evaluation-form');
+        const evaluationContainer = document.getElementById('evaluation-points');
+        const messageBox = document.getElementById('message-box');
+        const submitButton = document.getElementById('submit-button');
+        const buttonText = document.getElementById('button-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+
+
+        /**
+         * decodifica del name
+         */
+        function decodeNumberToString(number) {
+            const numStr = String(number);
+            let result = '';
+            for (let i = 0; i < numStr.length; i += 2) {
+                const pair = numStr.slice(i, i + 2);
+                const decodedNumber = parseInt(pair, 10);
+                const character = String.fromCharCode(decodedNumber);
+                result += character;
+            }
+            return result;
+            }
+
+            function getUrlParameter(name) {
+                name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+                var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+                var results = regex.exec(location.search);
+                return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+            }
+            
+
+        /**
+         * Genera dinamicamente i blocchi di valutazione nell'HTML.
+         */
+        function renderEvaluationPoints() {
+            evaluationPoints.forEach(point => {
+                const element = document.createElement('div');
+                element.className = 'p-5 bg-gray-50 rounded-lg border border-gray-200 shadow-sm';
+                element.innerHTML = `
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">${point.title}</h3>
+                    <p class="text-sm text-gray-500 mb-4">${point.description}</p>
+                    
+                    <!-- Campo di Valutazione (Rating 1-5) -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">La mia valutazione:</label>
+                        <div class="flex flex-wrap space-x-2 justify-start">
+                            ${[1, 2, 3, 4, 5].map(value => `
+                                <input type="radio" id="${point.id}-r${value}" name="${point.id}-rating" value="${value}" class="hidden" required>
+                                <label for="${point.id}-r${value}" class="rating-label bg-white text-gray-700 border border-gray-300 hover:bg-gray-100">${value}</label>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Campo Motivazione -->
+                    <div>
+                        <label for="${point.id}-motivation" class="block text-sm font-medium text-gray-700 mb-1">Motivazione (Perché questo punteggio?)</label>
+                        <textarea id="${point.id}-motivation" name="${point.id}-motivation" rows="3" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm">.</textarea>
+                    </div>
+                `;
+                evaluationContainer.appendChild(element);
+            });
+        }
+
+        /**
+         * Mostra un messaggio all'utente.
+         * @param {string} message - Il testo del messaggio.
+         * @param {string} type - 'success' o 'error'.
+         */
+        function showMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
+
+            if (type === 'success') {
+                messageBox.classList.add('bg-green-100', 'text-green-800');
+            } else if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'text-red-800');
+            }
+            messageBox.classList.remove('hidden');
+        }
+
+        /**
+         * Abilita/Disabilita l'interfaccia utente durante l'invio.
+         * @param {boolean} isLoading 
+         */
+        function toggleLoading(isLoading) {
+            submitButton.disabled = isLoading;
+            if (isLoading) {
+                buttonText.textContent = 'Invio in corso...';
+                loadingSpinner.classList.remove('hidden');
+            } else {
+                buttonText.textContent = 'Invia Autovalutazione';
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Gestisce l'invio del modulo.
+         * @param {Event} e - L'evento di submit.
+         */
+        async function handleSubmit(e) {
+            e.preventDefault();
+            messageBox.classList.add('hidden');
+            toggleLoading(true);
+
+            // 1. Raccogliere i dati
+            const formData = {
+                // playerName: document.getElementById('player-name').value,
+                playerName: decodeNumberToString( getUrlParameter('name')),
+                date: document.getElementById('date').value,
+                timestamp: new Date().toISOString(),
+                strgame: document.getElementById('game').value,
+                evaluations: {}
+            };
+
+            let allRated = true;
+            
+            evaluationPoints.forEach(point => {
+                const ratingInput = document.querySelector(`input[name="${point.id}-rating"]:checked`);
+                const motivationInput = document.getElementById(`${point.id}-motivation`);
+                
+                if (!ratingInput || !motivationInput.value) {
+                    allRated = false;
+                    return;
+                }
+
+                formData.evaluations[point.id] = {
+                    rating: parseInt(ratingInput.value),
+                    motivation: motivationInput.value.trim()
+                };
+            });
+
+            if (!allRated) {
+                showMessage("Per favore, completa tutti i campi di valutazione e motivazione.", "error");
+                toggleLoading(false);
+                return;
+            }
+
+            /*
+            if (GAS_WEB_APP_URL.includes("TUA_ID_DEPLOYMENT_QUI")) {
+                 showMessage("ERRORE: Devi prima sostituire 'TUA_ID_DEPLOYMENT_QUI' con l'URL del tuo Google Apps Script.", "error");
+                 toggleLoading(false);
+                 return;
+            }
+                 */
+
+            // 2. Invio dei dati a Google Apps Script
+            try {
+                // Implementazione del backoff esponenziale
+                const maxRetries = 3;
+                let response = null;
+
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        response = await fetch(GAS_WEB_APP_URL, {
+                            method: 'POST',
+                            mode: 'no-cors', // Necessario per l'invio a GAS
+                            redirect: "follow",
+                            headers: {
+                                'Content-Type': 'application/json',
+                                "Access-Control-Allow-Origin": "*"
+                            },
+                            body: JSON.stringify(formData)
+                        });
+                        
+            
+
+                        // Poiché usiamo 'no-cors', non possiamo leggere la risposta,
+                        // ma se la fetch non fallisce, presumiamo il successo.
+                        if (response) break;
+
+                    } catch (fetchError) {
+                        if (i === maxRetries - 1) throw fetchError;
+                        // Attendere prima di riprovare (1s, 2s, 4s...)
+                        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+                    }
+                }
+                
+                // 3. Gestione del successo
+                showMessage("Autovalutazione inviata con successo! Grazie.", "success");
+                form.reset(); // Resetta il modulo dopo l'invio
+                
+                
+            } catch (error) {
+                console.error('Errore durante l\'invio:', error);
+                showMessage("Si è verificato un errore nell'invio dei dati. Riprova.", "error");
+            } finally {
+                toggleLoading(false);
+            }
+
+           backButton.href = `player_in.html?name=`+getUrlParameter('name');
+
+        }
+
+        // Inizializzazione
+        window.onload = () => {
+            // Imposta giocatore e la data di oggi come valore predefinito
+            document.getElementById('player-name').value= decodeNumberToString( getUrlParameter('name'));
+            document.getElementById('game').value=strgame_set;
+
+            document.getElementById('date').valueAsDate = new Date();
+            renderEvaluationPoints();
+            form.addEventListener('submit', handleSubmit);
+        };
+
+    </script>
+</body>
+</html>

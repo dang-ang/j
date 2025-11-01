@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPA con Hamburger Menu</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #333;
+      color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .menu-icon {
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: none;
+    }
+
+    aside {
+      background: #444;
+      color: white;
+      padding: 1rem;
+      width: 200px;
+      height: 100vh;
+      box-sizing: border-box;
+      z-index: 1000;
+    }
+
+    nav {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+    }
+
+    select {
+      background-color: #555;
+      color: white;
+      border: none;
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+
+    iframe {
+      flex: 1;
+      border: none;
+      height: calc(100vh - 60px);
+    }
+
+    .container {
+      display: flex;
+    }
+
+    @media (max-width: 768px) {
+      aside {
+        position: absolute;
+        left: -220px;
+        transition: left 0.3s ease;
+      }
+
+      aside.active {
+        left: 0;
+      }
+
+      .menu-icon {
+        display: block;
+      }
+    }
+
+/* gestione overlay */
+    #overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 500;
+    }
+    #overlay.active {
+    display: block;
+    }
+
+/* gestione menu hamburger */
+.menu-icon {
+  width: 30px;
+  height: 22px;
+  position: fixed;
+  top: 10px;
+  right: 10px; /* ← cambia da left a right */
+  z-index: 1000;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.menu-icon div,
+.menu-icon::before,
+.menu-icon::after {
+  content: '';
+  background-color: #333;
+  height: 4px;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.menu-icon div {
+  width: 100%;
+  display: flex !important;
+}
+
+.menu-icon::before,
+.menu-icon::after {
+  width: 100%;
+  position: absolute;
+  right: 0;
+  background-color: white; /* ← più visibile su sfondo scuro */
+}
+
+.menu-icon::before {
+  top: 0;
+}
+
+.menu-icon::after {
+  bottom: 0;
+}
+
+/* Stato attivo: trasforma in X */
+.menu-icon.active::before {
+  transform: rotate(45deg);
+  top: 9px;
+}
+
+.menu-icon.active::after {
+  transform: rotate(-45deg);
+  bottom: 9px;
+}
+
+.menu-icon.active div {
+  opacity: 0;
+}
+
+#sidebar {
+  position: fixed;
+  top: 0;
+  left: -250px; /* nascosta fuori dallo schermo */
+  width: 250px;
+  height: 100%;
+  background-color:#222222;
+   color: white;
+  transition: left 0.3s ease;
+  z-index: 999;
+}
+
+#sidebar.active {
+  left: 0; /* visibile */
+}
+
+
+  </style>
+</head>
+<body>
+
+
+  
+<!-- gestione overlay sidebar -->
+    <div id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- logo -->
+  <header>
+    <h1>JCR - 2012</h1>
+    <!-- gestione menu hamburger -->
+    <div class="menu-icon" onclick="toggleSidebar()">
+        <div></div>
+    </div>
+  </header>
+
+
+<!-- container -->
+  <div class="container">
+    <!-- menu -->
+    <aside id="sidebar">
+      <nav>
+        <a href="index_tuttoc.html" target="contentFrame">Campionato</a>
+        <a href="dashboard.html" target="contentFrame">Dashboard</a>
+        <a href="borg.html" target="contentFrame">Borg</a>
+        <a href="main.html" target="contentFrame">Main</a>
+        <label for="testMenu">Test</label>
+        <select id="testMenu">
+          <option value="">-- Seleziona --</option>
+          <option value="test1.html">Test 1</option>
+          <option value="test2.html">Test 2</option>
+        </select>
+      </nav>
+    </aside>
+
+
+    <!-- content -->
+    <iframe name="contentFrame" src="dashboard.html"></iframe>
+  </div>
+
+
+<!-- action -->
+  <script>
+
+// ----------- hamburger ------------------------------------
+// per attivare/disattivare sidebar e overlay
+    const menuIcon = document.querySelector('.menu-icon');
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('active');
+  document.getElementById('overlay').classList.toggle('active');
+  menuIcon.classList.toggle('active');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('active');
+  document.getElementById('overlay').classList.remove('active');
+  menuIcon.classList.remove('active');
+}
+
+
+//per chiusura automatica
+document.querySelectorAll('#sidebar nav a, #sidebar nav select').forEach(el => {
+  el.addEventListener('click', () => closeSidebar());
+  el.addEventListener('change', () => closeSidebar());
+});
+//
+// La sidebar non si chiude quando clicchi sul <select>.
+// Puoi selezionare un’opzione senza interruzioni.
+// La chiusura automatica funziona solo quando clicchi fuori.
+// 
+document.addEventListener('click', function (e) {
+  const sidebar = document.getElementById('sidebar');
+  const menuIcon = document.querySelector('.menu-icon');
+  const isClickInsideSidebar = sidebar.contains(e.target);
+  const isClickOnMenuIcon = menuIcon.contains(e.target);
+  const isDropdown = e.target.tagName === 'SELECT' || e.target.closest('select');
+
+  if (!isClickInsideSidebar && !isClickOnMenuIcon && !isDropdown) {
+    closeSidebar();
+  }
+});
+
+
+</script>
+
+</body>
+</html>

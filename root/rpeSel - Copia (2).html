@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Select Player</title>
+  <script>
+    window.onload = function () {
+      const submittedPlayers = JSON.parse(localStorage.getItem("submittedPlayers")) || [];
+
+      const select = document.getElementById("player");
+      for (let option of select.options) {
+        if (submittedPlayers.includes(option.value)) {
+          option.disabled = true;
+        }
+      }
+
+      const form = document.getElementById("playerForm");
+      form.addEventListener("submit", () => {
+        const selectedPlayer = select.value;
+        const existing = JSON.parse(localStorage.getItem("submittedPlayers")) || [];
+        const now = new Date().toLocaleString();
+
+        if (selectedPlayer && !existing.find(p => p.name === selectedPlayer)) {
+          existing.push({ name: selectedPlayer, timestamp: now });
+          localStorage.setItem("submittedPlayers", JSON.stringify(existing));
+        }
+      });
+    };
+  </script>
+</head>
+<body>
+  <h1>Giocatore</h1>
+  <form id="playerForm" action="rpeShow.html" method="GET">
+    <label for="player">seleziona giocatore :</label>
+    <select name="player" id="player" required>
+      <option value="" disabled selected>----</option>
+      <option value="AGRIGOROAEI">AGRIGOROAEI</option>
+      <option value="AIT">AIT</option>
+      <option value="ARCIDIACONO">ARCIDIACONO</option>
+      <option value="BARUZZI">BARUZZI</option>
+      <option value="BENALLAL">BENALLAL</option>
+      <option value="BUSHI">BUSHI</option>
+      <option value="CENTANNI">CENTANNI</option>
+      <option value="FALZONI">FALZONI</option>
+      <option value="FARINA">FARINA</option>
+      <option value="FORESTIERO">FORESTIERO</option>
+      <option value="GALLALA">GALLALA</option>
+      <option value="GEMINIANI">GEMINIANI</option>
+      <option value="GNOFFO">GNOFFO</option>
+      <option value="GRANO">GRANO</option>
+      <option value="GRECA">GRECA</option>
+      <option value="GUEYE">GUEYE</option>
+      <option value="IANIGRO">IANIGRO</option>
+      <option value="MASHA">MASHA</option>
+      <option value="MHILLAJ">MHILLAJ</option>
+      <option value="NDOJ">NDOJ</option>
+      <option value="ZITOUNI">ZITOUNI</option>
+    </select>
+    <button type="submit">Submit</button>
+  </form>
+</body>
+</html>

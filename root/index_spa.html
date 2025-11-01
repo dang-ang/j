@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Squadra SPA</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+  <!-- Hamburger menu -->
+  <button id="menuToggle" class="menu-btn"><i class="fas fa-bars"></i></button>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar">
+    <ul class="nav-list">
+        <li><a href="#home" data-page="home">🏠 Home</a></li>
+        <li><a href="#rpe" data-page="rpeSel.html">🔥 RPE</a></li>
+        <li><a href="#pain" data-page="pain">💢 Pain</a></li>
+        <li><a href="#recovery" data-page="recovery">💪 Recovery</a></li>
+        <li><a href="#dashboard" data-page="dashboard">📊 Dashboard</a></li>
+    </ul>
+    </aside>
+
+
+  <!-- Overlay -->
+  <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
+
+  <!-- Contenuto principale -->
+  <main class="main-content">
+    <nav id="breadcrumb" class="breadcrumb"></nav>
+    <iframe id="pageFrame" src="index.html" frameborder="0"></iframe>
+  </main>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

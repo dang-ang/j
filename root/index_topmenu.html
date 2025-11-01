@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Responsive Nav + Content</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+body {margin:0;font-family:Arial}
+.topnav {
+  overflow: hidden;
+  background-color: #333;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
+.topnav a {
+  float: left;
+  display: block;
+  color: #f2f2f2;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 17px;
+}
+.active {
+  background-color: #04AA6D;
+  color: white;
+}
+.topnav .icon {display: none;}
+.dropdown {
+  float: left;
+  overflow: hidden;
+}
+.dropdown .dropbtn {
+  font-size: 17px;
+  border: none;
+  color: white;
+  padding: 14px 16px;
+  background-color: inherit;
+  margin: 0;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  z-index: 1;
+}
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+.topnav a:hover, .dropdown:hover .dropbtn {
+  background-color: #555;
+  color: white;
+}
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+@media screen and (max-width: 600px) {
+  .topnav a:not(:first-child), .dropdown .dropbtn {
+    display: none;
+  }
+  .topnav a.icon {
+    float: right;
+    display: block;
+  }
+}
+@media screen and (max-width: 600px) {
+  .topnav.responsive {position: relative;}
+  .topnav.responsive .icon {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+  .topnav.responsive a, .topnav.responsive .dropdown .dropbtn {
+    float: none;
+    display: block;
+    text-align: left;
+  }
+  .topnav.responsive .dropdown-content {position: relative;}
+}
+#content {
+  margin-top: 60px; /* Space for nav */
+  padding: 16px;
+}
+
+.main-content iframe {
+  width: 100%;
+  height: calc(100vh - 80px); /* adatta secondo header */
+  border: none;
+}
+</style>
+</head>
+<body>
+
+<div class="topnav" id="myTopnav">
+  <a href="#home" class="active">Home</a>
+  <a href="#news">News</a>
+  <a href="rpeSel.html">rpe</a>
+  <a href="#contact">Contact</a>
+  <div class="dropdown">
+    <button class="dropbtn">Dropdown <i class="fa fa-caret-down"></i></button>
+    <div class="dropdown-content">
+      <a href="#link1">Link 1</a>
+      <a href="#link2">Link 2</a>
+      <a href="#link3">Link 3</a>
+    </div>
+  </div>
+  <a href="#about">About</a>
+  <a href="javascript:void(0);" class="icon" onclick="myFunction()">&#9776;</a>
+</div>
+
+
+ <aside class="sidebar" id="sidebar">
+    <ul class="nav-list">
+      <li><a href="index.html">🏠 Home</a></li>
+      <li><a href="rpe.html">🔥 RPE</a></li>
+      <li><a href="pain.html">💢 Pain</a></li>
+      <li><a href="recovery.html">💪 Recovery</a></li>
+      <li><a href="dashboard.html">📊 Dashboard</a></li>
+    </ul>
+  </aside>
+  
+<div id="content">
+  <!-- Il contenuto dinamico appare qui -->
+  <main class="main-content">
+    <iframe id="pageFrame" src="index.html" frameborder="0"></iframe>
+  </main>
+
+</div>
+
+<script>
+
+    document.querySelectorAll(".nav-list a").forEach(link => {
+  link.addEventListener("click", function(e) {
+    e.preventDefault();
+    const href = this.getAttribute("href");
+    document.getElementById("pageFrame").setAttribute("src", href);
+    closeSidebar();
+  });
+});
+
+// Menu responsive
+function myFunction() {
+  var x = document.getElementById("myTopnav");
+  if (x.className === "topnav") {
+    x.className += " responsive";
+  } else {
+    x.className = "topnav";
+  }
+}
+
+// Router SPA
+function renderContent(route) {
+  const content = document.getElementById("content");
+  switch(route) {
+    case "home":
+      content.innerHTML = "<h2>Home</h2><p>Benvenuto nella homepage.</p>";
+      break;
+    case "news":
+      content.innerHTML = "<h2>News</h2><p>Ultime notizie della squadra.</p>";
+      break;
+    case "contact":
+      content.innerHTML = "<h2>Contact</h2><p>Contatti e recapiti.</p>";
+      break;
+    case "rpe":
+      fetch("rpeSel.html")
+        .then(res => res.text())
+        .then(html => {
+          content.innerHTML = html;
+          breadcrumb.innerText = "Home > RPE";
+        })
+        .catch(() => {
+          content.innerHTML = "<h1>Errore</h1><p>Impossibile caricare rpeSel.html</p>";
+          breadcrumb.innerText = "";
+        });
+      break;
+    case "about":
+      content.innerHTML = "<h2>About</h2><p>Informazioni sul progetto.</p>";
+      break;
+    case "link1":
+      content.innerHTML = "<h2>Link 1</h2><p>Contenuto del link 1.</p>";
+      break;
+    case "link2":
+      content.innerHTML = "<h2>Link 2</h2><p>Contenuto del link 2.</p>";
+      break;
+    case "link3":
+      content.innerHTML = "<h2>Link 3</h2><p>Contenuto del link 3.</p>";
+      break;
+    default:
+      content.innerHTML = "<h2>Pagina</h2><p>Seleziona un'opzione dal menu.</p>";
+  }
+}
+
+// Intercetta cambiamenti hash
+window.addEventListener("hashchange", () => {
+  const route = window.location.hash.slice(1);
+  renderContent(route);
+});
+
+// Carica contenuto iniziale
+window.addEventListener("load", () => {
+  const route = window.location.hash.slice(1) || "home";
+  renderContent(route);
+});
+</script>
+
+</body>
+</html>

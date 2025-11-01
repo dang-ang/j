@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Giocatore</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h2#playerName {
+      color: #007bff;
+      margin-bottom: 30px;
+      font-size: 2em;
+    }
+
+    .parameter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .parameter-card {
+      background-color: #28a745;
+      color: white;
+      padding: 25px;
+      border-radius: 6px;
+      font-size: 1.2em;
+      font-weight: bold;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100px;
+    }
+
+    .parameter-card:hover {
+      background-color: #11461c;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    iframe {
+      margin-top: 40px;
+      width: 100%;
+      height: 600px;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h4>Giocatore</h4>
+    <h2 id="playerName"></h2>
+
+    <h4>Seleziona il dato da inserire:</h4>
+    <div class="parameter-grid" id="parameterGrid"></div>
+
+    <!-- Qui verrà caricato il contenuto della pagina esterna -->
+    <iframe id="graficoFrame" src=""></iframe>
+  </div>
+
+  <script>
+    const playerNameElement = document.getElementById('playerName');
+    const parameterGrid = document.getElementById('parameterGrid');
+    const graficoFrame = document.getElementById('graficoFrame');
+
+    const parameters = [
+      { name: "Sforzo", type: "rpe" },
+      { name: "Recupero", type: "recovery" },
+      { name: "Stanchezza", type: "fatigue" }
+    ];
+
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+      const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+      const results = regex.exec(location.search);
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+    function decodeNumberToString(number) {
+      const numStr = String(number);
+      let result = '';
+      for (let i = 0; i < numStr.length; i += 2) {
+        const pair = numStr.slice(i, i + 2);
+        const decodedNumber = parseInt(pair, 10);
+        const character = String.fromCharCode(decodedNumber);
+        result += character;
+      }
+      return result;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const encodedName = getUrlParameter('name');
+      const decodedName = decodeNumberToString(encodedName);
+
+      if (decodedName) {
+        playerNameElement.textContent = decodedName;
+
+        // Carica la pagina dei grafici nel frame
+        graficoFrame.src = `grafico_giocatori_all1.html?nome=${encodeURIComponent(decodedName)}`;
+
+        parameters.forEach(param => {
+          const paramLink = document.createElement('a');
+          // paramLink.href = `parameter_input.html?name=${encodeURIComponent(decodedName)}&paramType=${encodeURIComponent(param.type)}`;
+           paramLink.href = `parameter_input.html?name=`+encodedName+`&paramType=${encodeURIComponent(param.type)}`;
+           paramLink.className = 'parameter-card';
+          paramLink.textContent = param.name;
+          parameterGrid.appendChild(paramLink);
+        });
+      } else {
+        playerNameElement.textContent = 'Giocatore Sconosciuto';
+        window.location.href = 'main.html';
+      }
+    });
+  </script>
+
+
+  <script>
+  window.addEventListener("message", (event) => {
+    if (event.data && event.data.altezza) {
+      const graficoFrame = document.getElementById("graficoFrame");
+      graficoFrame.style.height = event.data.altezza + "px";
+    }
+  });
+</script>
+</body>
+</html>

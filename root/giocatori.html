@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Giocatori - JCR 2012 - 25|26</title>
+  <style>
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      line-height: 1.6;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #333;
+      padding: 1rem 2rem;
+      color: white;
+      position: relative;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .hamburger {
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: none;
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .nav-links li a {
+      color: white;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .nav-links li a:hover {
+      color: #ffcc00;
+    }
+
+    /* Dropdown */
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-toggle {
+      cursor: pointer;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: #444;
+      list-style: none;
+      padding: 0.5rem 0;
+      display: none;
+      flex-direction: column;
+      min-width: 150px;
+      z-index: 1000;
+    }
+
+    .dropdown-menu li a {
+      padding: 0.5rem 1rem;
+      display: block;
+      color: white;
+      text-decoration: none;
+    }
+
+    .dropdown-menu li a:hover {
+      background-color: #555;
+    }
+
+    /* Hover dropdown for desktop */
+    .dropdown:hover .dropdown-menu {
+      display: flex;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      background-color: #222;
+      color: white;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hamburger {
+        display: block;
+      }
+
+      .nav-links {
+        flex-direction: column;
+        position: absolute;
+        top: 60px;
+        right: 0;
+        background-color: #333;
+        width: 100%;
+        display: none;
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+
+      .dropdown-menu {
+        position: static;
+        display: none;
+      }
+
+      .dropdown.active .dropdown-menu {
+        display: flex;
+      }
+    }
+
+    /* Spinner di caricamento */
+    .spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+    }
+
+    .spinner::after {
+      content: "";
+      width: 40px;
+      height: 40px;
+      border: 5px solid #ccc;
+      border-top-color: #0072ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="logo" title="Shoshinsha mark in Giappone, indica i principianti">🔰 JCR 2012</div>
+      <div class="hamburger" id="menuToggle">☰</div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#" data-page="tuttocampo_giovanissimi.html">Giovanissimi - BO</a></li>
+        <li><a href="#" data-page="tuttocampo_giovanissimi_ra.html">Giovanissimi - RA</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle">Allenamento ▾</a>
+          <ul class="dropdown-menu">
+            <li><a href="#" data-page="sshow_presenze.html">Presenze</a></li>
+            <li><a href="#" data-page="sshow_rpe.html">Sforzo-Carico</a></li>
+            <li><a href="#" data-page="sshow_rec.html">Recupero</a></li>
+            <li><a href="#" data-page="sshow_fatplayer.html">Fatica</a></li>
+          </ul>
+        </li>
+        <li><a href="#" data-page="grafico_giocatori.html">Grafici X</a></li>
+        <li><a href="#" data-page="grafico_giocatori.html">IN Training</a></li> 
+
+        <li><a href="#" data-page="main.html">IN Training</a></li> 
+      </ul>
+    </nav>
+  </header>
+
+  <main id="content">
+    <!-- Il contenuto verrà caricato qui -->
+  </main>
+
+  <footer>
+    <p>&copy; 2025 ad@. Tutti i diritti riservati.</p>
+  </footer>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+  const toggle = document.getElementById('menuToggle');
+  const navLinks = document.getElementById('navLinks');
+  const content = document.getElementById('content');
+  const urlPath = 'https://dang-ang.github.io/j/';
+  const urlHome = 'tuttocampo.html';
+
+  // Toggle hamburger menu
+  toggle.addEventListener('click', () => {
+    navLinks.classList.toggle('active');
+  });
+
+  // Load page on click
+  navLinks.querySelectorAll('a[data-page]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const page = link.getAttribute('data-page');
+      loadPage(page);
+      navLinks.classList.remove('active'); // Chiudi menu dopo click
+    });
+  });
+
+  // Toggle dropdown on mobile
+  document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+    toggle.addEventListener('click', e => {
+      e.preventDefault();
+      const parent = toggle.parentElement;
+      parent.classList.toggle('active');
+    });
+  });
+
+  // Load page function
+  function loadPage(url) {
+    // Mostra messaggio di caricamento
+    content.innerHTML = `<p style="text-align:center; padding:2rem; font-weight:bold;">Caricamento dati...</p>`;
+
+    fetch(urlPath + url)
+      .then(res => res.text())
+      .then(html => {
+        content.innerHTML = html;
+      })
+      .catch(() => {
+        content.innerHTML = "<p>Errore nel caricamento della pagina.</p>";
+      });
+  }
+
+  // Carica home all'avvio
+  loadPage(urlHome);
+});
+
+  
+  </script>
+</body>
+</html>
+

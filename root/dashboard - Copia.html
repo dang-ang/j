@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Tecnica RPE</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+    h1 {
+      text-align: center;
+      color: #0078D4;
+      margin-bottom: 25px;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 15px;
+      display: block;
+    }
+    select, button {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .btn-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    canvas {
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Dashboard RPE, Dolore e Recupero</h1>
+
+    <label for="playerSelect">Seleziona giocatori (multi):</label>
+    <select id="playerSelect" multiple size="5"></select>
+
+    <label for="viewMode">Visualizza per:</label>
+    <select id="viewMode">
+      <option value="day">Giorno</option>
+      <option value="week">Settimana</option>
+      <option value="month">Mese</option>
+      <option value="year">Anno</option>
+    </select>
+
+    <div class="btn-row">
+      <button onclick="downloadPNG()">📸 Esporta PNG</button>
+      <button onclick="downloadPDF()">📝 Esporta PDF</button>
+    </div>
+
+    <canvas id="rpeChart" height="400"></canvas>
+  </div>
+
+  <script>
+//    const endpoint = "https://script.google.com/macros/s/AKfycbxoXC2KT-8dPYE_q47WHANaPHBVBdumNbVMvqkD2EWC8naS-gYrvgrBdzMdIckctFjjUQ/exec";
+    const endpoint = "https://script.google.com/macros/s/AKfycbx00UVcT8Ae7d8ukZ9s-TJeL9HP5gAjP9L2KfL2tUZi0LbceKW2ePV-vFLn6SLXdcRONA/exec";
+
+    let chart;
+
+    fetch(endpoint)
+    // console.lot(endpoint)
+      .then(res => res.json())
+      .then(data => {
+        const cleaned = data.filter(d => d.name && d.timestamp && d.rpe);
+        const players = [...new Set(cleaned.map(d => d.name))].sort();
+        const playerSelect = document.getElementById("playerSelect");
+
+        players.forEach(p => {
+          const opt = document.createElement("option");
+          opt.value = p;
+          opt.textContent = p;
+          playerSelect.appendChild(opt);
+        });
+
+        document.getElementById("viewMode").addEventListener("change", renderChart);
+        playerSelect.addEventListener("change", renderChart);
+        renderChart();
+
+        function renderChart() {
+          const selected = Array.from(playerSelect.selectedOptions).map(o => o.value);
+          const mode = document.getElementById("viewMode").value;
+
+          const formatKey = (date) => {
+            const d = new Date(date);
+            switch (mode) {
+              case "day":
+                return d.toISOString().split('T')[0];
+              case "week":
+                return `${d.getFullYear()}-W${Math.ceil(d.getDate() / 7)}`;
+              case "month":
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+              case "year":
+                return `${d.getFullYear()}`;
+            }
+          };
+
+          const grouped = {};
+          cleaned.forEach(entry => {
+            const key = formatKey(entry.timestamp);
+            if (!grouped[key]) grouped[key] = {};
+            const g = grouped[key];
+            const name = entry.name;
+            if (!g[name]) g[name] = { rpe: [], pain: [], recovery: [] };
+            g[name].rpe.push(+entry.rpe || 0);
+            g[name].pain.push(+entry.pain || 0);
+            g[name].recovery.push(+entry.recovery || 0);
+          });
+
+          const labels = Object.keys(grouped).sort();
+          const average = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
+
+          const datasets = [];
+
+          selected.forEach(player => {
+            const rpe = labels.map(l => grouped[l][player] ? average(grouped[l][player].rpe) : null);
+            datasets.push({
+              label: `RPE - ${player}`,
+              data: rpe,
+              borderColor: "#0078D4",
+              backgroundColor: "rgba(0,120,212,0.1)",
+              tension: 0.3,
+              fill: false
+            });
+          });
+
+          // Media squadra
+          const teamRPE = labels.map(l => {
+            const all = Object.values(grouped[l] || {});
+            const allValues = all.flatMap(p => p.rpe);
+            return average(allValues);
+          });
+
+          datasets.push({
+            label: "Media squadra",
+            data: teamRPE,
+            borderColor: "#666",
+            backgroundColor: "rgba(0,0,0,0.05)",
+            borderDash: [5,5],
+            tension: 0.3,
+            fill: false
+          });
+
+          if (chart) chart.destroy();
+          chart = new Chart(document.getElementById("rpeChart").getContext("2d"), {
+            type: "line",
+            data: { labels, datasets },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { position: "top" },
+                title: {
+                  display: true,
+                  text: `Andamento ${mode.toUpperCase()} RPE`
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 10,
+                  ticks: { stepSize: 1 }
+                }
+              }
+            }
+          });
+        }
+      });
+
+    function downloadPNG() {
+      html2canvas(document.getElementById("rpeChart")).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "grafico_rpe.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      });
+    }
+
+    function downloadPDF() {
+      html2canvas(document.getElementById("rpeChart")).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF();
+        pdf.addImage(imgData, "PNG", 15, 20, 180, 100);
+        pdf.save("grafico_rpe.pdf");
+      });
+    }
+  </script>
+</body>
+</html>

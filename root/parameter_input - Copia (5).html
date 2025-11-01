@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registra Dati</title>
+    <style>
+ body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 25px;
+        }
+        h2#playerName, h3#parameterTitle {
+            color: #007bff;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        h3#parameterTitle {
+            font-size: 1.5em;
+            color: #28a745;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+            text-align: left;
+        }
+        input[type="date"], input[type="number"], select, textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f0f0f0;
+            outline: none;
+        }
+        
+        /* Modifiche per il range slider */
+        .range-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input[type="range"] {
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        /* Track del cursore */
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background: linear-gradient(to right, #4CAF50, #FFEB3B, #F44336);
+        }
+        input[type="range"]::-moz-range-track {
+            height: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background: linear-gradient(to right, #4CAF50, #FFEB3B, #F44336);
+        }
+        /* Thumb (il "pallino") del cursore */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #007bff;
+            margin-top: -8px; /* Allinea il thumb al centro della track */
+            transition: border-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #007bff;
+            transition: border-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+        input[type="range"]:hover::-webkit-slider-thumb,
+        input[type="range"]:active::-webkit-slider-thumb {
+            transform: scale(1.1);
+        }
+        input[type="range"]:hover::-moz-range-thumb,
+        input[type="range"]:active::-moz-range-thumb {
+            transform: scale(1.1);
+        }
+
+        /* Tooltip per il valore del cursore */
+        .tooltip {
+            position: absolute;
+            bottom: 30px;
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            white-space: nowrap;
+            display: none;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        .slider-legend {
+            margin-top: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1em;
+            width: 100%;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .back-button {
+            margin-top: 20px;
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+
+          #entryDate {
+            width: 50%;
+            font-size: 1.2rem;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        #weekdayDisplay {
+            font-size: 1.1rem;
+            color: #333;
+            margin-top: 5px;
+             text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registra Dati</h1>
+        <h2 id="playerName"></h2>
+        <h3 id="parameterTitle"></h3>
+
+        <label for="entryDate">Data:</label>
+        <input type="date" id="entryDate" size = 10>
+            <div id="weekdayDisplay"></div>
+
+        <div id="inputFieldContainer">
+            </div>
+
+        <button onclick="submitData()">Salva Dati</button>
+
+        <div id="message"></div>
+
+        <a id="backButton" class="back-button" href="#">Torna Indietro</a>
+    </div>
+
+    <script>
+       const playerNameElement = document.getElementById('playerName');
+        const parameterTitleElement = document.getElementById('parameterTitle');
+        const entryDateInput = document.getElementById('entryDate');
+        const inputFieldContainer = document.getElementById('inputFieldContainer');
+        const messageDiv = document.getElementById('message');
+        const backButton = document.getElementById('backButton');
+
+        let currentPlayerName = '';
+        let currentParameterType = '';
+
+        const parameterConfig = {
+            'balzo_alto': { label: 'Distanza (cm):', type: 'number', min: 10, max: 250, placeholder: 'Inserisci distanza in cm' },
+            'balzo_avanti': { label: 'Distanza (cm):', type: 'number', min: 10, max: 250, placeholder: 'Inserisci distanza in cm' },
+            'speed_5': { label: 'Velocità 5 mt:', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+            'speed_20': { label: 'Velocità 20 mt:', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+            'speed_30': { label: 'Velocità 30 mt:', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+            'agility': { label: 'Agilità - circuito [ M ] sec :', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+            'cooper_6': { label: 'Test di COOPER (6) distanza (mt):', type: 'number', min: 100, max: 4000, placeholder: 'Inserisci distanza in metri' },
+            'cooper_12': { label: 'Test di COOPER (12) distanza (mt):', type: 'number', min: 100, max: 4000, placeholder: 'Inserisci distanza in metri' },
+            'navetta_15': { label: 'Navetta (15 mt) tempo (sec):', type: 'number', min: 1, max: 250, placeholder: 'Inserisci tempo in sec' },
+            'gacon': { label: 'Test GACON - Step (nr):', type: 'number', min: 1, max: 40, placeholder: 'Inserisci lo step/nr raggiunto' },
+            'height': { label: 'Altezza (cm):', type: 'number', min: 100, max: 250, placeholder: 'Inserisci altezza in cm' },
+            'weight': { label: 'Peso (kg):', type: 'number', min: 30, max: 200, placeholder: 'Inserisci peso in kg' },
+            'rpe': { label: 'Sforzo:', type: 'range', min: 1, max: 10, defaultValue: 5, invertGradient: false },
+            'recovery': { label: 'Recupero:', type: 'range', min: 1, max: 10, defaultValue: 5, invertGradient: true },
+            'fatigue': { label: 'Stanchezza:', type: 'range', min: 1, max: 10, defaultValue: 5, invertGradient: false },
+            'attendance': {
+                label: 'Presenza:',
+                type: 'complex',
+                fields: [
+                    { id: 'attendanceStatus', label: 'Stato:', type: 'select', options: ['P', 'R', 'I', 'A', 'N'], placeholder: 'Seleziona stato' },
+                    { id: 'attendanceNote', label: 'Nota:', type: 'textarea', placeholder: 'Aggiungi una nota (opzionale)' }
+                ]
+            }
+        };
+
+
+        function decodeNumberToString(number) {
+            const numStr = String(number);
+            let result = '';
+            for (let i = 0; i < numStr.length; i += 2) {
+                const pair = numStr.slice(i, i + 2);
+                const decodedNumber = parseInt(pair, 10);
+                const character = String.fromCharCode(decodedNumber);
+                result += character;
+            }
+            return result;
+            }
+            
+
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+       
+        document.addEventListener('DOMContentLoaded', () => {
+           //  currentPlayerName = getUrlParameter('name');
+            currentPlayerName = decodeNumberToString( getUrlParameter('name'));
+            currentParameterType = getUrlParameter('paramType');
+
+            if (!currentPlayerName || !currentParameterType || !parameterConfig[currentParameterType]) {
+                alert('Errore: Giocatore o parametro non specificato.');
+                window.location.href = 'main.html';
+                return;
+            }
+
+            playerNameElement.textContent = currentPlayerName;
+            parameterTitleElement.textContent = parameterConfig[currentParameterType].label.replace(':', '');
+
+            entryDateInput.valueAsDate = new Date();
+
+            const config = parameterConfig[currentParameterType];
+            inputFieldContainer.innerHTML = '';
+
+            if (config.type === 'complex') {
+                config.fields.forEach(field => {
+                    const labelElement = document.createElement('label');
+                    labelElement.htmlFor = field.id;
+                    labelElement.textContent = field.label;
+                    inputFieldContainer.appendChild(labelElement);
+
+                    if (field.type === 'select') {
+                        const selectElement = document.createElement('select');
+                        selectElement.id = field.id;
+                        field.options.forEach(optionText => {
+                            const option = document.createElement('option');
+                            option.value = optionText;
+                            option.textContent = optionText;
+                            selectElement.appendChild(option);
+                        });
+                        inputFieldContainer.appendChild(selectElement);
+                    } else if (field.type === 'textarea') {
+                        const textareaElement = document.createElement('textarea');
+                        textareaElement.id = field.id;
+                        textareaElement.placeholder = field.placeholder;
+                        textareaElement.rows = 4;
+                        inputFieldContainer.appendChild(textareaElement);
+                    }
+                });
+            } else {
+                const labelElement = document.createElement('label');
+                labelElement.htmlFor = 'paramInput';
+                labelElement.textContent = config.label;
+                inputFieldContainer.appendChild(labelElement);
+
+                const inputElement = document.createElement('input');
+                inputElement.id = 'paramInput';
+                inputElement.type = config.type;
+                inputElement.min = config.min;
+                inputElement.max = config.max;
+                
+                if (config.type === 'range') {
+                    const rangeContainer = document.createElement('div');
+                    rangeContainer.className = 'range-container';
+
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'tooltip';
+                    rangeContainer.appendChild(tooltip);
+
+                    inputElement.value = config.defaultValue;
+                    rangeContainer.appendChild(inputElement);
+                    
+                    const legendElement = document.createElement('span');
+                    legendElement.id = 'paramLegend';
+                    legendElement.className = 'slider-legend';
+                    rangeContainer.appendChild(legendElement);
+
+                    inputFieldContainer.appendChild(rangeContainer);
+
+                    function updateRangeDisplay(value) {
+                        const percent = (value - config.min) / (config.max - config.min) * 100;
+                        
+                        // Aggiorna il tooltip
+                        tooltip.textContent = value;
+                        const thumbWidth = 24; // larghezza del thumb
+                        const trackWidth = inputElement.offsetWidth;
+                        const thumbPosition = (percent / 100) * trackWidth;
+                        tooltip.style.left = `${thumbPosition}px`;
+                        
+                        const tooltipWidth = tooltip.offsetWidth;
+                        let tooltipLeft = thumbPosition - tooltipWidth / 2;
+                        if (tooltipLeft < 0) {
+                             tooltipLeft = 0;
+                        } else if (tooltipLeft + tooltipWidth > trackWidth) {
+                            tooltipLeft = trackWidth - tooltipWidth;
+                        }
+                        tooltip.style.left = `${tooltipLeft}px`;
+
+                        tooltip.style.display = 'block';
+
+                        // Aggiorna la leggenda
+                        let legendText = '';
+                        if (value >= 1 && value <= 3) {
+                             legendText = 'Leggero';
+                        } else if (value >= 4 && value <= 5) {
+                            legendText = 'Moderato';
+                        } else if (value >= 6 && value <= 7) {
+                            legendText = 'Intenso';
+                        } else if (value >= 8 && value <= 9) {
+                            legendText = 'Molto forte';
+                        } else if (value == 10) {
+                            legendText = 'Massimo';
+                        }
+                        legendElement.textContent = legendText;
+                    }
+
+                    inputElement.oninput = (event) => {
+                        updateRangeDisplay(event.target.value);
+                    };
+
+                    inputElement.onmouseover = (event) => {
+                        tooltip.style.display = 'block';
+                    };
+
+                    inputElement.onmouseout = (event) => {
+                        tooltip.style.display = 'none';
+                    };
+                    
+                    updateRangeDisplay(inputElement.value);
+
+                } else if (config.type === 'number') {
+                    inputElement.placeholder = config.placeholder;
+                    inputFieldContainer.appendChild(inputElement);
+                }
+            }
+            // player_in.html?name=6582677368736567797879 
+            // getUrlParameter('name')
+            // backButton.href = `player_in.html?name='+${encodeURIComponent(currentPlayerName)}`;
+               backButton.href = `player_in.html?name=`+getUrlParameter('name');
+
+        });
+
+        async function submitData() {
+            const player = currentPlayerName;
+            const date = entryDateInput.value;
+            const paramType = currentParameterType;
+            let valueToSend;
+
+            const config = parameterConfig[paramType];
+
+            if (config.type === 'complex') {
+                const status = document.getElementById('attendanceStatus').value;
+                const note = document.getElementById('attendanceNote').value;
+                if (!status) {
+                    showMessage('Si prega di selezionare lo stato di presenza.', 'error');
+                    return;
+                }
+                valueToSend = { status: status, note: note };
+            } else {
+                const paramValue = document.getElementById('paramInput').value;
+                if (!paramValue) {
+                    showMessage('Si prega di inserire un valore.', 'error');
+                    return;
+                }
+                valueToSend = parseFloat(paramValue);
+            }
+
+            const [year, month, day] = date.split("-");
+            const formatted = `${day}-${month}-${year}`;
+            
+            const dataToSend = {
+                player: player,
+                date: formatted,
+                paramType: paramType,
+                value: valueToSend,
+                dataOra: new Date().toLocaleString()
+            };
+
+            const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-14UNnIFbdh9-O0kNXnJNENYGy7OceIIBNJ_tTa1lZQOWkAuHgvHIrL68TOadoYNv/exec";
+
+            try {
+                console.log('Attempting fetch with POST method: ' + JSON.stringify(dataToSend));
+                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    redirect: "follow",
+                    method: 'POST',
+                    mode: "no-cors",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                    body: JSON.stringify(dataToSend),
+                });
+
+                if (response.ok) {
+                    showMessage('Dati salvati con successo!', 'success');
+                    entryDateInput.valueAsDate = new Date();
+                    if (config.type === 'complex') {
+                        document.getElementById('attendanceStatus').value = config.fields[0].options[0];
+                        document.getElementById('attendanceNote').value = '';
+                    } else {
+                        const inputElement = document.getElementById('paramInput');
+                        if (config.type === 'range') {
+                            inputElement.value = config.defaultValue;
+                            updateRangeDisplay(inputElement.value);
+                        } else if (config.type === 'number') {
+                            inputElement.value = '';
+                        }
+                    }
+                } else {
+                    const errorText = await response.text();
+                    //showMessage('Errore nell\'invio dei dati: ' + errorText, 'error');
+                    console.error('Server error:', errorText);
+                }
+            } catch (error) {
+                console.error('Errore di rete:', error);
+                //showMessage('Si è verificato un errore di rete durante l\'invio dei dati.', 'error');
+            }
+        }
+
+        function showMessage(msg, type) {
+            messageDiv.textContent = msg;
+            messageDiv.className = '';
+            messageDiv.classList.add('fade-in', type);
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.classList.add('fade-out');
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                    messageDiv.classList.remove('fade-out');
+                }, 500);
+            }, 3000);
+        }
+    </script>
+
+    <script>
+    const entryDate = document.getElementById("entryDate");
+    const weekdayDisplay = document.getElementById("weekdayDisplay");
+
+    function aggiornaGiornoSettimana() {
+        const selectedDate = new Date(entryDate.value);
+        if (!isNaN(selectedDate)) {
+        const options = { weekday: 'long' };
+        const giornoSettimana = selectedDate.toLocaleDateString('it-IT', options);
+        weekdayDisplay.textContent = `🗓️ ${giornoSettimana.toUpperCase()}`;
+        } else {
+        weekdayDisplay.textContent = "";
+        }
+    }
+
+    // Mostra il giorno anche se la data è già selezionata
+    document.addEventListener("DOMContentLoaded", aggiornaGiornoSettimana);
+    entryDate.addEventListener("change", aggiornaGiornoSettimana);
+    </script>
+
+</body>
+</html>

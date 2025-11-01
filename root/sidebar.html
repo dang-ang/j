@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      background-color: #1e1e1e;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      height: 100vh;
+      box-sizing: border-box;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a, .dropdown-toggle {
+      text-decoration: none;
+      color: white;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      border-radius: 5px;
+      background-color: #2a2a2a;
+      display: block;
+      cursor: pointer;
+      border: none;
+      text-align: left;
+    }
+
+    a:hover, .dropdown-toggle:hover {
+      background-color: #444;
+    }
+
+    .submenu {
+      display: none;
+      flex-direction: column;
+      margin-left: 1rem;
+      margin-top: 0.3rem;
+    }
+
+    .submenu a {
+      padding-left: 1.5rem;
+      font-size: 0.9rem;
+      background-color: #333;
+    }
+
+    .submenu a:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+  <a href="#" onclick="naviga('tuttocampo.html')">🏠 Home</a>
+  <a href="#" onclick="naviga('dashboard.html')">🛠️ dashboard</a>
+  <a href="#" onclick="naviga('presenze.html')">🛠️ presenze</a>
+
+  <button class="dropdown-toggle" onclick="toggleSubmenu()">🧰 Stato ▾</button>
+  <div class="submenu" id="submenu-stato">
+    <a href="#" onclick="naviga('rpeSel.html')">📦 Fatica</a>
+    <a href="#" onclick="naviga('painSel.html')">🔥 Dolore</a>
+    <a href="#" onclick="naviga('recoverySel.html')"> Recupero</a>
+  </div>
+
+  <a href="#" onclick="naviga('privacy.html')">🔐 Privacy</a>
+
+  <script>
+    function naviga(pagina) {
+      parent.caricaContenuto(pagina);
+
+      if (window.innerWidth < 768) {
+        const sidebar = parent.document.getElementById("sidebar");
+        sidebar.classList.remove("visibile");
+      }
+    }
+
+    function toggleSubmenu() {
+      const menu = document.getElementById("submenu-stato");
+      menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+    }
+  </script>
+</body>
+</html>

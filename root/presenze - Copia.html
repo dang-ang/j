@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrazione Presenze Allenamento Calcio (con Google Sheets)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for better content flow */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 16px; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            padding: 30px;
+            width: 100%;
+            max-width: 900px; /* Wider container */
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            font-weight: 600;
+            color: #334155; /* Darker text for labels */
+        }
+        .form-control {
+            border: 1px solid #cbd5e1; /* Lighter border */
+            border-radius: 8px; /* Rounded inputs */
+            padding: 10px 15px;
+            font-size: 1rem;
+            color: #475569; /* Slightly darker text */
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #6366f1; /* Indigo focus ring */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Soft focus shadow */
+        }
+        .btn {
+            padding: 12px 25px;
+            border-radius: 10px; /* Rounded buttons */
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #6366f1; /* Indigo */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4f46e5; /* Darker indigo on hover */
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .btn-secondary {
+            background-color: #e2e8f0; /* Light gray */
+            color: #334155;
+        }
+        .btn-secondary:hover {
+            background-color: #cbd5e1; /* Darker gray on hover */
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .table-header {
+            background-color: #f8fafc; /* Lighter header background */
+            color: #475569;
+            font-weight: 600;
+        }
+        .table-row:nth-child(odd) {
+            background-color: #fbfdfe; /* Very light background for odd rows */
+        }
+        .table-row:nth-child(even) {
+            background-color: #ffffff;
+        }
+        .table-cell {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0; /* Lighter cell borders */
+        }
+        .status-button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px; /* Space between buttons */
+        }
+        .status-button {
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent; /* Default transparent border */
+            transition: all 0.2s ease-in-out;
+            filter: grayscale(80%); /* Make inactive buttons faded */
+            opacity: 0.6; /* Make inactive buttons slightly transparent */
+        }
+        /* Status specific button colors */
+        .status-button.presente { background-color: #22c55e; color: white; } /* Green */
+        .status-button.assente { background-color: #ef4444; color: white; }   /* Red */
+        .status-button.ritardo { background-color: #eab308; color: white; }   /* Yellow */
+        .status-button.infortunato { background-color: #3b82f6; color: white; } /* Blue */
+        .status-button.non-disponibile { background-color: #6b7280; color: white; } /* Gray */
+
+        /* Active state for buttons */
+        .status-button.active {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4); /* Indigo glow */
+            border-color: #6366f1; /* Stronger border */
+            transform: scale(1.05); /* Slightly larger */
+            filter: grayscale(0%); /* Full color for active */
+            opacity: 1; /* Full opacity for active */
+        }
+        .note-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .modal {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Ensure modal is on top */
+        }
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
+        .modal-body {
+            color: #475569;
+            margin-bottom: 25px;
+        }
+        .loading-overlay {
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999; /* Below modal, above content */
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Registrazione Presenze Allenamento Calcio</h1>
+
+        <div class="mb-6">
+            <label for="attendanceDate" class="block text-sm mb-2">Seleziona Data:</label>
+            <input type="date" id="attendanceDate" class="form-control w-full" value="">
+        </div>
+
+        <div id="liveSummary" class="bg-blue-50 p-4 rounded-lg mb-6 shadow-sm">
+            <h3 class="text-lg font-semibold text-blue-800 mb-2">Riepilogo Presenze Live:</h3>
+            <div id="summaryContent" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 text-sm text-blue-700">
+                <!-- Summary will be populated here -->
+            </div>
+        </div>
+
+        <div id="playerList" class="mb-8 overflow-x-auto">
+            <!-- Player attendance inputs will be rendered here by JavaScript -->
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+            <button id="saveAllBtn" class="btn btn-primary w-full sm:w-auto">Salva Tutte le Presenze su Google Sheets</button>
+            <button id="exportCsvBtn" class="btn btn-secondary w-full sm:w-auto">Esporta CSV (dati attuali)</button>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-gray-700 mb-6">Presenze Registrate (Sessione Attuale)</h2>
+        <div id="recordedAttendance" class="overflow-x-auto">
+            <!-- Recorded attendance will be displayed here -->
+            <p class="text-gray-500 text-center py-4" id="noRecordsMessage">Nessuna presenza registrata per questa data nella sessione attuale.</p>
+        </div>
+    </div>
+
+    <!-- Custom Modal for Messages -->
+    <div id="customModal" class="modal fixed inset-0 hidden">
+        <div class="modal-content">
+            <h3 id="modalTitle" class="modal-header"></h3>
+            <p id="modalMessage" class="modal-body"></p>
+            <button id="modalCloseBtn" class="btn btn-primary">OK</button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <script type="module">
+        // IMPORTANT: Replace this with your deployed Google Apps Script Web App URL
+        const googleAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbwJtVADrZoF7tbGVkuOIVjU0KAsDBM_YsRL8aTq8ZMZPkPk8dDnocdZxRFQuOHBLIKiMQ/exec'; 
+
+        // Player list
+        const players = [
+            "AGRIGOROAEI", "AIT", "ARCIDIACONO", "BARUZZI", "BENALLAL", "BUSHI",
+            "CENTANNI", "FALZONI", "FARINA", "FORESTIERO", "GALLALA", "GEMINIANI",
+            "GNOFFO", "GRANO", "GRECA", "GUEYE", "IANIGRO", "MASHA", "MHILLAJ",
+            "NDOJ", "ZITOUNI"
+        ];
+
+        // Status options with codes and colors
+        const statuses = [
+            { value: "presente", label: "Presente", code: "P", colorClass: "presente" },
+            { value: "assente", label: "Assente", code: "A", colorClass: "assente" },
+            { value: "ritardo", label: "Ritardo", code: "R", colorClass: "ritardo" },
+            { value: "infortunato", label: "Infortunato", code: "I", colorClass: "infortunato" },
+            { value: "non disponibile", label: "Non Disponibile", code: "N", colorClass: "non-disponibile" }
+        ];
+
+        // DOM Elements
+        const attendanceDateInput = document.getElementById('attendanceDate');
+        const playerListDiv = document.getElementById('playerList');
+        const saveAllBtn = document.getElementById('saveAllBtn');
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
+        const recordedAttendanceDiv = document.getElementById('recordedAttendance');
+        const noRecordsMessage = document.getElementById('noRecordsMessage');
+        const customModal = document.getElementById('customModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const summaryContentDiv = document.getElementById('summaryContent');
+
+        // This object will store the attendance data in memory for the current session.
+        // It will be lost on page reload, as we are not reading back from Google Sheets.
+        const sessionAttendanceData = {};
+
+        // --- Utility Functions ---
+
+        /**
+         * Shows a custom modal message.
+         * @param {string} title - The title of the modal.
+         * @param {string} message - The message content.
+         */
+        function showModal(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            customModal.classList.remove('hidden');
+        }
+
+        /**
+         * Hides the custom modal.
+         */
+        function hideModal() {
+            customModal.classList.add('hidden');
+        }
+
+        /**
+         * Shows the loading overlay.
+         */
+        function showLoading() {
+            loadingOverlay.classList.remove('hidden');
+        }
+
+        /**
+         * Hides the loading overlay.
+         */
+        function hideLoading() {
+            loadingOverlay.classList.add('hidden');
+        }
+
+        /**
+         * Formats a Date object to YYYY-MM-DD string.
+         * @param {Date} date - The date object.
+         * @returns {string} Formatted date string.
+         */
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        /**
+         * Handles the click event for status buttons.
+         * Sets the active status for the clicked player.
+         * @param {Event} event - The click event.
+         */
+        function handleStatusButtonClick(event) {
+            const clickedButton = event.currentTarget;
+            const player = clickedButton.dataset.player;
+
+            // Remove 'active' class from all buttons for this player
+            const playerButtons = document.querySelectorAll(`.status-button[data-player="${player}"]`);
+            playerButtons.forEach(button => button.classList.remove('active'));
+
+            // Add 'active' class to the clicked button
+            clickedButton.classList.add('active');
+
+            // Update the live summary after a status change
+            updateSummary();
+        }
+
+        /**
+         * Renders the input form for all players using colored buttons.
+         * @param {Object} [currentData={}] - Existing attendance data for the selected date.
+         */
+        function renderPlayerInputs(currentData = {}) {
+            let html = `
+                <table class="min-w-full bg-white rounded-lg shadow-sm">
+                    <thead>
+                        <tr class="table-header">
+                            <th class="py-3 px-4 text-left rounded-tl-lg">Nome Giocatore</th>
+                            <th class="py-3 px-4 text-left">Stato</th>
+                            <th class="py-3 px-4 text-left rounded-tr-lg">Nota</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            players.forEach(player => {
+                const playerData = currentData[player] || { status: 'presente', note: '' };
+                html += `
+                    <tr class="table-row" data-player="${player}">
+                        <td class="table-cell font-medium text-gray-700">${player}</td>
+                        <td class="table-cell">
+                            <div class="status-button-group">
+                                ${statuses.map(s => `
+                                    <button
+                                        type="button"
+                                        class="status-button ${s.colorClass} ${playerData.status === s.value ? 'active' : ''}"
+                                        data-player="${player}"
+                                        data-status-value="${s.value}"
+                                        title="${s.label}"
+                                    >
+                                        ${s.code}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </td>
+                        <td class="table-cell">
+                            <input type="text" class="note-input" placeholder="Aggiungi una nota (es. influenza)" value="${playerData.note}" data-player="${player}-note">
+                        </td>
+                    </tr>
+                `;
+            });
+            html += `
+                    </tbody>
+                </table>
+            `;
+            playerListDiv.innerHTML = html;
+
+            // Attach event listeners to the newly created buttons
+            document.querySelectorAll('.status-button').forEach(button => {
+                button.addEventListener('click', handleStatusButtonClick);
+            });
+
+            // Update summary after rendering inputs
+            updateSummary();
+        }
+
+        /**
+         * Calculates and displays the live summary of player statuses.
+         */
+        function updateSummary() {
+            const summaryCounts = {};
+            statuses.forEach(s => summaryCounts[s.value] = 0); // Initialize counts
+
+            players.forEach(player => {
+                const activeButton = document.querySelector(`.status-button[data-player="${player}"].active`);
+                if (activeButton) {
+                    const statusValue = activeButton.dataset.statusValue;
+                    summaryCounts[statusValue]++;
+                }
+            });
+
+            let summaryHtml = '';
+            statuses.forEach(s => {
+                summaryHtml += `
+                    <div class="flex items-center gap-1">
+                        <span class="font-medium">${s.label}:</span>
+                        <span class="font-bold text-lg">${summaryCounts[s.value]}</span>
+                    </div>
+                `;
+            });
+            summaryContentDiv.innerHTML = summaryHtml;
+        }
+
+
+        /**
+         * Displays attendance data for the selected date from session storage.
+         */
+        function displayRecordedAttendance(data) {
+            const selectedDate = attendanceDateInput.value;
+            if (!selectedDate) {
+                recordedAttendanceDiv.innerHTML = '<p class="text-gray-500 text-center py-4" id="noRecordsMessage">Seleziona una data per visualizzare le presenze.</p>';
+                return;
+            }
+
+            if (Object.keys(data).length > 0) {
+                let displayHtml = `
+                    <table class="min-w-full bg-white rounded-lg shadow-sm">
+                        <thead>
+                            <tr class="table-header">
+                                <th class="py-3 px-4 text-left rounded-tl-lg">Nome Giocatore</th>
+                                <th class="py-3 px-4 text-left">Stato</th>
+                                <th class="py-3 px-4 text-left rounded-tr-lg">Nota</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                players.forEach(player => {
+                    const playerData = data[player] || { status: 'Non registrato', note: '' };
+                    const statusLabel = statuses.find(s => s.value === playerData.status)?.label || playerData.status;
+                    displayHtml += `
+                        <tr class="table-row">
+                            <td class="table-cell font-medium text-gray-700">${player}</td>
+                            <td class="table-cell">${statusLabel}</td>
+                            <td class="table-cell">${playerData.note || '-'}</td>
+                        </tr>
+                    `;
+                });
+                displayHtml += `
+                        </tbody>
+                    </table>
+                `;
+                recordedAttendanceDiv.innerHTML = displayHtml;
+                noRecordsMessage.classList.add('hidden');
+            } else {
+                recordedAttendanceDiv.innerHTML = '<p class="text-gray-500 text-center py-4" id="noRecordsMessage">Nessuna presenza registrata per questa data nella sessione attuale.</p>';
+                noRecordsMessage.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * Fetches and displays attendance data for the selected date from session storage.
+         */
+        function fetchAndDisplayAttendance() {
+            const selectedDate = attendanceDateInput.value;
+            if (!selectedDate) {
+                renderPlayerInputs({}); // Clear inputs if no date
+                displayRecordedAttendance({}); // Clear recorded attendance
+                return;
+            }
+
+            const data = sessionAttendanceData[selectedDate] || {};
+            renderPlayerInputs(data); // Update input fields with fetched data
+            displayRecordedAttendance(data); // Display recorded attendance
+        }
+
+        /**
+         * Saves all current attendance data for the selected date to session storage AND Google Sheets.
+         */
+        async function saveAllAttendance() {
+            const selectedDate = attendanceDateInput.value;
+            if (!selectedDate) {
+                showModal("Data Mancante", "Seleziona una data prima di salvare le presenze.");
+                return;
+            }
+
+          /*
+           if (googleAppsScriptUrl === 'https://script.google.com/macros/s/AKfycbz6eh_l0vjNhhBb5M_ZsVU070itE00fGg_Kj0T2v7WH0tSgLLosrryvEPNFc0VbZ2dX2g/exec' || !googleAppsScriptUrl) {
+                showModal("Errore di Configurazione", "L'URL della Web App di Google Apps Script non è configurato. Si prega di aggiornare il codice con l'URL corretto.");
+                return;
+            }
+          */
+         
+          
+            const attendanceDataForSheet = []; // Array to hold data for Google Sheet
+            const attendanceDataForSession = {}; // Object to hold data for session display
+
+            players.forEach(player => {
+                const activeButton = document.querySelector(`.status-button[data-player="${player}"].active`);
+                const noteInput = document.querySelector(`[data-player="${player}-note"]`);
+
+                const statusValue = activeButton ? activeButton.dataset.statusValue : 'presente';
+                const statusLabel = statuses.find(s => s.value === statusValue)?.label || statusValue;
+                const note = noteInput ? noteInput.value.trim() : '';
+
+                // Prepare data for Google Sheet (one row per player)
+                attendanceDataForSheet.push({
+                    playerName: player,
+                    date: selectedDate,
+                    status: statusLabel, // Send the full label
+                    note: note,
+                    sheet:'presenze'
+                });
+
+                // Prepare data for session display
+                attendanceDataForSession[player] = {
+                    status: statusValue, // Keep the value for internal logic
+                    note: note
+                };
+            });
+
+            // Save to in-memory object for current session display
+            sessionAttendanceData[selectedDate] = attendanceDataForSession;
+            displayRecordedAttendance(attendanceDataForSession); // Update the displayed recorded attendance
+
+            // --- Send data to Google Sheets Web App ---
+            showLoading();
+            try {
+                const response = await fetch(googleAppsScriptUrl, {
+                    method: 'POST',
+                    // mode: 'cors', // Required for cross-origin requests
+                        mode: "no-cors", // Crucial for opaque response
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ data: attendanceDataForSheet })
+                });
+
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showModal("Successo", `Presenze per il ${selectedDate} salvate con successo su Google Sheets!`);
+                } else {
+                    console.error("ConsoleError - Error saving to Google Sheets:", result.error || 'Unknown error');
+                    showModal("Errore di Salvataggio", `Impossibile salvare su Google Sheets: ${result.error || 'Errore sconosciuto'}. Controlla la console per dettagli.`);
+                }
+            } catch (error) {
+                console.error("ConsoleError - Network or fetch error:", error);
+                showModal("Errore di Connessione", "Impossibile connettersi a Google Sheets. Controlla la tua connessione o l'URL della Web App.");
+            } finally {
+                hideLoading();
+                    console.warn("ConsoleError - Empty response from server");
+            }
+        }
+
+
+        /**
+         * Exports the currently displayed attendance data to a CSV file.
+         */
+        function exportCsv() {
+            const selectedDate = attendanceDateInput.value;
+            if (!selectedDate) {
+                showModal("Data Mancante", "Seleziona una data per esportare le presenze.");
+                return;
+            }
+
+            const data = sessionAttendanceData[selectedDate] || {};
+
+            if (Object.keys(data).length === 0) {
+                showModal("Nessun Dato", `Nessuna presenza trovata per il ${selectedDate} da esportare.`);
+                return;
+            }
+
+            let csvContent = "Nome,Data,Stato,Nota\n";
+
+            players.forEach(player => {
+                const playerData = data[player] || { status: 'Non registrato', note: '' };
+                const statusLabel = statuses.find(s => s.value === playerData.status)?.label || playerData.status;
+                const note = playerData.note.replace(/"/g, '""'); // Escape double quotes
+                csvContent += `"${player}","${selectedDate}","${statusLabel}","${note}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            if (link.download !== undefined) { // Feature detection for download attribute
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", `presenze_calcio_${selectedDate}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showModal("Esportazione Completata", `Dati esportati come presenze_calcio_${selectedDate}.csv`);
+            } else {
+                showModal("Funzionalità non supportata", "Il tuo browser non supporta il download diretto. Copia il testo qui sotto e incollalo in un file .csv:\n\n" + csvContent);
+            }
+        }
+
+        // --- Event Listeners ---
+
+        // When the date changes, first render the default inputs, then try to fetch data
+        attendanceDateInput.addEventListener('change', () => {
+            fetchAndDisplayAttendance(); // This will render inputs and update summary
+        });
+
+        saveAllBtn.addEventListener('click', saveAllAttendance);
+        exportCsvBtn.addEventListener('click', exportCsv);
+        modalCloseBtn.addEventListener('click', hideModal);
+
+        // --- Initial Setup ---
+
+        window.onload = function() {
+            // Set today's date as default
+            attendanceDateInput.value = formatDate(new Date());
+            // Initial render of the player inputs with default values and display recorded attendance
+            fetchAndDisplayAttendance();
+        };
+    </script>
+</body>
+</html>

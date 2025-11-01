@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Grafico Parametri Giocatore</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f0f0f0;
+    }
+    h2 {
+      color: #333;
+    }
+    select {
+      margin-right: 1rem;
+      padding: 0.5rem;
+    }
+    canvas {
+      margin-top: 2rem;
+      max-width: 800px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Visualizza Parametri Giocatore</h2>
+
+  <label for="nomeGiocatore">Nome:</label>
+  <select id="nomeGiocatore">
+    <option value="AIT">AIT</option>
+    <option value="ARCIDIACONO">ARCIDIACONO</option>
+    <option value="AGRIGOROAEI">AGRIGOROAEI</option>
+    <!-- Aggiungi altri nomi se necessario -->
+  </select>
+
+  <label for="parametro">Parametro:</label>
+  <select id="parametro">
+    <option value="attendance">PRESENZE</option>
+    <option value="rpe">Sforzo</option>
+    <option value="recovery">Recupero</option>
+    <option value="fatigue">Stanchezza</option>
+  </select>
+
+  <button onclick="caricaDati()">Genera Grafico</button>
+
+  <canvas id="graficoParametri"></canvas>
+
+  <script>
+    // const endpoint = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"; // Inserisci il tuo URL Web App
+    const endpoint = "https://script.google.com/macros/s/AKfycby-14UNnIFbdh9-O0kNXnJNENYGy7OceIIBNJ_tTa1lZQOWkAuHgvHIrL68TOadoYNv/exec"; // Inserisci il tuo URL Web App
+//  https://script.google.com/macros/s/AKfycby-14UNnIFbdh9-O0kNXnJNENYGy7OceIIBNJ_tTa1lZQOWkAuHgvHIrL68TOadoYNv/exec?player=BUSHI&parameter=rpe
+
+    async function caricaDati() {
+      const nome = document.getElementById("nomeGiocatore").value;
+      const parametro = document.getElementById("parametro").value;
+
+      try {
+        const response = await fetch(`${endpoint}?player=${nome}&parameter=${parametro}`);
+        const dati = await response.json();
+
+        if (dati.error) {
+          alert(dati.error);
+          return;
+        }
+
+        const date = [];
+        const valori = [];
+
+        dati.forEach(entry => {
+          const valoreNumerico = parseInt(entry.valore);
+            if (!isNaN(valoreNumerico)) {
+                date.push(entry.data);
+                valori.push(valoreNumerico);
+            }
+            });
+/*
+  if (entry[parametro] !== undefined) {
+            date.push(entry.data);
+            valori.push(parseInt(entry[parametro]));
+          }
+        });
+*/
+
+
+        disegnaGrafico(date, valori, parametro, nome);
+      } catch (error) {
+        console.error("Errore nel recupero dei dati:", error);
+        alert("Errore nel caricamento dei dati.");
+      }
+    }
+
+    function disegnaGrafico(date, valori, parametro, nome) {
+      const ctx = document.getElementById("graficoParametri").getContext("2d");
+      if (window.grafico) window.grafico.destroy(); // Rimuove grafico precedente
+
+      window.grafico = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: date,
+          datasets: [{
+            label: `${parametro.charAt(0).toUpperCase() + parametro.slice(1)} - ${nome}`,
+            data: valori,
+            backgroundColor: "rgba(54, 162, 235, 0.6)",
+            borderColor: "rgba(54, 162, 235, 1)",
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: parametro }
+            },
+            x: {
+              title: { display: true, text: "Data" }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

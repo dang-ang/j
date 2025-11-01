@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Invia dati a Google Sheet</title>
+</head>
+<body>
+  <h1>Modulo per Google Sheet</h1>
+  <form id="myForm">
+    <label>Email: <input type="email" name="Email" required></label><br>
+    <label>Name: <input type="text" name="Name" required></label><br>
+    <label>rpe: <input type="text" name="rpe" required></label><br>
+    <label>Date: <input type="hidden" name="Date"></label><br>
+    
+    <button type="submit" id="submitButton" >Invia</button>
+  </form>
+
+<!-- Message area to show success or error -->
+        <div id="responseMessage" class="mt-6 text-center text-sm font-medium"></div>
+</body>
+
+  <script>
+       const scriptURL = 'https://script.google.com/macros/s/AKfycbzJBw4h9HTALm8lbVPCbu_aPfPCjQk0__NTYWioCu1XawsSZffI7ESv4YsvEpVbpOxoyQ/exec'; // write_google.xlsx   .... Inserisci qui l'URL del tuo Web App
+ 
+        const form = document.getElementById('myForm');
+        const submitButton = document.getElementById('submitButton');
+        const responseMessage = document.getElementById('responseMessage');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent the default form submission (page reload)
+
+            // Show a loading state on the button
+            submitButton.disabled = true;
+            submitButton.textContent = 'Sending...';
+            responseMessage.textContent = '';
+            responseMessage.classList.remove('text-green-600', 'text-red-600');
+
+            const formData = new FormData(form);
+            const data = {
+                cell: formData.get('cell'),
+                value: formData.get('value')
+            };
+
+            // Send the data to the Google Apps Script Web App
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'cors', // Important for cross-origin requests
+                cache: 'no-cache',
+                /*
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // The redirect is important for handling the response from a Google Script web app
+               redirect: 'follow',
+                // The body of the request must be a stringified JSON object
+                body: JSON.stringify(data)
+                */
+           })
+           // .then(response => response.json())
+            .then(result => {
+                // Handle the response from the script
+                if (result.status === 'success') {
+                    responseMessage.textContent = result.message;
+                    responseMessage.classList.add('text-green-600');
+                    form.reset(); // Clear the form on success
+                    // document.getElementById('cell').value = 'H3'; // Reset cell to default
+                } else {
+                    responseMessage.textContent = `Error: ${result.message}`;
+                    responseMessage.classList.add('text-red-600');
+                }
+            })
+            .catch(error => {
+                // Handle network errors
+                console.error('Error:', error);
+                responseMessage.textContent = 'An error occurred while sending the data.';
+                responseMessage.classList.add('text-red-600');
+            })
+            .finally(() => {
+                // Re-enable the button
+                submitButton.disabled = false;
+                submitButton.textContent = 'Write to Sheet';
+            });
+        });
+  </script>
+</html>

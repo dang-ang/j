@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andamento RPE</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #555;
+        }
+        canvas {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Andamento RPE</h1>
+    <h2 id="playerNameTitle"></h2>
+    <canvas id="rpeChart"></canvas>
+    <p id="message" style="text-align: center; color: red;"></p>
+</div>
+
+<script>
+    const scriptUrl = 'https://script.google.com/macros/s/AKfycby-14UNnIFbdh9-O0kNXnJNENYGy7OceIIBNJ_tTa1lZQOWkAuHgvHIrL68TOadoYNv/exec';
+    let chart;
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    async function init() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const playerName = urlParams.get('name');
+
+        if (!playerName) {
+            document.getElementById('message').textContent = 'Nome giocatore non specificato nell\'URL (es. ?name=Mario).';
+            return;
+        }
+
+        document.getElementById('playerNameTitle').textContent = `Andamento RPE per: ${playerName}`;
+
+        await fetchAndDrawChart(playerName);
+    }
+
+    async function fetchAndDrawChart(playerName) {
+        try {
+            const response = await fetch(`${scriptUrl}?name=${encodeURIComponent(playerName)}`);
+            if (!response.ok) throw new Error('Network response was not ok.');
+            const playerData = await response.json();
+
+            if (playerData.length === 0) {
+                document.getElementById('message').textContent = `Nessun dato trovato per il giocatore "${playerName}".`;
+                destroyChart();
+                return;
+            }
+
+            const labels = playerData.map(d => d.data_rpe);
+            const data = playerData.map(d => d.rpe);
+
+            const ctx = document.getElementById('rpeChart').getContext('2d');
+            destroyChart();
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'RPE',
+                        data: data,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'RPE'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Data'
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Errore nel caricamento dei dati RPE:', error);
+            document.getElementById('message').textContent = 'Errore nel caricamento dei dati.';
+        }
+    }
+
+    function destroyChart() {
+        if (chart) {
+            chart.destroy();
+        }
+    }
+</script>
+
+</body>
+</html>

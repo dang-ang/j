@@ -1,0 +1,11 @@
+<div class="navbar">
+    <div class="logo">
+        <a href="../index.php">Vacation Hub</a>
+    </div>
+    <ul class="nav-links">
+        <li><a href="../index.php">Home</a></li>
+        <li><a href="http://localhost/dashboard/vacation/contact.php">Contact Us</a></li>
+        <li><a href="http://localhost/dashboard/vacation/aboutus.php">About Us</a></li>
+        <li><a href="http://localhost/dashboard/vacation/faq.php">FAQ</a></li>
+    </ul>
+</div>
