@@ -1,0 +1,67 @@
+{
+  "eventi": [
+    {
+      "codice": "TP",
+      "descrizione": "Tiro in Porta",
+      "icona": "🎯",
+      "immagine": "img/tp.png",
+      "pos": 1
+    },
+    {
+      "codice": "TF",
+      "descrizione": "Tiro Fuori",
+      "icona": "🚀",
+      "immagine": "img/tf.png",
+      "pos": 2
+    },
+    {
+      "codice": "PP",
+      "descrizione": "Palla persa",
+      "icona": "❌",
+      "immagine": "img/tf.png",
+      "pos": 1
+    },
+    {
+      "codice": "PR",
+      "descrizione": "Palla riconquistata",
+      "icona": "🔄",
+      "immagine": "img/tp.png",
+      "pos": 2
+    },
+    {
+      "codice": "FF",
+      "descrizione": "Fallo fatto",
+      "icona": "🟥",
+      "immagine": "img/tp.png",
+      "pos": 1
+    },
+    {
+      "codice": "FS",
+      "descrizione": "Falli subiti",
+      "icona": "🟦",
+      "immagine": "img/tf.png",
+      "pos": 2
+    },
+    {
+      "codice": "GOL",
+      "descrizione": "Gol",
+      "icona": "⚽",
+      "immagine": "img/gol.png",
+      "pos": 0
+    },
+    {
+      "codice": "CNR",
+      "descrizione": "Corner",
+      "icona": "🏳️",
+      "immagine": "img/corner.png",
+      "pos": 0
+    },
+    {
+      "codice": "PAUSA",
+      "descrizione": "Pausa",
+      "icona": "⏸️",
+      "immagine": "img/pausa.png",
+      "pos": 0
+    }
+  ]
+}

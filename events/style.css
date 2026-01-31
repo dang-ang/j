@@ -1,36 +1,5 @@
-/*
-body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  margin: 30px;
-}
 
-button {
-  margin: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
-}
-
-#statistiche {
-  margin-top: 20px;
-  font-size: 18px;
-}
-
-.azioni {
-  margin-top: 30px;
-}
-
-#cronometro {
-  font-size: 24px;
-  margin-left: 10px;
-}
-*/
-
-/* *********************************
- ---- responsive
-********************************** */
-
-/* Impostazioni base */
+/* Base */
 body {
   font-family: Arial, sans-serif;
   margin: 20px;
@@ -39,62 +8,205 @@ body {
   background-color: #f9f9f9;
 }
 
-/* Layout fluido */
 input, button {
   font-size: 16px;
   padding: 10px;
   margin: 5px;
-  width: 90%;
-  max-width: 300px;
   box-sizing: border-box;
 }
 
-/* Cronometro e tempo */
-#cronometro, #tempoCorrente, #tempoTotale {
-  display: block;
-  font-size: 20px;
-  margin: 10px auto;
+/* Squadre */
+.squadre {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.squadre div {
+  flex: 1 1 200px;
+}
+
+/* Timer e tempi */
+.timer-container, .tempi-container {
+  margin-top: 10px;
+}
+
+#cronometro {
+  display: inline-block;
+  font-size: 22px;
+  margin-left: 10px;
   font-weight: bold;
 }
 
-/* Sezione bottoni parametri */
-#bottoni {
+/* Eventi affiancati */
+.eventi-container {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  margin-top: 10px;
-}
-
-#bottoni button {
-  flex: 1 1 40%;
-  margin: 5px;
-}
-
-/* Sezione vitalità */
-#vitalita {
-  display: flex;
+  gap: 20px;
+  margin-top: 15px;
   flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 10px;
 }
 
-#vitalita button {
-  flex: 1 1 40%;
-  margin: 5px;
+.colonna-eventi {
+  flex: 1 1 250px;
+  background: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
 }
 
-/* Statistiche */
-#statistiche {
+.colonna-eventi h4 {
+  margin-bottom: 10px;
+}
+
+.eventi button {
+  width: 100%;
+  margin: 5px 0;
+}
+
+/* Statistiche / tabelle */
+#tabellaEventi, #tabella15, #timelineEventi, #logEventi, #heatmapEventi, #momentumEventi {
   margin-top: 20px;
-  font-size: 16px;
+  font-size: 14px;
   text-align: left;
-  max-width: 600px;
+  max-width: 800px;
   margin-left: auto;
   margin-right: auto;
   background-color: #fff;
   padding: 10px;
   border-radius: 6px;
   box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+#tabellaEventi table,
+#tabella15 table,
+#logEventi table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#tabellaEventi th, #tabellaEventi td,
+#tabella15 th, #tabella15 td,
+#logEventi th, #logEventi td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+
+/* Filtri */
+.filtri {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px auto;
+  flex-wrap: wrap;
+}
+
+.filtri select {
+  padding: 6px;
+}
+
+/* Timeline */
+.timeline-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.timeline-row.locali {
+  background-color: #e8f4ff;
+}
+
+.timeline-row.ospiti {
+  background-color: #fff3e6;
+}
+
+.timeline-row.sistema {
+  background-color: #ffecec;
+  font-weight: bold;
+}
+
+.timeline-row.gol {
+  background-color: #d4ffd4 !important;
+  border-left: 4px solid #00aa00;
+  font-weight: bold;
+}
+
+.timeline-time {
+  width: 60px;
+  font-weight: bold;
+}
+
+.timeline-evento {
+  flex: 1;
+  text-align: left;
+}
+
+.timeline-squadra {
+  width: 80px;
+  text-align: right;
+  font-weight: bold;
+}
+
+/* Heatmap */
+.heatmap-row {
+  display: flex;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.heatmap-label {
+  width: 120px;
+  font-size: 12px;
+}
+
+.heatmap-bar {
+  flex: 1;
+  height: 16px;
+  background: #eee;
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.heatmap-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #cce5ff, #004085);
+}
+
+/* Momentum */
+.momentum-row {
+  display: flex;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.momentum-label {
+  width: 80px;
+  font-size: 12px;
+}
+
+.momentum-bar {
+  flex: 1;
+  height: 16px;
+  background: #eee;
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.momentum-fill-locali {
+  height: 100%;
+  background: rgba(0, 123, 255, 0.7);
+}
+
+.momentum-fill-ospiti {
+  height: 100%;
+  background: rgba(255, 159, 64, 0.7);
 }
 
 /* Azioni finali */
@@ -110,34 +222,167 @@ input, button {
   margin: 5px;
 }
 
-/* Responsive media query */
+/* Responsive */
 @media screen and (max-width: 480px) {
   input, button {
     font-size: 14px;
     padding: 8px;
   }
 
-  #statistiche {
-    font-size: 14px;
+  #tabellaEventi,
+  #tabella15,
+  #timelineEventi,
+  #logEventi,
+  #heatmapEventi,
+  #momentumEventi {
+    font-size: 12px;
   }
 }
 
-
-/*  xx Chart */
-#tabellaEventi table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-#tabellaEventi th, #tabellaEventi td {
-  border: 1px solid #ccc;
-  padding: 6px;
+.data-partita {
+  margin: 10px auto 20px auto;
   text-align: center;
 }
 
-canvas {
-  max-width: 100%;
-  margin-top: 20px;
+.data-partita input {
+  padding: 6px;
+  font-size: 16px;
 }
 
+.meta-partita {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin: 15px auto;
+  max-width: 800px;
+}
+
+.meta-partita div {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.meta-partita input,
+.meta-partita textarea {
+  padding: 6px;
+  font-size: 15px;
+  margin-top: 4px;
+  box-sizing: border-box;
+}
+
+.note-box {
+  flex: 1 1 100%;
+}
+
+
+.evento-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 13px;
+}
+
+.ev-icona {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+.ev-img {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 4px;
+}
+
+.ev-codice {
+  font-weight: bold;
+}
+
+.ev-desc {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+
+.eventi-locali, .eventi-ospiti {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.col-loc-full, .col-osp-full {
+  grid-column: 1 / span 2;
+}
+
+.evento-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px;
+}
+
+/* x istogramma */
+
+.bar-container {
+  width: 100%;
+  background: #eee;
+  height: 12px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.bar {
+  height: 100%;
+  background: #4a90e2;
+  transition: width 0.3s ease;
+}
+
+.bar-ospiti {
+  background: #e24a4a;
+}
+
+
+/* css x stacked */
+.stack-container {
+  width: 100%;
+  height: 14px;
+  background: #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+}
+
+.stack-bar {
+  height: 100%;
+}
+
+.stack-bar.locali {
+  background: green; 
+}
+
+.stack-bar.ospiti {
+  background: gray; 
+}
+
+
+/* tabella risultato */
+.tabella-risultato {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.tabella-risultato th,
+.tabella-risultato td {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  text-align: center;
+}
+
+.tabella-risultato .totale {
+  font-weight: bold;
+  background: #f0f0f0;
+}

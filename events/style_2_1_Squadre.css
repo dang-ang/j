@@ -1,0 +1,189 @@
+/*
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin: 30px;
+}
+
+button {
+  margin: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+
+#statistiche {
+  margin-top: 20px;
+  font-size: 18px;
+}
+
+.azioni {
+  margin-top: 30px;
+}
+
+#cronometro {
+  font-size: 24px;
+  margin-left: 10px;
+}
+*/
+
+/* *********************************
+ ---- responsive
+********************************** */
+
+/* Impostazioni base */
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  padding: 0;
+  text-align: center;
+  background-color: #f9f9f9;
+}
+
+/* Layout fluido */
+input, button {
+  font-size: 16px;
+  padding: 10px;
+  margin: 5px;
+  width: 90%;
+  max-width: 300px;
+  box-sizing: border-box;
+}
+
+/* Cronometro e tempo */
+#cronometro, #tempoCorrente, #tempoTotale {
+  display: block;
+  font-size: 20px;
+  margin: 10px auto;
+  font-weight: bold;
+}
+
+/* Sezione bottoni parametri */
+#bottoni {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+#bottoni button {
+  flex: 1 1 40%;
+  margin: 5px;
+}
+
+/* Sezione vitalità */
+#vitalita {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+#vitalita button {
+  flex: 1 1 40%;
+  margin: 5px;
+}
+
+/* Statistiche */
+#statistiche {
+  margin-top: 20px;
+  font-size: 16px;
+  text-align: left;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+/* Azioni finali */
+.azioni {
+  margin-top: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.azioni button {
+  flex: 1 1 40%;
+  margin: 5px;
+}
+
+/* Responsive media query */
+@media screen and (max-width: 480px) {
+  input, button {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  #statistiche {
+    font-size: 14px;
+  }
+}
+
+
+/*  xx Chart */
+#tabellaEventi table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+#tabellaEventi th, #tabellaEventi td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+
+canvas {
+  max-width: 100%;
+  margin-top: 20px;
+}
+
+/** bottoni x squadra */
+#bottoni {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.evento-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.evento-label {
+  width: 140px;
+  text-align: right;
+  font-weight: bold;
+}
+
+.btn-s1 {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-s2 {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-s1:hover {
+  background-color: #0056b3;
+}
+
+.btn-s2:hover {
+  background-color: #a71d2a;
+}
