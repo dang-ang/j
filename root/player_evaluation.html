@@ -1,0 +1,532 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;}
+  #app{font-family:'Inter',sans-serif;color:var(--color-text-primary);font-size:14px;}
+  .header{background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  .header h1{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;}
+  .header-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  select,button{font-family:'Inter',sans-serif;font-size:13px;padding:6px 12px;border:0.5px solid var(--color-border-secondary);border-radius:8px;background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;outline:none;}
+  button.btn-load{background:#00C853;color:#fff;border-color:#00963e;font-weight:500;}
+  button.btn-load:hover{background:#00963e;}
+  .tabs{display:flex;gap:4px;padding:12px 20px 0;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);overflow-x:auto;}
+  .tab{padding:8px 14px;border:none;background:transparent;font-size:13px;color:var(--color-text-secondary);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+  .tab.active{color:var(--color-text-primary);border-bottom-color:#00C853;font-weight:500;}
+  .tab:hover:not(.active){color:var(--color-text-primary);}
+  .content{padding:20px;}
+  .panel{display:none;}.panel.active{display:block;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media(max-width:700px){.grid2,.grid4{grid-template-columns:1fr;}}
+  .card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px 20px;}
+  .card-title{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--color-text-secondary);margin-bottom:8px;font-weight:500;}
+  .card-value{font-size:28px;font-weight:300;line-height:1;}
+  .card-sub{font-size:12px;color:var(--color-text-secondary);margin-top:4px;}
+  .sec-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .sec-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .sec-header h3{font-size:14px;font-weight:500;}
+  .sec-avg{margin-left:auto;font-size:20px;font-weight:300;}
+  .sec-avg small{font-size:12px;color:var(--color-text-secondary);}
+  .kpi-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+  .kpi-label{font-size:11px;color:var(--color-text-secondary);width:160px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .kpi-bar-wrap{flex:1;height:5px;background:var(--color-background-secondary);border-radius:3px;overflow:hidden;}
+  .kpi-bar{height:100%;border-radius:3px;}
+  .kpi-val{font-size:11px;font-weight:500;width:26px;text-align:right;}
+  /* radar grid: 3 colonne per radar piccoli */
+  .radar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media(max-width:900px){.radar-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:560px){.radar-grid{grid-template-columns:1fr;}}
+  .radar-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px;}
+  .radar-card-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:0.5px solid var(--color-border-tertiary);}
+  .radar-card-header h3{font-size:12px;font-weight:500;line-height:1.3;}
+  .radar-card-avg{margin-left:auto;font-size:18px;font-weight:300;white-space:nowrap;}
+  .radar-wrap{position:relative;width:100%;aspect-ratio:1;max-width:260px;margin:0 auto;}
+  .sec-group-label{grid-column:1/-1;display:flex;align-items:center;gap:8px;padding:6px 0 2px;margin-top:8px;}
+  .sec-group-label h2{font-size:13px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.6px;}
+  .sec-group-label:first-child{margin-top:0;}
+  .player-row{display:flex;align-items:center;gap:10px;padding:8px 10px;cursor:pointer;border-radius:6px;border-bottom:0.5px solid var(--color-border-tertiary);transition:background .15s;}
+  .player-row:hover,.player-row.selected{background:var(--color-background-secondary);}
+  .player-avatar{width:34px;height:34px;border-radius:50%;background:var(--color-background-info);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--color-text-info);flex-shrink:0;}
+  .status-bar{background:var(--color-background-secondary);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--color-text-secondary);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .dot{width:8px;height:8px;border-radius:50%;background:#00C853;flex-shrink:0;}
+  .dot.loading{animation:pulse 1s infinite;}.dot.error{background:#E53935;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .eval-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .eval-table th{text-align:left;padding:7px 8px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);}
+  .eval-table td{padding:7px 8px;border-bottom:0.5px solid var(--color-border-tertiary);}
+  .eval-table tr:hover td{background:var(--color-background-secondary);}
+  .nota-badge{display:inline-block;padding:2px 7px;background:var(--color-background-secondary);border-radius:10px;font-size:11px;color:var(--color-text-secondary);}
+  .rank-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);}
+  .mb16{margin-bottom:16px;}.mt16{margin-top:16px;}
+  .empty{text-align:center;padding:40px;color:var(--color-text-secondary);font-size:13px;}
+  .part-badge{font-size:10px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-radius:6px;padding:2px 6px;margin-left:4px;}
+</style>
+
+<div id="app">
+  <div class="header">
+    <div>
+      <div class="card-title" style="margin:0 0 2px">⚽ Sistema di Valutazione</div>
+      <h1>PLAYER SCOUT</h1>
+    </div>
+    <div class="header-right">
+      <select id="sel-mister"><option value="">Tutti i mister</option></select>
+      <button class="btn-load" onclick="loadData()">↻ Aggiorna</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab(0)">Squadra</button>
+    <button class="tab" onclick="showTab(1)">Radar Squadra</button>
+    <button class="tab" onclick="showTab(2)">Giocatori</button>
+    <button class="tab" onclick="showTab(3)">Radar Giocatore</button>
+    <button class="tab" onclick="showTab(4)">Confronto</button>
+    <button class="tab" onclick="showTab(5)">Sessioni</button>
+  </div>
+
+  <div class="content">
+
+    <!-- TAB 0: KPI SQUADRA -->
+    <div class="panel active" id="panel-0">
+      <div class="status-bar"><div class="dot loading" id="status-dot"></div><span id="status-msg">Connessione in corso...</span></div>
+      <div class="grid4 mb16">
+        <div class="card"><div class="card-title">Giocatori</div><div class="card-value" id="kpi-ng">—</div></div>
+        <div class="card"><div class="card-title">Media Fondamentali</div><div class="card-value" id="kpi-fond">—</div><div class="card-sub">su 5</div></div>
+        <div class="card"><div class="card-title">Media Tattica</div><div class="card-value" id="kpi-tatt">—</div><div class="card-sub">su 5</div></div>
+        <div class="card"><div class="card-title">Media Fisica</div><div class="card-value" id="kpi-fis">—</div><div class="card-sub">su 5</div></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><div class="sec-header"><div class="sec-dot" style="background:#1565C0"></div><h3>Fondamentali</h3><div class="sec-avg"><span id="avg-fond">—</span><small>/5</small></div></div><div id="bars-fond"></div></div>
+        <div class="card"><div class="sec-header"><div class="sec-dot" style="background:#00C853"></div><h3>Tattica Individuale</h3><div class="sec-avg"><span id="avg-tatt">—</span><small>/5</small></div></div><div id="bars-tatt"></div></div>
+        <div class="card"><div class="sec-header"><div class="sec-dot" style="background:#FF6F00"></div><h3>Aspetto Fisico</h3><div class="sec-avg"><span id="avg-fis">—</span><small>/5</small></div></div><div id="bars-fis"></div></div>
+        <div class="card"><div class="sec-header"><div class="sec-dot" style="background:#7B1FA2"></div><h3>Portiere</h3><div class="sec-avg"><span id="avg-port">—</span><small>/5</small></div></div><div id="bars-port"></div></div>
+      </div>
+    </div>
+
+    <!-- TAB 1: RADAR SQUADRA -->
+    <div class="panel" id="panel-1">
+      <div class="radar-grid" id="radar-squadra-grid"></div>
+    </div>
+
+    <!-- TAB 2: GIOCATORI -->
+    <div class="panel" id="panel-2">
+      <div class="grid2">
+        <div class="card" style="max-height:580px;overflow-y:auto">
+          <div class="card-title mb16">Seleziona Giocatore</div>
+          <div id="player-list"><div class="empty">Caricamento...</div></div>
+        </div>
+        <div class="card"><div class="card-title">Scheda</div><div id="player-detail"><div class="empty">Seleziona un giocatore</div></div></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: RADAR GIOCATORE -->
+    <div class="panel" id="panel-3">
+      <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <select id="sel-radar-player" onchange="renderRadarGiocatore()" style="min-width:180px"><option value="">— Seleziona giocatore —</option></select>
+        <span style="font-size:12px;color:var(--color-text-secondary)">Linea verde = media squadra</span>
+      </div>
+      <div class="radar-grid" id="radar-player-grid"><div class="empty">Seleziona un giocatore</div></div>
+    </div>
+
+    <!-- TAB 4: CONFRONTO -->
+    <div class="panel" id="panel-4">
+      <div class="card mb16">
+        <div class="card-title mb16">Confronta due giocatori</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <select id="cmp-a" style="flex:1" onchange="aggiornaConfronto()"><option value="">— Giocatore A —</option></select>
+          <select id="cmp-b" style="flex:1" onchange="aggiornaConfronto()"><option value="">— Giocatore B —</option></select>
+        </div>
+      </div>
+      <div class="radar-grid" id="radar-cmp-grid"><div class="empty">Seleziona due giocatori</div></div>
+    </div>
+
+    <!-- TAB 5: SESSIONI -->
+    <div class="panel" id="panel-5">
+      <div class="card mb16"><div class="card-title">Ultime valutazioni</div><div style="overflow-x:auto"><table class="eval-table"><thead><tr><th>Data</th><th>Giocatore</th><th>Nota</th><th>Fond.</th><th>Tatt.</th><th>Fis.</th><th>Port.</th><th>Media</th></tr></thead><tbody id="sessioni-body"></tbody></table></div></div>
+      <div class="card"><div class="card-title mb16">Ranking</div><div id="ranking-list"></div></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const WEBAPP_URL="https://script.google.com/macros/s/AKfycbyZYu4Q16k-SDMwKrSWOeoj6llV5b16UAhhDaQ5YIroNgcP8npNFTEb122ESxqJ1knO/exec";
+const MAX_RADAR=8;
+
+const SECTIONS={
+  fond:{label:'Fondamentali',color:'#1565C0',kpis:['Controllo orientato','Conduzione palla','Passaggio corto','Passaggio lungo','Dribbling','1v1','Tiro in porta','Cross e assist','Tocco di prima','Colpo di testa','Cambio di ritmo','Ricezione tra le linee','Smarcamento','Pressing individuale','Occupazione spazi','Transizioni']},
+  tatt:{label:'Tattica',color:'#00C853',kpis:['Smarcamento attivo','Pressing offensivo','Inserimento in area','Gioco spalle porta','Marcatura diretta','Copertura e scalata','Anticipo','Pressing individuale']},
+  fis: {label:'Fisico',color:'#FF6F00',kpis:['Coordinazione','Velocità','Rapidità','Resistenza','Forza','Flessibilità','Mobilità articolare']},
+  port:{label:'Portiere',color:'#7B1FA2',kpis:['Tecnica di parata','Gioco coi piedi','Guida della squadra']}
+};
+
+const KPI_COL_MAP={
+  'Controllo orientato':6,'Conduzione palla':7,'Passaggio corto':8,'Passaggio lungo':9,
+  'Dribbling':10,'1v1':11,'Tiro in porta':12,'Cross e assist':13,'Tocco di prima':14,
+  'Colpo di testa':15,'Cambio di ritmo':16,'Ricezione tra le linee':17,'Smarcamento':18,
+  'Pressing individuale':19,'Occupazione spazi':20,'Transizioni':21,
+  'Smarcamento attivo':22,'Pressing offensivo':23,'Inserimento in area':24,
+  'Gioco spalle porta':25,'Marcatura diretta':26,'Copertura e scalata':27,'Anticipo':28,
+  'Coordinazione':30,'Velocità':31,'Rapidità':32,'Resistenza':33,'Forza':34,
+  'Flessibilità':35,'Mobilità articolare':36,
+  'Tecnica di parata':37,'Gioco coi piedi':38,'Guida della squadra':39
+};
+
+// Suddivide un array di kpi in chunk da max MAX_RADAR
+function chunkKpis(kpis){
+  const chunks=[];
+  for(let i=0;i<kpis.length;i+=MAX_RADAR) chunks.push(kpis.slice(i,i+MAX_RADAR));
+  return chunks;
+}
+
+// Restituisce [{sec, label, color, kpis, part, totalParts}] per tutti i chunk di tutte le sezioni
+function getAllChunks(){
+  const result=[];
+  Object.entries(SECTIONS).forEach(([sec,s])=>{
+    const chunks=chunkKpis(s.kpis);
+    chunks.forEach((chunk,i)=>{
+      result.push({sec, label:s.label, color:s.color, kpis:chunk, part:i+1, totalParts:chunks.length});
+    });
+  });
+  return result;
+}
+
+let allRows=[],players={},charts={};
+
+function showTab(idx){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
+}
+function setStatus(msg,state){
+  document.getElementById('status-msg').textContent=msg;
+  const d=document.getElementById('status-dot');
+  d.className='dot'+(state==='loading'?' loading':state==='error'?' error':'');
+}
+function scoreColor(v){
+  if(!v||v===0) return 'var(--color-text-secondary)';
+  if(v>=4.5) return '#1B5E20';
+  if(v>=3.5) return '#2E7D32';
+  if(v>=2.5) return '#E65100';
+  return '#B71C1C';
+}
+
+async function loadData(){
+  setStatus('Connessione al Google Sheets...','loading');
+  try{
+    const r1=await fetch(WEBAPP_URL);
+    const d1=await r1.json();
+    if(d1.status!=='OK') throw new Error(d1.message);
+    const misteri=Object.keys(d1.data);
+    const sel=document.getElementById('sel-mister');
+    sel.innerHTML='<option value="">Tutti i mister</option>'+misteri.map(m=>`<option value="${m}">${m}</option>`).join('');
+    const r2=await fetch(WEBAPP_URL+'?action=full');
+    const d2=await r2.json();
+    if(d2.status!=='OK') throw new Error(d2.message);
+    allRows=d2.rows||[];
+    buildAll();
+    setStatus(`Dati aggiornati — ${Object.keys(players).length} giocatori, ${allRows.filter(r=>r[3]&&r[3]!=='Giocatore').length} valutazioni`,'ok');
+  }catch(err){
+    setStatus('Errore: '+err.message,'error');
+  }
+}
+
+function buildAll(){
+  buildPlayers();
+  renderSquadra();
+  renderRadarGrid('radar-squadra-grid', getAllChunks(), (chunk)=>[{label:'Squadra',data:chunk.kpis.map(k=>squKpiAvg(k)||0),color:chunk.color}]);
+  renderGiocatori();
+  renderSessioni();
+  populateSelects();
+}
+
+function buildPlayers(){
+  players={};
+  allRows.forEach(r=>{
+    const g=r[3]; if(!g||g==='Giocatore') return;
+    if(!players[g]) players[g]={name:g,rows:[],role:r[40]||''};
+    players[g].rows.push(r);
+  });
+  Object.values(players).forEach(p=>{
+    p.avgs={};
+    Object.entries(KPI_COL_MAP).forEach(([kpi,col])=>{
+      const vs=p.rows.map(r=>parseFloat(r[col])).filter(v=>!isNaN(v)&&v>0);
+      p.avgs[kpi]=vs.length?+(vs.reduce((a,b)=>a+b,0)/vs.length).toFixed(2):null;
+    });
+    p.secAvg={};
+    Object.entries(SECTIONS).forEach(([sec,s])=>{
+      const vs=s.kpis.map(k=>p.avgs[k]).filter(v=>v);
+      p.secAvg[sec]=vs.length?+(vs.reduce((a,b)=>a+b,0)/vs.length).toFixed(2):null;
+    });
+    const all=Object.values(p.secAvg).filter(v=>v);
+    p.overall=all.length?+(all.reduce((a,b)=>a+b,0)/all.length).toFixed(2):null;
+  });
+}
+
+function squKpiAvg(kpi){
+  const col=KPI_COL_MAP[kpi];
+  const vs=allRows.map(r=>parseFloat(r[col])).filter(v=>!isNaN(v)&&v>0);
+  return vs.length?+(vs.reduce((a,b)=>a+b,0)/vs.length).toFixed(2):null;
+}
+function squSecAvg(sec){
+  const vs=SECTIONS[sec].kpis.map(k=>squKpiAvg(k)).filter(v=>v);
+  return vs.length?+(vs.reduce((a,b)=>a+b,0)/vs.length).toFixed(2):null;
+}
+
+// ── Renderer generico: dato un array di chunk e una fn che restituisce i datasets, popola una grid ──
+function renderRadarGrid(gridId, chunks, datasetsFn){
+  const grid=document.getElementById(gridId);
+  grid.innerHTML='';
+
+  // Raggruppa chunk per sezione per inserire l'intestazione di sezione
+  let lastSec=null;
+  chunks.forEach(chunk=>{
+    // Intestazione di sezione (solo al cambio di sezione)
+    if(chunk.sec!==lastSec){
+      lastSec=chunk.sec;
+      const lbl=document.createElement('div');
+      lbl.className='sec-group-label';
+      lbl.innerHTML=`<div class="sec-dot" style="background:${chunk.color};width:8px;height:8px;border-radius:50%"></div><h2>${chunk.label}</h2>`;
+      grid.appendChild(lbl);
+    }
+
+    const cid=gridId+'-'+chunk.sec+'-'+chunk.part;
+    const datasets=datasetsFn(chunk);
+
+    // Calcola media dei kpi del chunk per il titolo
+    const vals=chunk.kpis.map(k=>squKpiAvg(k)||0).filter(v=>v>0);
+    const chunkAvg=vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2):null;
+
+    // Badge parte solo se ce ne sono più di una
+    const partBadge=chunk.totalParts>1?`<span class="part-badge">parte ${chunk.part}/${chunk.totalParts}</span>`:'';
+
+    const div=document.createElement('div');
+    div.className='radar-card';
+    div.innerHTML=`
+      <div class="radar-card-header">
+        <div class="sec-dot" style="background:${chunk.color}"></div>
+        <h3>${chunk.label}${partBadge}</h3>
+        <div class="radar-card-avg" style="color:${scoreColor(chunkAvg)}">${chunkAvg||'—'}<small style="font-size:10px;color:var(--color-text-secondary)"> /5</small></div>
+      </div>
+      <div class="radar-wrap"><canvas id="${cid}"></canvas></div>`;
+    grid.appendChild(div);
+    drawRadar(cid, chunk.kpis, datasets);
+  });
+}
+
+// Versione per giocatore: usa avgs del giocatore + media squadra come riferimento
+function renderRadarGridPlayer(gridId, chunks, player){
+  const grid=document.getElementById(gridId);
+  grid.innerHTML='';
+  let lastSec=null;
+  chunks.forEach(chunk=>{
+    if(chunk.sec!==lastSec){
+      lastSec=chunk.sec;
+      const lbl=document.createElement('div');
+      lbl.className='sec-group-label';
+      lbl.innerHTML=`<div class="sec-dot" style="background:${chunk.color};width:8px;height:8px;border-radius:50%"></div><h2>${chunk.label}</h2>`;
+      grid.appendChild(lbl);
+    }
+    const cid=gridId+'-'+chunk.sec+'-'+chunk.part;
+    const playerVals=chunk.kpis.map(k=>player.avgs[k]||0);
+    const squadVals=chunk.kpis.map(k=>squKpiAvg(k)||0);
+    const partBadge=chunk.totalParts>1?`<span class="part-badge">parte ${chunk.part}/${chunk.totalParts}</span>`:'';
+    const chunkAvg=playerVals.filter(v=>v>0).length?(playerVals.filter(v=>v>0).reduce((a,b)=>a+b,0)/playerVals.filter(v=>v>0).length).toFixed(2):null;
+    const div=document.createElement('div');
+    div.className='radar-card';
+    div.innerHTML=`
+      <div class="radar-card-header">
+        <div class="sec-dot" style="background:${chunk.color}"></div>
+        <h3>${chunk.label}${partBadge}</h3>
+        <div class="radar-card-avg" style="color:${scoreColor(chunkAvg)}">${chunkAvg||'—'}<small style="font-size:10px;color:var(--color-text-secondary)"> /5</small></div>
+      </div>
+      <div class="radar-wrap"><canvas id="${cid}"></canvas></div>`;
+    grid.appendChild(div);
+    drawRadar(cid, chunk.kpis,[
+      {label:player.name, data:playerVals, color:chunk.color},
+      {label:'Media squadra', data:squadVals, color:'#00C853'}
+    ]);
+  });
+}
+
+function renderRadarGridConfronto(gridId, chunks, pa, pb, na, nb){
+  const grid=document.getElementById(gridId);
+  grid.innerHTML='';
+  let lastSec=null;
+  chunks.forEach(chunk=>{
+    if(chunk.sec!==lastSec){
+      lastSec=chunk.sec;
+      const lbl=document.createElement('div');
+      lbl.className='sec-group-label';
+      lbl.innerHTML=`<div class="sec-dot" style="background:${chunk.color};width:8px;height:8px;border-radius:50%"></div><h2>${chunk.label}</h2>`;
+      grid.appendChild(lbl);
+    }
+    const cid=gridId+'-'+chunk.sec+'-'+chunk.part;
+    const partBadge=chunk.totalParts>1?`<span class="part-badge">parte ${chunk.part}/${chunk.totalParts}</span>`:'';
+    const vaArr=chunk.kpis.map(k=>pa.avgs[k]||0);
+    const vbArr=chunk.kpis.map(k=>pb.avgs[k]||0);
+    const div=document.createElement('div');
+    div.className='radar-card';
+    div.innerHTML=`
+      <div class="radar-card-header">
+        <div class="sec-dot" style="background:${chunk.color}"></div>
+        <h3>${chunk.label}${partBadge}</h3>
+        <div style="margin-left:auto;display:flex;gap:8px;font-size:11px">
+          <span style="color:#1565C0;font-weight:500">${na.split(' ')[0]}</span>
+          <span style="color:var(--color-text-secondary)">vs</span>
+          <span style="color:#E53935;font-weight:500">${nb.split(' ')[0]}</span>
+        </div>
+      </div>
+      <div class="radar-wrap"><canvas id="${cid}"></canvas></div>`;
+    grid.appendChild(div);
+    drawRadar(cid, chunk.kpis,[
+      {label:na, data:vaArr, color:'#1565C0'},
+      {label:nb, data:vbArr, color:'#E53935'}
+    ]);
+  });
+}
+
+function renderSquadra(){
+  document.getElementById('kpi-ng').textContent=Object.keys(players).length;
+  ['fond','tatt','fis'].forEach(sec=>{
+    const avg=squSecAvg(sec);
+    document.getElementById('kpi-'+sec).textContent=avg||'—';
+    document.getElementById('avg-'+sec).textContent=avg||'—';
+    renderBars('bars-'+sec,sec);
+  });
+  document.getElementById('avg-port').textContent=squSecAvg('port')||'—';
+  renderBars('bars-port','port');
+}
+
+function renderBars(id,sec){
+  document.getElementById(id).innerHTML=SECTIONS[sec].kpis.map(kpi=>{
+    const avg=squKpiAvg(kpi),pct=avg?(avg/5*100).toFixed(0):0;
+    return `<div class="kpi-row"><div class="kpi-label" title="${kpi}">${kpi}</div><div class="kpi-bar-wrap"><div class="kpi-bar" style="width:${pct}%;background:${SECTIONS[sec].color}"></div></div><div class="kpi-val" style="color:${scoreColor(avg)}">${avg||'—'}</div></div>`;
+  }).join('');
+}
+
+function renderRadarGiocatore(){
+  const name=document.getElementById('sel-radar-player').value;
+  const grid=document.getElementById('radar-player-grid');
+  if(!name){grid.innerHTML='<div class="empty">Seleziona un giocatore</div>';return;}
+  const p=players[name]; if(!p) return;
+  renderRadarGridPlayer('radar-player-grid', getAllChunks(), p);
+}
+
+function aggiornaConfronto(){
+  const na=document.getElementById('cmp-a').value;
+  const nb=document.getElementById('cmp-b').value;
+  const grid=document.getElementById('radar-cmp-grid');
+  if(!na||!nb){grid.innerHTML='<div class="empty">Seleziona due giocatori</div>';return;}
+  const pa=players[na],pb=players[nb]; if(!pa||!pb) return;
+  renderRadarGridConfronto('radar-cmp-grid', getAllChunks(), pa, pb, na, nb);
+}
+
+function renderGiocatori(){
+  const list=document.getElementById('player-list');
+  const sorted=Object.values(players).sort((a,b)=>(b.overall||0)-(a.overall||0));
+  if(!sorted.length){list.innerHTML='<div class="empty">Nessun giocatore trovato</div>';return;}
+  list.innerHTML=sorted.map(p=>{
+    const ini=p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return `<div class="player-row" onclick="selectPlayer('${p.name.replace(/'/g,"\\'")}')">
+      <div class="player-avatar">${ini}</div>
+      <div><div style="font-size:13px;font-weight:500">${p.name}</div><div style="font-size:11px;color:var(--color-text-secondary)">${p.role||'N/D'} · ${p.rows.length} val.</div></div>
+      <div style="margin-left:auto;font-size:18px;font-weight:300;color:${scoreColor(p.overall)}">${p.overall||'—'}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectPlayer(name){
+  document.querySelectorAll('.player-row').forEach(r=>{
+    const nm=r.querySelector('div>div');
+    if(nm) r.classList.toggle('selected', nm.textContent===name);
+  });
+  const p=players[name]; if(!p) return;
+  const ini=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  let html=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+    <div class="player-avatar" style="width:46px;height:46px;font-size:15px">${ini}</div>
+    <div><div style="font-size:15px;font-weight:500">${name}</div><div style="font-size:12px;color:var(--color-text-secondary)">${p.role||''} · ${p.rows.length} val.</div></div>
+    <div style="margin-left:auto;font-size:26px;font-weight:300;color:${scoreColor(p.overall)}">${p.overall||'—'}</div>
+  </div>`;
+  Object.entries(SECTIONS).forEach(([sec,s])=>{
+    const avg=p.secAvg[sec];
+    html+=`<div class="sec-header" style="margin-top:10px"><div class="sec-dot" style="background:${s.color}"></div><h3>${s.label}</h3><div class="sec-avg" style="font-size:15px;color:${scoreColor(avg)}">${avg||'—'}<small> /5</small></div></div>`;
+    html+=s.kpis.map(kpi=>{
+      const v=p.avgs[kpi],pct=v?(v/5*100).toFixed(0):0;
+      return `<div class="kpi-row"><div class="kpi-label">${kpi}</div><div class="kpi-bar-wrap"><div class="kpi-bar" style="width:${pct}%;background:${s.color}"></div></div><div class="kpi-val" style="color:${scoreColor(v)}">${v||'—'}</div></div>`;
+    }).join('');
+  });
+  document.getElementById('player-detail').innerHTML=html;
+  document.getElementById('sel-radar-player').value=name;
+}
+
+function populateSelects(){
+  const names=Object.keys(players);
+  ['sel-radar-player','cmp-a','cmp-b'].forEach(id=>{
+    const sel=document.getElementById(id);
+    const cur=sel.value;
+    const ph=id==='cmp-a'?'— Giocatore A —':id==='cmp-b'?'— Giocatore B —':'— Seleziona giocatore —';
+    sel.innerHTML=`<option value="">${ph}</option>`+names.map(n=>`<option value="${n}"${n===cur?' selected':''}>${n}</option>`).join('');
+  });
+}
+
+function renderSessioni(){
+  const tbody=document.getElementById('sessioni-body');
+  const sorted=[...allRows].filter(r=>r[3]&&r[3]!=='Giocatore').sort((a,b)=>(b[1]||'').localeCompare(a[1]||'')).slice(0,30);
+  const secAvgRow=(r,sec)=>{const vs=SECTIONS[sec].kpis.map(k=>parseFloat(r[KPI_COL_MAP[k]])).filter(v=>!isNaN(v)&&v>0);return vs.length?(vs.reduce((a,b)=>a+b,0)/vs.length).toFixed(1):'—';};
+  tbody.innerHTML=sorted.map(r=>{
+    const allV=Object.keys(SECTIONS).flatMap(s=>SECTIONS[s].kpis.map(k=>parseFloat(r[KPI_COL_MAP[k]]))).filter(v=>!isNaN(v)&&v>0);
+    const ov=allV.length?(allV.reduce((a,b)=>a+b,0)/allV.length).toFixed(1):'—';
+    return `<tr><td>${r[1]||'—'}</td><td><strong>${r[3]}</strong></td><td><span class="nota-badge">${r[4]||'—'}</span></td>
+      <td style="color:${scoreColor(secAvgRow(r,'fond'))}">${secAvgRow(r,'fond')}</td>
+      <td style="color:${scoreColor(secAvgRow(r,'tatt'))}">${secAvgRow(r,'tatt')}</td>
+      <td style="color:${scoreColor(secAvgRow(r,'fis'))}">${secAvgRow(r,'fis')}</td>
+      <td style="color:${scoreColor(secAvgRow(r,'port'))}">${secAvgRow(r,'port')}</td>
+      <td style="font-weight:500;color:${scoreColor(ov)}">${ov}</td></tr>`;
+  }).join('')||'<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--color-text-secondary)">Nessun dato</td></tr>';
+  const rankEl=document.getElementById('ranking-list');
+  const sorted2=Object.values(players).filter(p=>p.overall).sort((a,b)=>b.overall-a.overall);
+  rankEl.innerHTML=sorted2.map((p,i)=>{
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
+    return `<div class="rank-row">
+      <div style="min-width:24px;font-size:13px">${medal}</div>
+      <div style="min-width:130px;font-size:13px">${p.name}</div>
+      <div style="flex:1;height:4px;background:var(--color-background-secondary);border-radius:2px;overflow:hidden"><div style="height:100%;background:${scoreColor(p.overall)};width:${(p.overall/5*100).toFixed(0)}%"></div></div>
+      <div style="font-size:13px;font-weight:500;min-width:32px;text-align:right;color:${scoreColor(p.overall)}">${p.overall}</div>
+    </div>`;
+  }).join('')||'<div class="empty">Nessun dato</div>';
+}
+
+function drawRadar(canvasId,labels,datasets){
+  if(charts[canvasId]){charts[canvasId].destroy();delete charts[canvasId];}
+  const ctx=document.getElementById(canvasId); if(!ctx) return;
+  const short=labels.map(l=>l.length>13?l.slice(0,12)+'…':l);
+  charts[canvasId]=new Chart(ctx,{
+    type:'radar',
+    data:{
+      labels:short,
+      datasets:datasets.map(ds=>({
+        label:ds.label,data:ds.data,
+        backgroundColor:ds.color+'20',borderColor:ds.color,
+        borderWidth:2,pointBackgroundColor:ds.color,
+        pointRadius:3,pointHoverRadius:5,pointBorderColor:'transparent'
+      }))
+    },
+    options:{
+      responsive:true,maintainAspectRatio:true,
+      plugins:{
+        legend:{display:datasets.length>1,position:'bottom',labels:{font:{size:10},boxWidth:8,padding:6}},
+        tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw}`}}
+      },
+      scales:{r:{
+        min:0,max:5,
+        ticks:{stepSize:1,font:{size:9},color:'#999',backdropColor:'transparent'},
+        pointLabels:{font:{size:9},color:'#777',padding:3},
+        grid:{color:'rgba(128,128,128,0.15)'},
+        angleLines:{color:'rgba(128,128,128,0.2)'}
+      }}
+    }
+  });
+}
+
+loadData();
+</script>
