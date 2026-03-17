@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="main.js"></script>
+  <!-- esportazione pdf -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+</head>
+
+<body>
+  <h2>📊 Statistiche Partita</h2>
+
+  <!-- Data partita -->
+  <div class="data-partita">
+    <label for="dataPartita">Data partita:</label>
+    <input type="date" id="dataPartita">
+  </div>
+  <h3 id="dataDisplay"></h3>
+
+  <!-- Categoria, Girone, Note -->
+  <div class="meta-partita">
+    <div>
+      <label for="categoriaPartita">Categoria:</label>
+      <input type="text" id="categoriaPartita" placeholder="Es. Under 15, Prima Categoria">
+    </div>
+
+    <div>
+      <label for="gironePartita">Girone:</label>
+      <input type="text" id="gironePartita" placeholder="Es. Girone A">
+    </div>
+
+    <div class="note-box">
+      <label for="notePartita">Note:</label>
+      <textarea id="notePartita" placeholder="Annotazioni varie..." rows="2"></textarea>
+    </div>
+  </div>
+
+  
+  <!-- Sezione squadre -->
+  <div class="squadre">
+    <div>
+      <label for="squadraLocali">Locali:</label>
+      <input type="text" id="squadraLocali" placeholder="Nome squadra locali">
+    </div>
+
+    <div>
+      <label for="squadraOspiti">Ospiti:</label>
+      <input type="text" id="squadraOspiti" placeholder="Nome squadra ospiti">
+    </div>
+  </div>
+
+  <!-- Timer -->
+  <div class="timer-container">
+    <button id="btnStart">▶️ Start</button>
+    <button id="btnPausa">⏸️ Pausa</button>
+    <button id="btnStop">⏹️ Stop</button>
+    <button id="btnReset">🔄 Reset</button>
+    <span id="cronometro">00:00</span>
+  </div>
+
+  <!-- Tempi -->
+  <div class="tempi-container">
+    <button id="btnT1">1° Tempo</button>
+    <button id="btnT2" disabled>2° Tempo</button>
+    <span id="tempoCorrente">Tempo: 1</span>
+  </div>
+
+  <!-- Eventi affiancati -->
+  <h3>Eventi</h3>
+  <div class="eventi-container">
+    <div class="colonna-eventi">
+      <h4>Locali</h4>
+      <div id="eventiLocali" class="eventi"></div>
+    </div>
+
+    <div class="colonna-eventi">
+      <h4>Ospiti</h4>
+      <div id="eventiOspiti" class="eventi"></div>
+    </div>
+  </div>
+
+  <!-- Totali per tipo di evento -->
+  <h2>Totali per tipo di evento</h2>
+  <div id="tabellaEventi"></div>
+
+  <!-- Eventi ogni 15 minuti -->
+  <h2>Eventi ogni 15 minuti</h2>
+  <div id="tabella15"></div>
+
+  <!-- Timeline con filtri -->
+  <h2>Timeline eventi</h2>
+  <div id="filtriTimeline" class="filtri">
+    <select id="filtroSquadra">
+      <option value="tutte">Tutte le squadre</option>
+      <option value="locali">Locali</option>
+      <option value="ospiti">Ospiti</option>
+      <option value="sistema">Sistema</option>
+    </select>
+
+    <select id="filtroTempo">
+      <option value="tutti">Tutti i tempi</option>
+      <option value="1">1° Tempo</option>
+      <option value="2">2° Tempo</option>
+    </select>
+
+    <select id="filtroEvento">
+      <option value="tutti">Tutti gli eventi</option>
+      <option value="TP">Tiro in Porta</option>
+      <option value="TF">Tiro Fuori</option>
+      <option value="FF">Fallo Fatto</option>
+      <option value="FS">Fallo Subito</option>
+      <option value="PF">Passaggio Buono</option>
+      <option value="PX">Passaggio Sbagliato</option>
+      <option value="GOL">Gol</option>
+      <option value="CNL">Corner Locali</option>
+      <option value="CNO">Corner Ospiti</option>
+      <option value="PAUSA">Pausa</option>
+    </select>
+  </div>
+  <div id="timelineEventi"></div>
+
+  <!-- Heatmap temporale -->
+  <h2>Heatmap temporale eventi</h2>
+  <div id="heatmapEventi"></div>
+
+  <!-- Momentum -->
+  <h2>Momentum</h2>
+  <div id="momentumEventi"></div>
+
+  <!-- Log eventi grezzo -->
+  <h2>Log eventi</h2>
+  <div id="logEventi"></div>
+
+  <!-- Azioni finali -->
+  <div class="azioni">
+    <button id="btnCSV">💾 Salva CSV</button>
+    <button id="btnJSON">💾 Salva JSON</button>
+    <button id="btnGoogle">📤 Invia a Google Sheets</button>
+    <button id="btnPDF">📄 Esporta PDF</button>
+  </div>
+</body>
+</html>

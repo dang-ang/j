@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Analisi Passaggi PRO - Piano Baggio</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2ecc71;
+            --secondary: #3498db;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --bg: #f4f7f6;
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; padding: 10px; user-select: none; }
+        
+        /* Pannello Configurazione */
+        .config-panel { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        textarea { width: 100%; height: 80px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; padding: 8px; font-size: 0.8rem; box-sizing: border-box; }
+        
+        .status-bar { display: flex; justify-content: space-around; align-items: center; background: var(--dark); color: white; padding: 12px; border-radius: 10px; margin-bottom: 15px; }
+        .timer { font-size: 1.4rem; font-weight: bold; font-variant-numeric: tabular-nums; }
+
+        .selector-box { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        .label { font-size: 0.8rem; color: #7f8c8d; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; display: block;}
+        .current-selection { font-size: 1.2rem; font-weight: bold; min-height: 1.6rem; color: var(--secondary); margin-bottom: 10px; }
+
+        /* Griglia Giocatori */
+        .grid-players { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        @media (min-width: 600px) { .grid-players { grid-template-columns: repeat(6, 1fr); } }
+
+        button.player-btn { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 10px 2px; border: none; border-radius: 8px; background: #ecf0f1; color: var(--dark); 
+            touch-action: manipulation; transition: all 0.1s; border-bottom: 3px solid #bdc3c7;
+        }
+        .btn-num { font-size: 1.2rem; font-weight: bold; }
+        .btn-name { font-size: 0.65rem; text-transform: uppercase; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%; }
+        
+        button.player-btn.starter { background: #fff; border: 1px solid #dcdde1; border-bottom: 3px solid #bdc3c7; }
+        button.player-btn.reserve { background: #dcdde1; opacity: 0.9; }
+        
+        button.player-btn:active { transform: translateY(2px); border-bottom: 1px solid #bdc3c7; }
+        button.player-btn.selected { background: var(--secondary); color: white; border-bottom: 3px solid #2980b9; }
+
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn-action { padding: 12px; border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 0.9rem; cursor: pointer; }
+        .btn-start { background: var(--primary); }
+        .btn-export { background: var(--secondary); }
+        .btn-reset { background: var(--danger); grid-column: span 2; }
+
+        canvas { background: white; border-radius: 10px; margin-top: 15px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 100% !important; height: auto !important; }
+        
+        .table-wrapper { overflow-x: auto; background: white; border-radius: 10px; margin-top: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+        th, td { border: 1px solid #eee; padding: 8px; text-align: center; }
+        th { background: #f8f9fa; color: var(--dark); }
+        .row-label { font-weight: bold; background: #f8f9fa; }
+    </style>
+</head>
+<body>
+
+    <div class="config-panel" id="config-panel">
+        <span class="label">Configurazione Squadra</span>
+        <small>Formato: Numero,Nome (uno per riga - max 18)</small>
+        <textarea id="team-input">1,BUFFON
+2,CHIELLINI
+3,MALDINI
+4,ZANETTI
+5,CANNAVARO
+6,BARESI
+7,DEL PIERO
+8,GATTUSO
+9,VIERI
+10,BAGGIO
+11,RIVA
+12,PERUZZI
+13,NESTA
+14,PIRLO
+15,AMBROSINI
+16,CAMORANESI
+17,TOTTI
+18,INZAGHI</textarea>
+        <button class="btn-action btn-start" style="width:100%" onclick="applyConfig()">APPLICA E INIZIA</button>
+    </div>
+
+    <div id="main-app" style="display:none">
+        <div class="status-bar">
+            <div id="match-status">PRONTO</div>
+            <div class="timer" id="timer-display">00:00</div>
+        </div>
+
+        <div class="selector-box">
+            <div class="current-selection" id="selection-display">Seleziona chi passa</div>
+            <div class="grid-players" id="players-container"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-action btn-start" id="start-btn" onclick="toggleMatch()">AVVIA PARTITA</button>
+            <button class="btn-action btn-export" onclick="exportData()">ESPORTA CSV</button>
+            <button class="btn-action btn-reset" onclick="resetAll()">RESET</button>
+        </div>
+
+        <canvas id="intensityChart"></canvas>
+
+        <div class="table-wrapper">
+            <table id="matrix-table"></table>
+        </div>
+    </div>
+
+    <script>
+        let players = [];
+        let passEvents = [];
+        let matrix = {};
+        let startTime = null;
+        let selectedFrom = null;
+        let matchInterval = null;
+        let chart = null;
+
+        function applyConfig() {
+            const input = document.getElementById('team-input').value;
+            const lines = input.trim().split('\n').slice(0, 18);
+            players = lines.map(line => {
+                const [num, name] = line.split(',');
+                return { num: num.trim(), name: name ? name.trim() : 'Player' };
+            });
+
+            document.getElementById('config-panel').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            initApp();
+        }
+
+        function initApp() {
+            const container = document.getElementById('players-container');
+            container.innerHTML = '';
+            
+            players.forEach((p, index) => {
+                const btn = document.createElement('button');
+                btn.className = `player-btn ${index < 11 ? 'starter' : 'reserve'}`;
+                btn.innerHTML = `<span class="btn-num">${p.num}</span><span class="btn-name">${p.name}</span>`;
+                btn.onclick = () => handlePlayerClick(p.num, btn);
+                container.appendChild(btn);
+                
+                matrix[p.num] = {};
+                players.forEach(p2 => matrix[p.num][p2.num] = 0);
+            });
+            updateTable();
+            initChart();
+        }
+
+        function handlePlayerClick(num, btn) {
+            if (!startTime) { alert("Avvia il cronometro!"); return; }
+
+            if (selectedFrom === null) {
+                selectedFrom = num;
+                document.getElementById('selection-display').innerText = `${getName(num)} → ...`;
+                document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            } else {
+                if (selectedFrom !== num) {
+                    recordPass(selectedFrom, num);
+                }
+                selectedFrom = null;
+                document.getElementById('selection-display').innerText = "Seleziona chi passa";
+                document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('selected'));
+            }
+        }
+
+        function getName(num) {
+            const p = players.find(x => x.num == num);
+            return p ? p.name : num;
+        }
+
+        function recordPass(from, to) {
+            const now = Date.now();
+            const minute = Math.floor((now - startTime) / 60000);
+            passEvents.push({ from, to, minute, time: new Date().toLocaleTimeString() });
+            matrix[from][to]++;
+            updateTable();
+            updateChart();
+        }
+
+        function toggleMatch() {
+            if (!startTime) {
+                startTime = Date.now();
+                document.getElementById('match-status').innerText = "LIVE 🟢";
+                document.getElementById('start-btn').innerText = "IN CORSO...";
+                document.getElementById('start-btn').style.opacity = "0.7";
+                matchInterval = setInterval(updateTimer, 1000);
+            }
+        }
+
+        function updateTimer() {
+            const diff = Date.now() - startTime;
+            const mins = Math.floor(diff / 60000).toString().padStart(2, '0');
+            const secs = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${mins}:${secs}`;
+        }
+
+        function updateTable() {
+            const table = document.getElementById('matrix-table');
+            let html = `<tr><th>DA\\A</th>${players.map(p => `<th>${p.num}</th>`).join('')}</tr>`;
+            players.forEach(pFrom => {
+                html += `<tr><td class="row-label">${pFrom.num}</td>`;
+                players.forEach(pTo => {
+                    const val = matrix[pFrom.num][pTo.num];
+                    const alpha = val > 0 ? Math.min(val * 0.15, 0.8) : 0;
+                    html += `<td style="background: rgba(46, 204, 113, ${alpha})">${val}</td>`;
+                });
+                html += `</tr>`;
+            });
+            table.innerHTML = html;
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('intensityChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['0-5', '5-10', '10-15', '15-20', '20-25', '25-30', '30-35', '35-40', '45+'],
+                    datasets: [{
+                        label: 'Passaggi ogni 5 min',
+                        data: new Array(9).fill(0),
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } 
+                }
+            });
+        }
+
+        function updateChart() {
+            let bins = new Array(9).fill(0);
+            passEvents.forEach(e => {
+                let binIdx = Math.floor(e.minute / 5);
+                if (binIdx > 8) binIdx = 8;
+                bins[binIdx]++;
+            });
+            chart.data.datasets[0].data = bins;
+            chart.update();
+        }
+
+        function exportData() {
+            let csv = "Minuto,Orario,DA_NR,DA_NOME,A_NR,A_NOME\n";
+            passEvents.forEach(e => {
+                csv += `${e.minute},${e.time},${e.from},${getName(e.from)},${e.to},${getName(e.to)}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `match_analysis_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+        }
+
+        function resetAll() {
+            if (confirm("Resettare tutto? Perderai i dati correnti.")) location.reload();
+        }
+    </script>
+</body>
+</html>

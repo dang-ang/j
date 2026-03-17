@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>JCR Analytics - Top 21 Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .highlight-jcr { background-color: #fef9c3 !important; font-weight: bold; }
+        .tab-active { background-color: #2563eb !important; color: white !important; }
+        th { cursor: help; position: sticky; top: 0; background: #f8fafc; z-index: 10; border-bottom: 2px solid #e2e8f0; }
+        .badge-girone { background-color: #f1f5f9; color: #64748b; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; border: 1px solid #e2e8f0; }
+        .pos-g-badge { color: #3b82f6; font-weight: 800; font-size: 0.85rem; background: #eff6ff; padding: 2px 6px; border-radius: 4px; }
+        .qual-x { color: #d4af37; font-weight: 900; }
+        .qual-xx { color: #94a3b8; font-weight: 900; }
+        .qual-xxx { color: #b45309; font-weight: 900; }
+    </style>
+</head>
+<body class="bg-slate-50 p-4 md:p-8 text-slate-800">
+
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-black mb-6 uppercase tracking-tighter italic text-slate-800">🏆 JCR Analytics Dashboard</h1>
+
+        <div id="tabs-categories" class="flex flex-wrap gap-2 mb-6"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="lg:col-span-1 bg-gradient-to-br from-blue-600 to-blue-800 p-5 rounded-2xl shadow-xl text-white">
+                <h3 class="text-xs font-black uppercase tracking-widest mb-4 opacity-80">Distribuzione Top 21 Generale</h3>
+                <div id="top21-stats" class="space-y-2">
+                    </div>
+            </div>
+
+            <div class="lg:col-span-2 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filtro Girone</span>
+                        <select id="filter-girone" onchange="renderTable()" class="bg-slate-50 border border-slate-200 text-sm rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="ALL">Tutti i Gironi</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-2 self-end">
+                        <button onclick="toggleAll(true)" class="text-[10px] bg-slate-100 px-3 py-2 rounded-md font-bold hover:bg-slate-200 transition">Tutte</button>
+                        <button onclick="toggleAll(false)" class="text-[10px] bg-slate-100 px-3 py-2 rounded-md font-bold hover:bg-slate-200 transition">Nessuna</button>
+                    </div>
+                </div>
+                <div id="team-checkboxes" class="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-1"></div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden mb-8">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left border-collapse">
+                    <thead class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500">
+                        <tr>
+                            <th class="p-4 text-center w-12">Pos</th>
+                            <th class="p-4 text-left">Squadra</th>
+                            <th class="p-4 text-center w-12" title="X=1ª, XX=2ª, XXX=3ª">Qual.</th>
+                            <th class="p-4 text-center text-blue-500 w-16">PosG</th>
+                            <th class="p-4 text-center">Girone</th>
+                            <th class="p-4 text-center text-slate-900 font-bold" onclick="sortBy('Punti')">Pts</th>
+                            <th class="p-4 text-center text-blue-600 font-bold" onclick="sortBy('Media')">MP</th>
+                            <th class="p-4 text-center">PG</th>
+                            <th class="p-4 text-center text-green-600">VT</th>
+                            <th class="p-4 text-center text-slate-400">PA</th>
+                            <th class="p-4 text-center text-red-400">SC</th>
+                            <th class="p-4 text-center">GF</th>
+                            <th class="p-4 text-center">GS</th>
+                            <th class="p-4 text-center font-bold">DR</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+
+    <script>
+        let currentCategory = "";
+        let sortColumn = "Punti";
+        let sortDirection = -1; 
+
+        const categorie = [...new Set(classificaData.map(d => d.Categoria))];
+
+        function init() {
+            const container = document.getElementById('tabs-categories');
+            categorie.forEach((cat, i) => {
+                const btn = document.createElement('button');
+                btn.innerText = cat;
+                btn.className = "px-6 py-2.5 rounded-xl font-bold bg-white border border-slate-200 transition-all shadow-sm";
+                btn.onclick = () => {
+                    document.querySelectorAll('#tabs-categories button').forEach(b => b.classList.remove('tab-active'));
+                    btn.classList.add('tab-active');
+                    currentCategory = cat;
+                    updateGironeFilter();
+                    updateCheckboxes();
+                    renderTable();
+                };
+                container.appendChild(btn);
+                if(i === 0) btn.click();
+            });
+        }
+
+        function updateGironeFilter() {
+            const select = document.getElementById('filter-girone');
+            const gironi = [...new Set(classificaData.filter(d => d.Categoria === currentCategory).map(d => d.Girone))].sort();
+            select.innerHTML = '<option value="ALL">Tutti i Gironi</option>';
+            gironi.forEach(g => { select.innerHTML += `<option value="${g}">Girone ${g}</option>`; });
+        }
+
+        function updateCheckboxes() {
+            const container = document.getElementById('team-checkboxes');
+            container.innerHTML = '';
+            const teams = [...new Set(classificaData.filter(d => d.Categoria === currentCategory).map(d => d.Squadra))].sort();
+            teams.forEach(t => {
+                const label = document.createElement('label');
+                label.className = "flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border text-[11px] cursor-pointer hover:bg-white transition";
+                label.innerHTML = `<input type="checkbox" value="${t}" checked onchange="renderTable()" class="team-check rounded text-blue-600"> ${t}`;
+                container.appendChild(label);
+            });
+        }
+
+        function toggleAll(status) {
+            document.querySelectorAll('.team-check').forEach(i => i.checked = status);
+            renderTable();
+        }
+
+        function sortBy(col) {
+            if (sortColumn === col) sortDirection *= -1;
+            else { sortColumn = col; sortDirection = -1; }
+            renderTable();
+        }
+
+        function renderTable() {
+            const gironeFiltro = document.getElementById('filter-girone').value;
+            const checkedTeams = Array.from(document.querySelectorAll('.team-check:checked')).map(i => i.value);
+            const tbody = document.getElementById('table-body');
+            const top21Container = document.getElementById('top21-stats');
+            
+            // 1. Dati base filtrati
+            let allTeamsInCat = classificaData
+                .filter(d => d.Categoria === currentCategory)
+                .map(d => {
+                    const pts = parseInt(d.Punti) || 0;
+                    const pg = parseInt(d.PG) || 0;
+                    return { ...d, Punti: pts, PG: pg, DR: (parseInt(d.GF || d.FG) || 0) - (parseInt(d.GS) || 0), Media: pg > 0 ? (pts / pg).toFixed(2) : "0.00" };
+                });
+
+            // 2. CALCOLO STATISTICHE TOP 21 (Sempre sulla classifica generale della categoria)
+            const top21Generale = [...allTeamsInCat]
+                .sort((a, b) => b.Punti - a.Punti || b.DR - a.DR)
+                .slice(0, 21);
+
+            const statsGirone = {};
+            top21Generale.forEach(t => {
+                statsGirone[t.Girone] = (statsGirone[t.Girone] || 0) + 1;
+            });
+
+            top21Container.innerHTML = Object.entries(statsGirone)
+                .sort((a, b) => b[1] - a[1])
+                .map(([girone, count]) => `
+                    <div class="flex justify-between items-center bg-white/10 p-2 rounded-lg">
+                        <span class="font-bold">Girone ${girone}</span>
+                        <span class="bg-white text-blue-700 px-3 py-0.5 rounded-full font-black text-sm">${count} sq.</span>
+                    </div>
+                `).join('');
+
+            // 3. LOGICA CLASSIFICA TABELLA (FILTRATA)
+            let filtered = allTeamsInCat.filter(d => checkedTeams.includes(d.Squadra) && (gironeFiltro === "ALL" || d.Girone === gironeFiltro));
+
+            // Calcolo Ranking Interno ai Gironi
+            const gironiList = [...new Set(filtered.map(d => d.Girone))];
+            const rankings = {};
+            gironiList.forEach(g => {
+                rankings[g] = allTeamsInCat.filter(team => team.Girone === g).sort((a, b) => b.Punti - a.Punti || b.DR - a.DR);
+            });
+
+            filtered = filtered.map(team => {
+                const posInG = rankings[team.Girone].findIndex(t => t.Squadra === team.Squadra) + 1;
+                let qual = "";
+                if (posInG === 1) qual = '<span class="qual-x">X</span>';
+                else if (posInG === 2) qual = '<span class="qual-xx">XX</span>';
+                else if (posInG === 3) qual = '<span class="qual-xxx">XXX</span>';
+                return { ...team, PosGirone: posInG, Qual: qual };
+            });
+
+            filtered.sort((a, b) => {
+                let valA = a[sortColumn], valB = b[sortColumn];
+                return (typeof valA === 'string' ? valA.localeCompare(valB) : valA - valB) * sortDirection;
+            });
+
+            tbody.innerHTML = filtered.map((d, index) => {
+                const isJCR = d.Squadra.toUpperCase().includes('JCR');
+                const drColor = d.DR > 0 ? 'text-green-600' : (d.DR < 0 ? 'text-red-600' : 'text-slate-400');
+                return `
+                    <tr class="border-b border-slate-100 hover:bg-blue-50/40 transition-colors ${isJCR ? 'highlight-jcr' : ''}">
+                        <td class="p-4 text-center font-bold text-slate-300 border-r border-slate-50">${index + 1}</td>
+                        <td class="p-4 flex items-center gap-3 text-left">
+                            <img src="${d.Logo}" class="w-8 h-8 object-contain bg-white rounded border" onerror="this.style.display='none'">
+                            <span class="font-bold text-slate-700">${d.Squadra}</span>
+                        </td>
+                        <td class="p-4 text-center font-black">${d.Qual}</td>
+                        <td class="p-4 text-center"><span class="pos-g-badge">#${d.PosGirone}</span></td>
+                        <td class="p-4 text-center"><span class="badge-girone">${d.Girone}</span></td>
+                        <td class="p-4 text-center font-black text-slate-900">${d.Punti}</td>
+                        <td class="p-4 text-center text-blue-600 font-black bg-blue-50/30">${d.Media}</td>
+                        <td class="p-4 text-center">${d.PG}</td>
+                        <td class="p-4 text-center text-green-600 font-medium">${parseInt(d.VT)||0}</td>
+                        <td class="p-4 text-center text-slate-400">${parseInt(d.PA)||0}</td>
+                        <td class="p-4 text-center text-red-400">${parseInt(d.SC)||0}</td>
+                        <td class="p-4 text-center text-slate-500">${parseInt(d.GF || d.FG)||0}</td>
+                        <td class="p-4 text-center text-slate-500">${parseInt(d.GS)||0}</td>
+                        <td class="p-4 text-center font-bold ${drColor}">${d.DR > 0 ? '+' + d.DR : d.DR}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        init();
+    </script>
+</body>
+</html>

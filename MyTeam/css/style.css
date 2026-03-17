@@ -1,0 +1,74 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+/*  background: #0a3d62;*/
+        background: #333;
+  color: white;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+}
+
+
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-links a:hover {
+  color: yellow;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.hamburger {
+  display:none;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.content {
+  padding: 100px 20px 40px;
+}
+
+.footer {
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  align-items: center;
+  width: 100%;
+  background: #333;
+  color: white;
+  padding: 12px 20px;
+}
+
+/* MOBILE */
+/* Se il menu mobile taglia le scritte, assicurati che nav-links sia largo 100% */
+@media (max-width: 768px) {
+    .nav-links {
+        display: none;
+        position: absolute;
+        left: 0;
+        top: 60px; /* Altezza della navbar */
+        width: 100%; 
+        background: #333;
+        z-index: 100;
+    }
+    .nav-links.active {
+        display: flex;
+        flex-direction: column;
+    }
+    .hamburger {
+    display: block;
+  }
+    
+}
+

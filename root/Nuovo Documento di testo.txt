@@ -1,0 +1,12 @@
+<nav class="navbar">
+  <div class="logo">⚽ Team Coach</div>
+
+  <div class="nav-links" id="navLinks">
+    <a href="index.html">Home</a>
+    <a href="rosa.html">Rosa</a>
+    <a href="allenamenti.html">Allenamenti</a>
+    <a href="obiettivi.html">Obiettivi</a>
+  </div>
+
+  <div class="hamburger" onclick="toggleMenu()">☰</div>
+</nav>

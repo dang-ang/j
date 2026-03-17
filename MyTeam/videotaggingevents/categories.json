@@ -1,0 +1,18 @@
+{
+    "Passaggio": {
+        "key": "P",
+        "color": "#4CAF50"
+    },
+    "Tiro": {
+        "key": "T",
+        "color": "#F44336"
+    },
+    "Errore": {
+        "key": "E",
+        "color": "#FF9800"
+    },
+    "Recupero": {
+        "key": "R",
+        "color": "#2196F3"
+    }
+}

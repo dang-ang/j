@@ -1,0 +1,21 @@
+<h2>Rosa Squadra</h2>
+<p>Qui carichi i dati da Google Sheets o GAS.</p>
+
+<div id="players"></div>
+
+<script>
+fetch("https://script.google.com/macros/s/AKfycbxxxx/exec")
+  .then(r => r.json())
+  .then(data => {
+    const div = document.getElementById("players");
+    data.forEach(p => {
+      div.innerHTML += `
+        <div class="player-card">
+          <h3>${p.nome}</h3>
+          <p>Ruolo: ${p.ruolo}</p>
+          <p>Presenza: ${p.presenza}%</p>
+        </div>
+      `;
+    });
+  });
+</script>

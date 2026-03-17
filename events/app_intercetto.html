@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Analisi Passaggi PRO - Piano Baggio</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2ecc71;
+            --secondary: #3498db;
+            --danger: #e74c3c;
+            --warning: #f1c40f;
+            --dark: #2c3e50;
+            --bg: #f4f7f6;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 10px; user-select: none; }
+        .container { max-width: 800px; margin: auto; }
+        h2 { text-align: center; color: var(--dark); margin: 10px 0; font-size: 1.4rem; }
+        
+        /* Configurazione */
+        .config-area { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        textarea { width: 100%; height: 100px; font-size: 0.85rem; border: 1px solid #ccc; border-radius: 6px; padding: 8px; box-sizing: border-box; font-family: monospace; }
+        
+        .status-bar { display: flex; justify-content: space-around; background: var(--dark); color: white; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
+        .timer { font-size: 1.3rem; font-weight: bold; font-variant-numeric: tabular-nums; }
+
+        .selector-box { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        .label { font-size: 0.8rem; color: #7f8c8d; text-transform: uppercase; font-weight: bold; margin-bottom: 8px; display: block; }
+        .current-selection { font-size: 1.3rem; font-weight: bold; min-height: 1.8rem; margin: 5px 0; color: var(--secondary); }
+
+        /* Griglia Giocatori */
+        .grid-players { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        @media (min-width: 600px) { .grid-players { grid-template-columns: repeat(6, 1fr); } }
+
+        button.player-btn { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 75px; border: none; border-radius: 10px; background: #fff; color: var(--dark); 
+            touch-action: manipulation; transition: all 0.1s; border: 1px solid #dcdde1; border-bottom: 4px solid #bdc3c7;
+        }
+        .btn-num { font-size: 1.3rem; font-weight: bold; }
+        .btn-name { font-size: 0.65rem; text-transform: uppercase; overflow: hidden; white-space: nowrap; width: 95%; text-overflow: ellipsis; }
+        
+        button.player-btn.reserve { background: #e0e0e0; border-bottom-color: #95a5a6; }
+        button.player-btn:active { transform: translateY(2px); border-bottom-width: 1px; }
+        button.player-btn.selected { background: var(--secondary); color: white; border-bottom-color: #2980b9; }
+
+        /* Tasto Intercettato */
+        .intercept-zone { margin: 15px 0; display: none; background: #fff5f5; padding: 10px; border-radius: 10px; border: 2px dashed var(--danger); }
+        .btn-intercept { width: 100%; padding: 18px; background: var(--danger); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1rem; box-shadow: 0 4px #c0392b; }
+        .btn-intercept:active { transform: translateY(2px); box-shadow: 0 2px #c0392b; }
+
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .btn-action { padding: 14px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+        .btn-start { background: var(--primary); }
+        .btn-export { background: var(--secondary); }
+        .btn-reset { background: #95a5a6; grid-column: span 2; }
+
+        .table-wrapper { overflow-x: auto; margin-top: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+        th, td { border: 1px solid #eee; padding: 10px; text-align: center; }
+        th { background: var(--dark); color: white; }
+        .badge-ok { color: var(--primary); font-weight: bold; }
+        .badge-lost { color: var(--danger); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ANALISI LIVE PRO (18 GIOCATORI) ⚽</h2>
+
+    <div class="config-area" id="config-panel">
+        <div class="label">Configura Team (Nr,Nome - max 18)</div>
+        <textarea id="player-config">1,BUFFON
+2,CHIELLINI
+3,MALDINI
+4,ZANETTI
+5,CANNAVARO
+6,BARESI
+7,DEL PIERO
+8,GATTUSO
+9,VIERI
+10,BAGGIO
+11,RIVA
+12,PERUZZI
+13,NESTA
+14,PIRLO
+15,AMBROSINI
+16,CAMORANESI
+17,TOTTI
+18,INZAGHI</textarea>
+        <button onclick="applyConfig()" style="width:100%; margin-top:10px; background:var(--dark); color:white; border:none; padding:12px; border-radius:6px; font-weight:bold;">APPLICA LISTA E INIZIA</button>
+    </div>
+    
+    <div id="app-content" style="display:none">
+        <div class="status-bar">
+            <div id="match-status">STOPPED ⚪</div>
+            <div class="timer" id="timer-display">00:00</div>
+        </div>
+
+        <div class="selector-box">
+            <div class="label" id="phase-label">Chi inizia l'azione?</div>
+            <div class="current-selection" id="selection-display">-</div>
+            
+            <div class="intercept-zone" id="intercept-zone">
+                <button class="btn-intercept" onclick="recordIntercept()">❌ PASSAGGIO SBAGLIATO / PERSO</button>
+                <div style="margin: 10px 0; font-size: 0.7rem; color: #e74c3c; font-weight: bold;">O SELEZIONA IL RICEVENTE SOTTO:</div>
+            </div>
+
+            <div class="grid-players" id="players-container"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-action btn-start" id="start-btn" onclick="toggleMatch()">AVVIA PARTITA</button>
+            <button class="btn-action btn-export" onclick="exportData()">SCARICA REPORT CSV</button>
+            <button class="btn-action btn-reset" onclick="resetAll()">RESET TOTALE</button>
+        </div>
+
+        <canvas id="intensityChart" style="height:180px; margin-top:15px;"></canvas>
+
+        <div class="table-wrapper">
+            <table id="matrix-table"></table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let players = []; 
+    let passEvents = [];
+    let stats = {}; 
+    let startTime = null;
+    let selectedFrom = null;
+    let chart = null;
+
+    function applyConfig() {
+        const text = document.getElementById('player-config').value;
+        const lines = text.trim().split('\n').slice(0, 18);
+        players = [];
+        lines.forEach(line => {
+            const [num, name] = line.split(',');
+            if(num && name) players.push({ num: num.trim(), name: name.trim() });
+        });
+        
+        renderButtons();
+        initDataStructures();
+        document.getElementById('config-panel').style.display = 'none';
+        document.getElementById('app-content').style.display = 'block';
+    }
+
+    function renderButtons() {
+        const container = document.getElementById('players-container');
+        container.innerHTML = '';
+        players.forEach((p, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'player-btn' + (index >= 11 ? ' reserve' : '');
+            btn.id = 'btn-' + p.num;
+            btn.innerHTML = `<span class="btn-num">${p.num}</span><span class="btn-name">${p.name}</span>`;
+            btn.onclick = () => handlePlayerClick(p.num);
+            container.appendChild(btn);
+        });
+    }
+
+    function initDataStructures() {
+        stats = {};
+        players.forEach(p => {
+            stats[p.num] = { ok: 0, lost: 0 };
+        });
+        updateTable();
+    }
+
+    function handlePlayerClick(num) {
+        if (!startTime) { alert("Avvia la partita con il tasto verde!"); return; }
+
+        if (selectedFrom === null) {
+            selectedFrom = num;
+            document.getElementById('selection-display').innerText = getPlayerName(num) + " IN POSSESSO...";
+            document.getElementById('phase-label').innerText = "A chi la passa?";
+            document.getElementById('intercept-zone').style.display = 'block';
+            document.getElementById('btn-' + num).classList.add('selected');
+        } else {
+            if (selectedFrom !== num) {
+                recordAction(selectedFrom, num, "OK");
+            }
+            resetSelection();
+        }
+    }
+
+    function recordIntercept() {
+        if(selectedFrom) {
+            recordAction(selectedFrom, "PERSA/INTERCETTATA", "LOST");
+            resetSelection();
+        }
+    }
+
+    function resetSelection() {
+        selectedFrom = null;
+        document.getElementById('selection-display').innerText = "-";
+        document.getElementById('phase-label').innerText = "Chi inizia l'azione?";
+        document.getElementById('intercept-zone').style.display = 'none';
+        document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('selected'));
+    }
+
+    function recordAction(from, to, status) {
+        const now = Date.now();
+        const minute = Math.floor((now - startTime) / 60000);
+        
+        passEvents.push({ from, to, minute, status, time: new Date().toLocaleTimeString() });
+        
+        if(status === "OK") {
+            stats[from].ok++;
+        } else {
+            stats[from].lost++;
+        }
+        
+        updateTable();
+        updateChart();
+    }
+
+    function getPlayerName(num) {
+        const p = players.find(x => x.num == num);
+        return p ? p.name : num;
+    }
+
+    function toggleMatch() {
+        if (!startTime) {
+            startTime = Date.now();
+            document.getElementById('match-status').innerText = "LIVE 🟢";
+            document.getElementById('start-btn').innerText = "IN CORSO...";
+            document.getElementById('start-btn').style.background = "#95a5a6";
+            setInterval(updateTimer, 1000);
+            initChart();
+        }
+    }
+
+    function updateTimer() {
+        const diff = Date.now() - startTime;
+        const mins = Math.floor(diff / 60000).toString().padStart(2, '0');
+        const secs = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+        document.getElementById('timer-display').innerText = `${mins}:${secs}`;
+    }
+
+    function updateTable() {
+        const table = document.getElementById('matrix-table');
+        let html = `<tr><th>Player</th><th>Precisione</th><th>Riusciti</th><th>Persi</th></tr>`;
+        players.forEach(p => {
+            const s = stats[p.num];
+            const total = s.ok + s.lost;
+            const perc = total > 0 ? Math.round((s.ok / total) * 100) : 0;
+            html += `<tr>
+                <td style="text-align:left"><b>${p.num}</b> ${p.name}</td>
+                <td style="color:${perc > 75 ? '#2ecc71' : (perc > 50 ? '#f1c40f' : '#e74c3c')}"><b>${perc}%</b></td>
+                <td class="badge-ok">${s.ok}</td>
+                <td class="badge-lost">${s.lost}</td>
+            </tr>`;
+        });
+        table.innerHTML = html;
+    }
+
+    function initChart() {
+        const ctx = document.getElementById('intensityChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['0-5', '5-10', '10-15', '15-20', '20-25', '25-30', '30-35', '35-40', '40-45'],
+                datasets: [{ 
+                    label: 'Volume Passaggi OK', 
+                    data: new Array(9).fill(0), 
+                    borderColor: '#2ecc71',
+                    backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    function updateChart() {
+        let bins = new Array(9).fill(0);
+        passEvents.filter(e => e.status === "OK").forEach(e => {
+            let binIdx = Math.floor(e.minute / 5);
+            if (binIdx < 9) bins[binIdx]++;
+        });
+        chart.data.datasets[0].data = bins;
+        chart.update();
+    }
+
+    function exportData() {
+        let csv = "Minuto,Orario,DA(Nr),DA(Nome),A(Nr/Esito),Status\n";
+        passEvents.forEach(e => {
+            csv += `${e.minute},${e.time},${e.from},${getPlayerName(e.from)},${e.to === "PERSA/INTERCETTATA" ? "ERRORE" : e.to},${e.status}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `analisi_tecnica_match.csv`;
+        a.click();
+    }
+
+    function resetAll() { if(confirm("Sei sicuro? Perderai tutti i dati della partita corrente.")) location.reload(); }
+</script>
+</body>
+</html>

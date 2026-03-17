@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Analisi Passaggi - Piano Baggio</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2ecc71;
+            --secondary: #3498db;
+            --danger: #e74c3c;
+            --bg: #f4f7f6;
+        }
+
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; user-select: none; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
+        
+        .status-bar { display: flex; justify-content: space-around; background: white; padding: 10px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .timer { font-size: 1.2rem; font-weight: bold; color: var(--secondary); }
+
+        .selector-box { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        .label { font-size: 0.9rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
+        .current-selection { font-size: 1.5rem; font-weight: bold; min-height: 1.8rem; margin: 5px 0; color: var(--primary); }
+
+        .grid-players { display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 10px; margin-top: 10px; }
+        button.player-btn { 
+            height: 70px; font-size: 1.5rem; font-weight: bold; border: none; 
+            border-radius: 12px; background: #ecf0f1; color: #2c3e50; 
+            touch-action: manipulation; transition: transform 0.1s, background 0.2s;
+        }
+        button.player-btn:active { transform: scale(0.9); background: var(--primary); color: white; }
+        button.player-btn.selected { background: var(--secondary); color: white; border: 3px solid #2980b9; }
+
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn-action { padding: 15px; border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        .btn-start { background: var(--primary); }
+        .btn-export { background: var(--secondary); }
+        .btn-reset { background: var(--danger); grid-column: span 2; margin-top: 10px; }
+
+        canvas { background: white; border-radius: 10px; margin-top: 20px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; font-size: 0.8rem; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background: #f8f9fa; }
+    </style>
+</head>
+<body>
+
+    <h2>REGISTRATORE PASSAGGI</h2>
+    
+    <div class="status-bar">
+        <div id="match-status">OFFLINE</div>
+        <div class="timer" id="timer-display">00:00</div>
+    </div>
+
+    <div class="selector-box">
+        <div class="label" id="phase-label">Tocca chi ha la palla (DA)</div>
+        <div class="current-selection" id="selection-display">-</div>
+        <div class="grid-players" id="players-container"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-action btn-start" id="start-btn" onclick="toggleMatch()">AVVIA PARTITA</button>
+        <button class="btn-action btn-export" onclick="exportData()">ESPORTA CSV</button>
+        <button class="btn-action btn-reset" onclick="resetAll()">RESET TOTALE</button>
+    </div>
+
+    <canvas id="intensityChart"></canvas>
+
+    <div style="overflow-x: auto;">
+        <table id="matrix-table"></table>
+    </div>
+
+    <script>
+        const playerNumbers = [2, 3, 4, 5, 6, 8, 10, 7, 9, 11]; // Modifica con i tuoi numeri
+        let passEvents = [];
+        let matrix = {};
+        let startTime = null;
+        let selectedFrom = null;
+        let matchInterval = null;
+        let chart = null;
+
+        // Inizializzazione
+        function init() {
+            const container = document.getElementById('players-container');
+            playerNumbers.forEach(num => {
+                const btn = document.createElement('button');
+                btn.className = 'player-btn';
+                btn.innerText = num;
+                btn.onclick = () => handlePlayerClick(num, btn);
+                container.appendChild(btn);
+                
+                matrix[num] = {};
+                playerNumbers.forEach(to => matrix[num][to] = 0);
+            });
+            updateTable();
+            initChart();
+        }
+
+        function handlePlayerClick(num, btn) {
+            if (!startTime) { alert("Avvia la partita prima!"); return; }
+
+            if (selectedFrom === null) {
+                // Primo tocco: chi passa
+                selectedFrom = num;
+                document.getElementById('selection-display').innerText = num + " → ...";
+                document.getElementById('phase-label').innerText = "Tocca chi riceve (A)";
+                // Feedback visivo
+                document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            } else {
+                // Secondo tocco: chi riceve
+                if (selectedFrom !== num) {
+                    recordPass(selectedFrom, num);
+                }
+                // Reset interfaccia
+                selectedFrom = null;
+                document.getElementById('selection-display').innerText = "-";
+                document.getElementById('phase-label').innerText = "Tocca chi ha la palla (DA)";
+                document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('selected'));
+            }
+        }
+
+        function recordPass(from, to) {
+            const now = Date.now();
+            const minute = Math.floor((now - startTime) / 60000);
+            
+            passEvents.push({ from, to, minute, time: new Date().toLocaleTimeString() });
+            matrix[from][to]++;
+            
+            updateTable();
+            updateChart();
+        }
+
+        function toggleMatch() {
+            if (!startTime) {
+                startTime = Date.now();
+                document.getElementById('match-status').innerText = "LIVE 🟢";
+                document.getElementById('start-btn').innerText = "IN CORSO...";
+                document.getElementById('start-btn').style.background = "#95a5a6";
+                matchInterval = setInterval(updateTimer, 1000);
+            }
+        }
+
+        function updateTimer() {
+            const diff = Date.now() - startTime;
+            const mins = Math.floor(diff / 60000).toString().padStart(2, '0');
+            const secs = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${mins}:${secs}`;
+        }
+
+        function updateTable() {
+            const table = document.getElementById('matrix-table');
+            let html = `<tr><th>DA\\A</th>${playerNumbers.map(n => `<th>${n}</th>`).join('')}</tr>`;
+            playerNumbers.forEach(from => {
+                html += `<tr><th>${from}</th>`;
+                playerNumbers.forEach(to => {
+                    const val = matrix[from][to];
+                    const alpha = val > 0 ? Math.min(val * 0.2, 1) : 0;
+                    html += `<td style="background: rgba(46, 204, 113, ${alpha})">${val}</td>`;
+                });
+                html += `</tr>`;
+            });
+            table.innerHTML = html;
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('intensityChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['0-5', '5-10', '10-15', '15-20', '20-25', '25-30', '30-35', '35-40', '40-45'],
+                    datasets: [{
+                        label: 'Intensità (Passaggi/5min)',
+                        data: new Array(9).fill(0),
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+        }
+
+        function updateChart() {
+            let bins = new Array(9).fill(0);
+            passEvents.forEach(e => {
+                let binIdx = Math.floor(e.minute / 5);
+                if (binIdx < 9) bins[binIdx]++;
+            });
+            chart.data.datasets[0].data = bins;
+            chart.update();
+        }
+
+        function exportData() {
+            let csv = "Minuto,Orario,DA,A\n";
+            passEvents.forEach(e => {
+                csv += `${e.minute},${e.time},${e.from},${e.to}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `analisi_match_${new Date().toLocaleDateString()}.csv`);
+            a.click();
+        }
+
+        function resetAll() {
+            if (confirm("Vuoi resettare tutti i dati della partita?")) {
+                location.reload();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

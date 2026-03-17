@@ -1,0 +1,54 @@
+
+<script src="../js/script_event.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <body onload="init()">
+    <h2>📊 Statistiche Partita</h2>
+
+    <label for="squadra">Nome Squadra:</label>
+    <input type="text" id="squadra" placeholder="Inserisci nome squadra">
+
+    <div>
+      <button onclick="startCronometro()">▶️ Start</button>
+      <button onclick="stopCronometro()">⏹️ Stop</button>
+      <button onclick="resetCronometro()">🔄 Reset</button>
+      <span id="cronometro">00:00</span>
+    </div>
+
+    <div>
+      <button onclick="setTempo(1)">1° Tempo</button>
+      <button onclick="setTempo(2)">2° Tempo</button>
+      <span id="tempoCorrente">Tempo: 1</span>
+    </div>
+
+    <div id="bottoni"></div>
+
+    <h3>Vitalità per Ruolo</h3>
+    <div id="vitalita">
+      <button onclick="registraVitalita('portiere')">Portiere</button>
+      <button onclick="registraVitalita('difesa')">Difesa</button>
+      <button onclick="registraVitalita('centrocampo')">Centrocampo</button>
+      <button onclick="registraVitalita('attacco')">Attacco</button>
+    </div>
+
+
+        <!-- Totali per tipo di evento -->
+        <h2>Totali per tipo di evento</h2>
+        <div id="tabellaEventi"></div>
+
+        <!-- Grafico andamento temporale -->
+        <h2>Andamento temporale per ogni evento</h2>
+        <div id="graficiEventi"></div>
+
+        <!-- Chart.js CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <div id="statistiche"></div>
+
+
+    <div class="azioni">
+      <button onclick="salvaCSV()">💾 Salva CSV</button>
+      <button onclick="salvaJSON()">💾 Salva JSON</button>
+      <button onclick="inviaGoogle()">📤 Invia a Google Sheets</button>
+    </div>

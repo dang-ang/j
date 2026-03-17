@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Top 21 Analysis – Dashboard</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 0;
+    background: #f5f5f5;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    overflow-x: auto;
+    background: #222;
+  }
+  .tab {
+    padding: 12px 18px;
+    color: #fff;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tab.active {
+    background: #0078ff;
+  }
+
+  /* Panels */
+  .panel {
+    display: none;
+    padding: 20px;
+    background: #fff;
+  }
+  .panel.active {
+    display: block;
+  }
+
+  /* Analysis blocks */
+  .analysis-block {
+    background: #f0f0f0;
+    padding: 12px;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    margin-bottom: 20px;
+  }
+
+  /* KPI cards */
+  .kpi-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .kpi-card {
+    flex: 1 1 calc(50% - 12px);
+    background: #e9eef5;
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+  }
+  .kpi-value {
+    font-size: 22px;
+    font-weight: bold;
+  }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    .kpi-card {
+      flex: 1 1 100%;
+    }
+    .analysis-block {
+      font-size: 14px;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" data-target="panel-global">Globale</div>
+  <div class="tab" data-target="panel-A">Girone A</div>
+  <div class="tab" data-target="panel-B">Girone B</div>
+  <div class="tab" data-target="panel-C">Girone C</div>
+</div>
+
+<!-- PANEL: ANALISI GLOBALE -->
+<div class="panel active" id="panel-global">
+  <h2>Analisi Globale del Campionato</h2>
+
+  <!-- KPI GLOBALI -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">PPG Medio Campionato</div>
+      <div class="kpi-value" data-global-kpi="ppg"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">GF Medio</div>
+      <div class="kpi-value" data-global-kpi="gf"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">GS Medio</div>
+      <div class="kpi-value" data-global-kpi="gs"></div>
+    </div>
+  </div>
+
+  <!-- GRAFICO GLOBALE -->
+  <canvas id="chartGlobal" height="120"></canvas>
+
+  <h3>Panoramica generale</h3>
+  <pre class="analysis-block" data-global="overview"></pre>
+
+  <h3>Profilo dei gironi</h3>
+  <pre class="analysis-block" data-global="profilo"></pre>
+
+  <h3>Outlier del campionato</h3>
+  <pre class="analysis-block" data-global="outliers"></pre>
+
+  <h3>Commento tecnico globale</h3>
+  <pre class="analysis-block" data-global="commento"></pre>
+</div>
+
+<!-- PANEL: GIRONE TEMPLATE -->
+<div class="panel" id="panel-A">
+  <h2>Girone A – Classifica</h2>
+  <!-- CLASSIFICA QUI -->
+
+  <!-- KPI -->
+  <h2>KPI del Girone A</h2>
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">PPG Medio</div><div class="kpi-value" data-A-kpi="ppg"></div></div>
+    <div class="kpi-card"><div class="kpi-label">GF Medio</div><div class="kpi-value" data-A-kpi="gf"></div></div>
+    <div class="kpi-card"><div class="kpi-label">GS Medio</div><div class="kpi-value" data-A-kpi="gs"></div></div>
+  </div>
+
+  <!-- GRAFICO -->
+  <canvas id="chartA" height="120"></canvas>
+
+  <!-- ANALISI -->
+  <h2>Analisi del Girone A</h2>
+  <h3>Trend principali</h3>
+  <pre class="analysis-block" data-A="trend"></pre>
+
+  <h3>Anomalie</h3>
+  <pre class="analysis-block" data-A="anomalie"></pre>
+
+  <h3>KPI avanzati</h3>
+  <pre class="analysis-block" data-A="kpi"></pre>
+
+  <h3>Commento tecnico</h3>
+  <pre class="analysis-block" data-A="commento"></pre>
+</div>
+
+<!-- PANEL: GIRONE B -->
+<div class="panel" id="panel-B">
+  <h2>Girone B – Classifica</h2>
+
+  <h2>KPI del Girone B</h2>
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">PPG Medio</div><div class="kpi-value" data-B-kpi="ppg"></div></div>
+    <div class="kpi-card"><div class="kpi-label">GF Medio</div><div class="kpi-value" data-B-kpi="gf"></div></div>
+    <div class="kpi-card"><div class="kpi-label">GS Medio</div><div class="kpi-value" data-B-kpi="gs"></div></div>
+  </div>
+
+  <canvas id="chartB" height="120"></canvas>
+
+  <h2>Analisi del Girone B</h2>
+  <h3>Trend principali</h3>
+  <pre class="analysis-block" data-B="trend"></pre>
+
+  <h3>Anomalie</h3>
+  <pre class="analysis-block" data-B="anomalie"></pre>
+
+  <h3>KPI avanzati</h3>
+  <pre class="analysis-block" data-B="kpi"></pre>
+
+  <h3>Commento tecnico</h3>
+  <pre class="analysis-block" data-B="commento"></pre>
+</div>
+
+<!-- PANEL: GIRONE C -->
+<div class="panel" id="panel-C">
+  <h2>Girone C – Classifica</h2>
+
+  <h2>KPI del Girone C</h2>
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">PPG Medio</div><div class="kpi-value" data-C-kpi="ppg"></div></div>
+    <div class="kpi-card"><div class="kpi-label">GF Medio</div><div class="kpi-value" data-C-kpi="gf"></div></div>
+    <div class="kpi-card"><div class="kpi-label">GS Medio</div><div class="kpi-value" data-C-kpi="gs"></div></div>
+  </div>
+
+  <canvas id="chartC" height="120"></canvas>
+
+  <h2>Analisi del Girone C</h2>
+  <h3>Trend principali</h3>
+  <pre class="analysis-block" data-C="trend"></pre>
+
+  <h3>Anomalie</h3>
+  <pre class="analysis-block" data-C="anomalie"></pre>
+
+  <h3>KPI avanzati</h3>
+  <pre class="analysis-block" data-C="kpi"></pre>
+
+  <h3>Commento tecnico</h3>
+  <pre class="analysis-block" data-C="commento"></pre>
+</div>
+
+<script>
+/* ---------------------------
+   FUNZIONI ANALISI GIRONE
+----------------------------*/
+function generateGironeAnalysis(g) {
+  return {
+    trend: `
+• Dominanza/equilibrio: ${g.strutturaGirone}
+• Polarizzazione top/mid/bottom: ${g.descrizioneTop}
+• Andamento offensivo/difensivo: GF ${g.midGFRange}, GS ${g.midGSRange}
+• Stabilità/volatilità: ${g.stabilita}
+`.trim(),
+
+    anomalie: `
+• ${g.anomalie[0] || "Nessuna anomalia"}
+• ${g.anomalie[1] || "Nessuna anomalia"}
+• ${g.anomalie[2] || "Nessuna anomalia"}
+`.trim(),
+
+    kpi: `
+• PPG medio: ${g.kpi.ppgMedio}
+• Goal Ratio: ${g.kpi.grMedio}
+• Win Conversion Rate: ${g.kpi.winConv}
+• Defensive Stability Index: ${g.kpi.dsi}
+• Momentum Index: ${g.kpi.momentum}
+• Variance Index: ${g.kpi.varianza}
+`.trim(),
+
+    commento: `
+Il Girone ${g.label} si caratterizza per ${g.identitaTattica}.
+Le squadre top mostrano ${g.caratteristicaTop},
+la zona centrale soffre di ${g.caratteristicaMid},
+mentre le squadre di coda evidenziano ${g.criticitaBottom}.
+`.trim()
+  };
+}
+
+/* ---------------------------
+   FUNZIONI ANALISI GLOBALE
+----------------------------*/
+function generateGlobalAnalysis(g) {
+  return {
+    overview: `
+• Girone più competitivo: ${g.gironePiuCompetitivo}
+• Girone più dominato: ${g.gironePiuDominato} (PPG > ${g.ppgDominio}, DR ${g.drDominio})
+`.trim(),
+
+    profilo: `
+• Più offensivo: ${g.gironePiuOffensivo} (GF medio ${g.gfMedioOff})
+• Più difensivo: ${g.gironePiuDifensivo} (GS medio ${g.gsMedioDif})
+• Più “pazzo”: ${g.gironePiuPazzo}
+`.trim(),
+
+    outliers: `
+• Miglior attacco: ${g.outliers.migliorAttacco} (${g.outliers.gfAttacco} GF)
+• Miglior difesa: ${g.outliers.migliorDifesa} (${g.outliers.gsDifesa} GS)
+• Miglior DR: ${g.outliers.migliorDR} (${g.outliers.drVal})
+• Miglior PPG: ${g.outliers.migliorPPG} (${g.outliers.ppgVal})
+• Squadra più instabile: ${g.outliers.piuInstabile}
+• Squadra più clutch: ${g.outliers.piuClutch}
+`.trim(),
+
+    commento: `
+Il campionato mostra un’identità ${g.identitaGlobale},
+con trend legati a ${g.trendGlobali}.
+Le squadre top condividono ${g.caratteristicheTopGlobali},
+mentre le squadre in difficoltà soffrono di ${g.criticitaGlobali}.
+`.trim()
+  };
+}
+
+/* ---------------------------
+   RENDER KPI + TESTI + GRAFICI
+----------------------------*/
+function renderGirone(id, data) {
+  const a = generateGironeAnalysis(data);
+
+  document.querySelector(`[data-${id}="trend"]`).textContent = a.trend;
+  document.querySelector(`[data-${id}="anomalie"]`).textContent = a.anomalie;
+  document.querySelector(`[data-${id}="kpi"]`).textContent = a.kpi;
+  document.querySelector(`[data-${id}="commento"]`).textContent = a.commento;
+
+  // KPI cards
+  document.querySelector(`[data-${id}-kpi="ppg"]`).textContent = data.kpi.ppgMedio;
+  document.querySelector(`[data-${id}-kpi="gf"]`).textContent = data.kpi.gfMedio;
+  document.querySelector(`[data-${id}-kpi="gs"]`).textContent = data.kpi.gsMedio;
+
+  // Grafico
+  new Chart(document.getElementById(`chart${id}`), {
+    type: 'bar',
+    data: {
+      labels: data.squadre,
+      datasets: [
+        { label: "PPG", data: data.ppg, backgroundColor: "#0078ff88" },
+        { label: "GF", data: data.gf, backgroundColor: "#00cc8888" },
+        { label: "GS", data: data.gs, backgroundColor: "#ff444488" }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+function renderGlobal(data) {
+  const a = generateGlobalAnalysis(data);
+
+  document.querySelector('[data-global="overview"]').textContent = a.overview;
+  document.querySelector('[data-global="profilo"]').textContent = a.profilo;
+  document.querySelector('[data-global="outliers"]').textContent = a.outliers;
+  document.querySelector('[data-global="commento"]').textContent = a.commento;
+
+  // KPI globali
+  document.querySelector('[data-global-kpi="ppg"]').textContent = data.kpi.ppgMedio;
+  document.querySelector('[data-global-kpi="gf"]').textContent = data.kpi.gfMedio;
+  document.querySelector('[data-global-kpi="gs"]').textContent = data.kpi.gsMedio;
+
+  // Grafico globale
+  new Chart(document.getElementById("chartGlobal"), {
+    type: "line",
+    data: {
+      labels: data.gironi,
+      datasets: [
+        { label: "PPG Medio", data: data.ppg, borderColor: "#0078ff", fill: false },
+        { label: "GF Medio", data: data.gf, borderColor: "#00cc88", fill: false },
+        { label: "GS Medio", data: data.gs, borderColor: "#ff4444", fill: false }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+/* ---------------------------
+   TABS
+----------------------------*/
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.target).classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>

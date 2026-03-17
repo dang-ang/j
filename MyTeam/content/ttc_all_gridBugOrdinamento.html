@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>JCR Dashboard - No NaN Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+    <style>
+        .highlight-jcr { background-color: #fef9c3 !important; font-weight: bold; }
+        .tab-active { background-color: #2563eb !important; color: white !important; }
+        .gridjs-td { padding: 8px 12px !important; }
+        .pos-num { font-weight: 800; color: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 p-4">
+
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-2xl font-black mb-6 uppercase">🏆 JCR Analytics</h1>
+        <div id="tabs-categories" class="flex flex-wrap gap-2 mb-6"></div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border mb-6">
+            <div id="team-checkboxes" class="flex flex-wrap gap-2"></div>
+        </div>
+        <div id="table-wrapper" class="bg-white rounded-xl shadow-xl overflow-hidden border"></div>
+    </div>
+
+    <script src="data.js"></script>
+
+    <script>
+        let grid = null;
+        let currentCategory = "";
+
+        const categorie = [...new Set(classificaData.map(d => d.Categoria))];
+
+        function init() {
+            const container = document.getElementById('tabs-categories');
+            categorie.forEach((cat, i) => {
+                const btn = document.createElement('button');
+                btn.innerText = cat;
+                btn.className = "px-4 py-2 rounded-lg font-bold bg-white border shadow-sm transition-all";
+                btn.onclick = () => {
+                    document.querySelectorAll('#tabs-categories button').forEach(b => b.classList.remove('tab-active'));
+                    btn.classList.add('tab-active');
+                    currentCategory = cat;
+                    updateCheckboxes();
+                    refreshTable();
+                };
+                container.appendChild(btn);
+                if(i === 0) btn.click();
+            });
+        }
+
+        function updateCheckboxes() {
+            const container = document.getElementById('team-checkboxes');
+            container.innerHTML = '';
+            const teams = [...new Set(classificaData.filter(d => d.Categoria === currentCategory).map(d => d.Squadra))].sort();
+            teams.forEach(t => {
+                const label = document.createElement('label');
+                label.className = "flex items-center gap-1 bg-slate-50 px-2 py-1 rounded border text-xs cursor-pointer";
+                label.innerHTML = `<input type="checkbox" value="${t}" checked onchange="refreshTable()"> ${t}`;
+                container.appendChild(label);
+            });
+        }
+
+        function refreshTable() {
+            const checkedTeams = Array.from(document.querySelectorAll('#team-checkboxes input:checked')).map(i => i.value);
+            
+            // 1. Pulizia dati: Convertiamo TUTTO in numeri puri prima di darli a Grid.js
+            let filtered = classificaData
+                .filter(d => d.Categoria === currentCategory && checkedTeams.includes(d.Squadra))
+                .map(d => {
+                    const gf = parseInt(d.GF || d.FG) || 0;
+                    const gs = parseInt(d.GS) || 0;
+                    const pts = parseInt(d.Punti) || 0;
+                    const pg = parseInt(d.PG) || 0;
+                    return [
+                        0, // Posizione (colonna 0)
+                        d.Squadra,
+                        pts,
+                        pg > 0 ? parseFloat((pts / pg).toFixed(2)) : 0,
+                        pg,
+                        parseInt(d.VT) || 0,
+                        parseInt(d.PA) || 0,
+                        parseInt(d.SC) || 0,
+                        gf,
+                        gs,
+                        gf - gs, // DR calcolato
+                        d.Logo // Teniamo il logo per il formatter (colonna 11)
+                    ];
+                });
+
+            filtered.sort((a, b) => b[2] - a[2]); // Sort iniziale per punti
+
+            if (grid) grid.destroy();
+
+            grid = new gridjs.Grid({
+                columns: [
+                    { 
+                        name: "Pos", 
+                        sort: false,
+                        formatter: (cell, row) => gridjs.html(`<span class="pos-num">${row.index + 1}</span>`)
+                    },
+                    { 
+                        name: "Squadra",
+                        formatter: (cell, row) => {
+                            const logo = row.cells[11].data; // Recupera il logo dalla colonna nascosta
+                            return gridjs.html(`<div class="flex items-center gap-2"><img src="${logo}" class="w-6 h-6 object-contain" onerror="this.style.display='none'"><b>${cell}</b></div>`);
+                        }
+                    },
+                    { name: "Punti", sort: true },
+                    { name: "Media", sort: true },
+                    { name: "PG", sort: true },
+                    { name: "VT", sort: true },
+                    { name: "PA", sort: true },
+                    { name: "SC", sort: true },
+                    { name: "GF", sort: true },
+                    { name: "GS", sort: true },
+                    { name: "DR", sort: true },
+                    { name: "LogoURL", hidden: true } // Colonna nascosta per evitare conflitti
+                ],
+                data: filtered,
+                sort: true,
+                className: {
+                    tr: (row) => (row.cells[1].data.toUpperCase().includes('JCR') ? 'highlight-jcr' : '')
+                }
+            }).render(document.getElementById('table-wrapper'));
+        }
+
+        init();
+    </script>
+</body>
+</html>

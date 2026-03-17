@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Presenze Allenamento</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333;
+            --primary: #2563eb;
+            --presente: #10b981;
+            --assente: #ef4444;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 { margin-bottom: 10px; color: var(--primary); }
+
+        .stats-summary {
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .nome-atleta { font-weight: 600; font-size: 1.1rem; }
+
+        .percentuale {
+            font-size: 0.9rem;
+            background: #eff6ff;
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        /* Progress Bar */
+        .progress-bar-container {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.5s ease;
+        }
+
+        /* Trend Dots */
+        .trend-container {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .dot.p { background-color: var(--presente); }
+        .dot.assente { background-color: #d1d5db; border: 1px solid #9ca3af; }
+
+        .loader {
+            text-align: center;
+            padding: 50px;
+            font-weight: 600;
+        }
+
+        .hidden { display: none; }
+
+        
+        .dot.p { 
+            background-color: #10b981; /* Verde smeraldo */
+            border: 1px solid #059669;
+        }
+        
+        .dot.assente { 
+            background-color: #ef4444; /* Rosso acceso */
+            border: 1px solid #b91c1c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Presenze Allenamenti</h1>
+        <div id="loading" class="loader">Caricamento dati dal foglio Google...</div>
+    </header>
+
+    <div id="content" class="hidden">
+        <div class="stats-summary" id="global-stats">
+            Allenamenti Totali Stagione: <span id="totale-complessivo">0</span>
+        </div>
+
+        <div id="atleti-grid" class="grid">
+            </div>
+    </div>
+</div>
+
+<script>
+    // INCOLLA QUI IL TUO URL DI GOOGLE APPS SCRIPT
+    // Ricordati di aggiungere ?read=true alla fine ... v24 con data
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw93y_atMx9p6iLRFN9XVr1rd9gh-7OtQwKQ_pnr6hF8bSEBDb6HU46IZZsPx0YVE-Jww/exec?read=true";
+
+    async function fetchData() {
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const data = await response.json();
+            
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('content').classList.remove('hidden');
+            
+            renderDashboard(data);
+        } catch (error) {
+            document.getElementById('loading').innerText = "Errore nel caricamento dati. Controlla l'URL e i permessi.";
+            console.error(error);
+        }
+    }
+
+    function renderDashboard(data) {
+        const grid = document.getElementById('atleti-grid');
+        const totaleComplessivo = data[0]?.totaleSessioni || 0;
+        document.getElementById('totale-complessivo').innerText = totaleComplessivo;
+
+        data.forEach(atleta => {
+            const perc = Math.round((atleta.presenze / atleta.totaleSessioni) * 100) || 0;
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            // Creazione Trend Dots con logica P = Verde, Altro = Rosso
+ 
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <span class="nome-atleta">${atleta.atleta}</span>
+                    <span class="percentuale">${perc}% (${atleta.presenze}/${atleta.totaleSessioni})</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" style="width: ${perc}%"></div>
+                </div>
+                <div class="trend-container">
+                    <small style="width:100%; margin-bottom:5px; color:#666">Ultimi allenamenti:</small>
+                    ${trendHtml}
+                </div>
+            `;
+            
+            grid.appendChild(card);
+        });
+    }
+
+    fetchData();
+</script>
+
+</body>
+</html>

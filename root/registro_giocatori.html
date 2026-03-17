@@ -44,8 +44,6 @@
     .alert.error   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
     .alert.warning { background: #fef9c3; color: #713f12; border: 1px solid #fde047; }
     .alert.show { display: block; }
-
-    .comment { font-style: italic;}
   </style>
 </head>
 <body>
@@ -59,14 +57,14 @@
   <label>Giocatore
     <select id="giocatore">
       <option value="">-- seleziona --</option>
-      <option>AGR</option><option>AZI</option><option>ARC</option>
-      <option>BAR</option><option>BEN</option><option>BUS</option>
-      <option>CEN</option><option>FAL</option><option>FAR</option>
-      <option>FOR</option><option>GAL</option><option>GEM</option>
-      <option>GIO</option><option>GNO</option><option>GRA</option>
-      <option>GRE</option><option>GUE</option><option>IAN</option>
-      <option>LAN</option><option>MAS</option><option>MHI</option>
-      <option>NDO</option><option>ZIT</option>
+      <option>AGRIGOROAEI</option><option>AIT ZIZ</option><option>ARCIDIACONO</option>
+      <option>BARUZZI</option><option>BENALLAL</option><option>BUSHI</option>
+      <option>CENTANNI</option><option>FALZONI</option><option>FARINA</option>
+      <option>FORESTIERO</option><option>GALLALA</option><option>GEMINIANI</option>
+      <option>GIORDANO</option><option>GNOFFO</option><option>GRANO</option>
+      <option>GRECA</option><option>GUEYE</option><option>IANIGRO</option>
+      <option>LANZA</option><option>MASHA</option><option>MHILLAJ</option>
+      <option>NDOJ</option><option>ZITOUNI</option>
     </select>
   </label>
   <label>Nota / Sezione
@@ -86,12 +84,12 @@
 
 <!-- SEZIONI -->
 <div id="fondamenti" class="section active">
-  <h3>Fondamentali</h3><span class="comment">valutazione da 1 (min) a 5 (max)</span>
+  <h3>Fondamenti</h3>
   <div class="grid" id="gridFondamenti"></div>
 </div>
 
 <div id="portieri" class="section">
-  <h3>Portieri</h3><i>valutazione da 1 (min) a 5 (max)</i>
+  <h3>Portieri</h3>
   <div class="portiere-toggle">
     <input type="checkbox" id="isPortiere">
     <label for="isPortiere">Questo giocatore è un portiere (includi valutazione portieri)</label>
@@ -100,12 +98,12 @@
 </div>
 
 <div id="tattica" class="section">
-  <h3>Tattica Individuale</h3><i>valutazione da 1 (min) a 5 (max)</i>
+  <h3>Tattica Individuale</h3>
   <div class="grid" id="gridTattica"></div>
 </div>
 
 <div id="fisico" class="section">
-  <h3>Aspetto Fisico</h3><i>valutazione da 1 (min) a 5 (max)</i>
+  <h3>Aspetto Fisico</h3>
   <div class="grid" id="gridFisico"></div>
 </div>
 
@@ -114,7 +112,7 @@
 <script>
   // ─── Configurazione ───────────────────────────────────────────────
   // ⚠️  Sostituisci questo URL con quello del tuo Google Apps Script pubblicato
-  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycby0KZl64dqHdqovUuXKBg4QPlBqs_MIRNR_mB528Zr_-GYl6uZ0aFWwDmiIMz2BhJnQ/exec"; // v9-get
+  const WEBAPP_URL = "https://script.google.com/macros/s/INSERISCI_QUI_IL_TUO_URL/exec";
 
   // ─── Parametro mister da URL ──────────────────────────────────────
   const params = new URLSearchParams(window.location.search);
@@ -226,10 +224,8 @@
     try {
       const res = await fetch(WEBAPP_URL, {
         method: "POST",
-        redirect: "follow",
-        mode: "no-cors",
         body: JSON.stringify(record),
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+        headers: { "Content-Type": "application/json" }
       });
       const data = await res.json();
       if (data.status === "OK") {

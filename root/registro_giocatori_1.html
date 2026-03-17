@@ -44,8 +44,6 @@
     .alert.error   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
     .alert.warning { background: #fef9c3; color: #713f12; border: 1px solid #fde047; }
     .alert.show { display: block; }
-
-    .comment { font-style: italic;}
   </style>
 </head>
 <body>
@@ -59,14 +57,14 @@
   <label>Giocatore
     <select id="giocatore">
       <option value="">-- seleziona --</option>
-      <option>AGR</option><option>AZI</option><option>ARC</option>
-      <option>BAR</option><option>BEN</option><option>BUS</option>
-      <option>CEN</option><option>FAL</option><option>FAR</option>
-      <option>FOR</option><option>GAL</option><option>GEM</option>
-      <option>GIO</option><option>GNO</option><option>GRA</option>
-      <option>GRE</option><option>GUE</option><option>IAN</option>
-      <option>LAN</option><option>MAS</option><option>MHI</option>
-      <option>NDO</option><option>ZIT</option>
+      <option>AGRIGOROAEI</option><option>AIT ZIZ</option><option>ARCIDIACONO</option>
+      <option>BARUZZI</option><option>BENALLAL</option><option>BUSHI</option>
+      <option>CENTANNI</option><option>FALZONI</option><option>FARINA</option>
+      <option>FORESTIERO</option><option>GALLALA</option><option>GEMINIANI</option>
+      <option>GIORDANO</option><option>GNOFFO</option><option>GRANO</option>
+      <option>GRECA</option><option>GUEYE</option><option>IANIGRO</option>
+      <option>LANZA</option><option>MASHA</option><option>MHILLAJ</option>
+      <option>NDOJ</option><option>ZITOUNI</option>
     </select>
   </label>
   <label>Nota / Sezione
@@ -86,12 +84,12 @@
 
 <!-- SEZIONI -->
 <div id="fondamenti" class="section active">
-  <h3>Fondamentali</h3><span class="comment">valutazione da 1 (min) a 5 (max)</span>
+  <h3>Fondamenti</h3>
   <div class="grid" id="gridFondamenti"></div>
 </div>
 
 <div id="portieri" class="section">
-  <h3>Portieri</h3><i>valutazione da 1 (min) a 5 (max)</i>
+  <h3>Portieri</h3>
   <div class="portiere-toggle">
     <input type="checkbox" id="isPortiere">
     <label for="isPortiere">Questo giocatore è un portiere (includi valutazione portieri)</label>
@@ -100,12 +98,12 @@
 </div>
 
 <div id="tattica" class="section">
-  <h3>Tattica Individuale</h3><i>valutazione da 1 (min) a 5 (max)</i>
+  <h3>Tattica Individuale</h3>
   <div class="grid" id="gridTattica"></div>
 </div>
 
 <div id="fisico" class="section">
-  <h3>Aspetto Fisico</h3><i>valutazione da 1 (min) a 5 (max)</i>
+  <h3>Aspetto Fisico</h3>
   <div class="grid" id="gridFisico"></div>
 </div>
 
@@ -114,7 +112,7 @@
 <script>
   // ─── Configurazione ───────────────────────────────────────────────
   // ⚠️  Sostituisci questo URL con quello del tuo Google Apps Script pubblicato
-  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycby0KZl64dqHdqovUuXKBg4QPlBqs_MIRNR_mB528Zr_-GYl6uZ0aFWwDmiIMz2BhJnQ/exec"; // v9-get
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzxjkxReECq9Ix2Te9JtWW7LN9rQ8iNKm60u1ynv2yP_NH1mX-iupGNixfIGkMkxOa4/exec";
 
   // ─── Parametro mister da URL ──────────────────────────────────────
   const params = new URLSearchParams(window.location.search);
@@ -185,7 +183,7 @@
     if (type === "success") setTimeout(() => el.classList.remove("show"), 5000);
   }
 
-  // ─── Salvataggio ──────────────────────────────────────────────────
+  // ─── Salvataggio (FormData per evitare CORS preflight su GAS) ────
   document.getElementById("saveBtn").addEventListener("click", async () => {
     const giocatore = document.getElementById("giocatore").value;
     const mister = misterInput.value.trim();
@@ -224,25 +222,31 @@
     };
 
     try {
-      const res = await fetch(WEBAPP_URL, {
+      // no-cors: evita preflight CORS su Google Apps Script
+      // La risposta è opaca (non leggibile), ma il dato viene ricevuto dallo script
+      const params = new URLSearchParams();
+      params.append("payload", JSON.stringify(record));
+
+      await fetch(WEBAPP_URL, {
         method: "POST",
-        redirect: "follow",
+        body: params,
         mode: "no-cors",
-        body: JSON.stringify(record),
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+        redirect: "follow",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        "Access-Control-Allow-Origin": "*"
+                    }
+
+
       });
-      const data = await res.json();
-      if (data.status === "OK") {
-        showAlert("✅ Scheda salvata correttamente!", "success");
-        // Reset giocatore e sezione dopo salvataggio riuscito
-        document.getElementById("giocatore").value = "";
-        document.getElementById("sezione").value = "";
-        document.getElementById("isPortiere").checked = false;
-      } else {
-        showAlert("Errore nel salvataggio: " + (data.message || "risposta inattesa dal server"), "error");
-      }
+
+      showAlert("✅ Scheda salvata correttamente!", "success");
+      document.getElementById("giocatore").value = "";
+      document.getElementById("sezione").value = "";
+      document.getElementById("isPortiere").checked = false;
+
     } catch (err) {
-      showAlert("Errore di comunicazione col server. Controlla la connessione e l'URL.", "error");
+      showAlert("Errore di comunicazione col server: " + err.message, "error");
     } finally {
       btn.disabled = false;
       btn.textContent = "SALVA SCHEDA";

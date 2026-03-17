@@ -1,0 +1,15 @@
+/top21
+│
+├── index.html
+├── /css
+│   └── style.css
+├── /js
+│   ├── app.js
+│   ├── dataLoader.js
+│   ├── grouping.js
+│   ├── kpi.js
+│   ├── narrative.js
+│   ├── rendering.js
+│   ├── charts.js
+│   └── tabs.js
+└── data.json

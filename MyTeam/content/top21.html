@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top 21 Analysis</title>
+
+  <link rel="stylesheet" href="top21_css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" data-target="panel-global">Globale</div>
+    <div class="tab" data-target="panel-A">Girone A</div>
+    <div class="tab" data-target="panel-B">Girone B</div>
+    <div class="tab" data-target="panel-C">Girone C</div>
+    <div class="tab" data-target="panel-D">Girone D</div>
+  </div>
+
+  <!-- PANEL GLOBALE -->
+  <section class="panel active" id="panel-global">
+    <h2>Analisi Globale</h2>
+
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">PPG Medio</div><div class="kpi-value" data-global-kpi="ppg"></div></div>
+      <div class="kpi-card"><div class="kpi-label">GF Medio</div><div class="kpi-value" data-global-kpi="gf"></div></div>
+      <div class="kpi-card"><div class="kpi-label">GS Medio</div><div class="kpi-value" data-global-kpi="gs"></div></div>
+    </div>
+
+    <canvas id="chartGlobal" height="140"></canvas>
+
+    <h3>Classifica Globale</h3>
+    <div id="classifica-global"></div>
+
+    <h3>Commenti</h3>
+    <pre class="analysis-block" data-global="overview"></pre>
+    <pre class="analysis-block" data-global="profilo"></pre>
+    <pre class="analysis-block" data-global="outliers"></pre>
+    <pre class="analysis-block" data-global="commento"></pre>
+  </section>
+
+  <!-- TEMPLATE PER OGNI GIRONE -->
+  <section class="panel" id="panel-A">
+    <h2>Girone A</h2>
+
+    <h3>Classifica</h3>
+    <div id="classifica-A"></div>
+
+    <h3>KPI</h3>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">PPG Medio</div><div class="kpi-value" data-A-kpi="ppg"></div></div>
+      <div class="kpi-card"><div class="kpi-label">GF Medio</div><div class="kpi-value" data-A-kpi="gf"></div></div>
+      <div class="kpi-card"><div class="kpi-label">GS Medio</div><div class="kpi-value" data-A-kpi="gs"></div></div>
+    </div>
+
+    <canvas id="chartA" height="140"></canvas>
+
+    <h3>Commenti</h3>
+    <pre class="analysis-block" data-A="trend"></pre>
+    <pre class="analysis-block" data-A="anomalie"></pre>
+    <pre class="analysis-block" data-A="kpi"></pre>
+    <pre class="analysis-block" data-A="commento"></pre>
+  </section>
+
+  <!-- Copia e incolla per B, C, D cambiando ID -->
+
+  <script  type="module" src="top21_js/app.js"></script>
+</body>
+</html>
