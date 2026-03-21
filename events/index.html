@@ -10,18 +10,33 @@
   <!-- esportazione pdf -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <style>
+   .riga { display: flex;    align-items: center;   width: 100%;    gap: 10px; /* opzionale */}
+   .ver {  flex: 0 0 auto; /* larghezza naturale */}
+   .titolo { flex: 1 1 auto; /* occupa tutto lo spazio disponibile */    max-width: 90%; /* opzionale se vuoi forzare il limite */}
+   .data { flex: 0 0 auto; /* larghezza naturale */  white-space: nowrap; /* evita che la data vada a capo */}
+   .data_partita {display: flex; align-items:center;   width: 100%;     gap: 8px;          /* distanza tra gli elementi */ white-space: nowrap; /* impedisce l'andare a capo */}
+  </style>
+
+  <link rel="stylesheet" href="sostituzioni.css"><!-- v2.3-->
+  <script type="module" src="sostituzioni.js"></script><!-- v2.3 -->
 
 </head>
 
 <body>
-  <h2>📊 Statistiche Partita</h2>
+<div class="riga">
+    <div class="ver">ver. 2.3 - sostituzioni </div>
+    <div class="titolo">  <h2>📊 Statistiche Partita</h2></div>
+    <div class="data">21/03/2026</div>
+</div>
+
 
   <!-- Data partita -->
-  <div class="data-partita">
+  <div class="data_partita">
     <label for="dataPartita">Data partita:</label>
     <input type="date" id="dataPartita">
+    <h3 id="dataDisplay"></h3>
   </div>
-  <h3 id="dataDisplay"></h3>
 
   <!-- Categoria, Girone, Note -->
   <div class="meta-partita">
@@ -54,6 +69,7 @@
       <input type="text" id="squadraOspiti" placeholder="Nome squadra ospiti">
     </div>
   </div>
+
 
   <!-- Timer -->
   <div class="timer-container">
@@ -102,6 +118,39 @@
   </div>
 
 
+  <section id="gestione-sostituzioni"><!-- v2.3 -->
+  <h2>Formazione titolari (1–11)</h2>
+  <div id="titolari" class="griglia-giocatori">
+    <button class="btn-titolare" data-num="1">1</button>
+    <button class="btn-titolare" data-num="2">2</button>
+    <button class="btn-titolare" data-num="3">3</button>
+    <button class="btn-titolare" data-num="4">4</button>
+    <button class="btn-titolare" data-num="5">5</button>
+    <button class="btn-titolare" data-num="6">6</button>
+    <button class="btn-titolare" data-num="7">7</button>
+    <button class="btn-titolare" data-num="8">8</button>
+    <button class="btn-titolare" data-num="9">9</button>
+    <button class="btn-titolare" data-num="10">10</button>
+    <button class="btn-titolare" data-num="11">11</button>
+  </div>
+
+  <h2>Riserve (12–18)</h2>
+  <div id="riserve" class="griglia-giocatori">
+    <button class="btn-riserva" data-num="12">12</button>
+    <button class="btn-riserva" data-num="13">13</button>
+    <button class="btn-riserva" data-num="14">14</button>
+    <button class="btn-riserva" data-num="15">15</button>
+    <button class="btn-riserva" data-num="16">16</button>
+    <button class="btn-riserva" data-num="17">17</button>
+    <button class="btn-riserva" data-num="18">18</button>
+  </div>
+
+  <h3>Eventi sostituzioni</h3>
+  <div id="eventiSostituzioni"></div>
+</section>
+
+
+
   <!-- Totali per tipo di evento -->
   <h2>Totali per tipo di evento</h2>
   <div id="riepilogoTotali"></div>
@@ -143,6 +192,9 @@
     </select>
   </div>
   <div id="timelineEventi"></div>
+
+
+
 
   <!-- Heatmap temporale -->
   <h2>Heatmap temporale eventi</h2>

@@ -2,11 +2,24 @@
 // entrypoint, type="module"
 
 
+//x v2.3
+// array globale degli eventi
+window.eventiPartita = window.eventiPartita || [];
+
+// funzioni di aggiornamento (se non esistono già)
+window.aggiornaTimeline = window.aggiornaTimeline || function(){};
+window.aggiornaTotali = window.aggiornaTotali || function(){};
+window.aggiornaTabella15 = window.aggiornaTabella15 || function(){};
+window.aggiornaEsportazioni = window.aggiornaEsportazioni || function(){};
+
+
 // import delle funzioni da vari file
 import { initTimer,  startCronometro,  pausaCronometro, stopCronometro,  resetCronometro,  setTempo } from './timer.js';
 import { initEvents, registraEvento,caricaEventi} from './events.js';
 import { buildEventButtons, renderDashboard, renderTimeline } from './ui.js';
 import { salvaCSV, salvaJSON, inviaGoogle,salvaPDF } from './export.js';
+import './sostituzioni.js';
+
 
 
 // caricamento del file di configurazione

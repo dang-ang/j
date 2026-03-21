@@ -1,45 +1,111 @@
 // export.js
-// CSV / JSON / Google Sheets – base)
+// CSV / JSON / Google Sheets – versione corretta con sostituzioni normalizzate
 
 import { getEventLog } from './events.js';
 
+// unisce eventi standard + sostituzioni
+function getLogCompleto() {
+  const standard = getEventLog();              // eventi normali
+  const sost = window.eventiPartita || [];     // include SOST
+  return [...standard, ...sost];
+}
+
 export function salvaCSV() {
-  const log = getEventLog();
+  const log = getLogCompleto();
+
   if (log.length === 0) {
     alert('Nessun evento da salvare.');
     return;
   }
 
-  // const header = ['data','squadra', 'tipo', 'tempo', 'secondi', 'blocco'];
-     const header = ['data', 'categoria', 'girone', 'note', 'squadra', 'tipo', 'tempo', 'secondi', 'blocco'];
+  const header = [
+    'data','categoria','girone','note',
+    'squadra','tipo','tempo','secondi','blocco'
+  ];
 
-  // const rows = log.map(e => [e.squadra, e.tipo, e.tempo, e.secondi, e.blocco]);
-  // const rows = log.map(e => [e.data, e.squadra, e.tipo, e.tempo, e.secondi, e.blocco]);
-      const rows = log.map(e => [
+  const rows = log.map(e => {
+
+    // ============================
+    //  NORMALIZZAZIONE SOSTITUZIONI
+    // ============================
+    if (e.tipo === 'SOST') {
+      return [
         e.data,
         e.categoria,
         e.girone,
-        `"${e.note?.replace(/"/g, '""') || ''}"`,
+        `"${(e.note || '').replace(/"/g, '""')}"`,
         e.squadra,
-        e.tipo,
-        e.tempo,
-        e.secondi,
-        e.blocco
-      ]);
+        'SOST',
+        e.tempoNum,                               // tempo = tempoNum
+        e.secondi,                                // secondi progressivi
+        `Entra: ${e.entra} > Esce: ${e.esce}`      // blocco descrittivo
+      ];
+    }
 
+    // ============================
+    //  EVENTI NORMALI
+    // ============================
+    return [
+      e.data,
+      e.categoria,
+      e.girone,
+      `"${(e.note || '').replace(/"/g, '""')}"`,
+      e.squadra,
+      e.tipo,
+      e.tempo,
+      e.secondi,
+      e.blocco
+    ];
+  });
 
   const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
   downloadFile('eventi_partita.csv', csv, 'text/csv');
 }
 
 export function salvaJSON() {
-  const log = getEventLog();
+  const log = getLogCompleto();
+
   if (log.length === 0) {
     alert('Nessun evento da salvare.');
     return;
   }
 
-  const json = JSON.stringify(log, null, 2);
+  const normalizzato = log.map(e => {
+
+    // ============================
+    //  NORMALIZZAZIONE SOSTITUZIONI
+    // ============================
+    if (e.tipo === 'SOST') {
+      return {
+        data: e.data,
+        categoria: e.categoria,
+        girone: e.girone,
+        note: e.note,
+        squadra: e.squadra,
+        tipo: 'SOST',
+        tempo: e.tempoNum,                         // tempo = tempoNum
+        secondi: e.secondi,                        // secondi progressivi
+        blocco: `Entra: ${e.entra} > Esce: ${e.esce}` // blocco descrittivo
+      };
+    }
+
+    // ============================
+    //  EVENTI NORMALI
+    // ============================
+    return {
+      data: e.data,
+      categoria: e.categoria,
+      girone: e.girone,
+      note: e.note,
+      squadra: e.squadra,
+      tipo: e.tipo,
+      tempo: e.tempo,
+      secondi: e.secondi,
+      blocco: e.blocco
+    };
+  });
+
+  const json = JSON.stringify(normalizzato, null, 2);
   downloadFile('eventi_partita.json', json, 'application/json');
 }
 
@@ -57,13 +123,12 @@ function downloadFile(filename, content, mime) {
   URL.revokeObjectURL(url);
 }
 
-
-// esportazione pdf
+// esportazione pdf (invariata)
 export function salvaPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  const log = getEventLog();
+  const log = getLogCompleto();
   if (log.length === 0) {
     alert("Nessun evento da salvare.");
     return;
@@ -90,20 +155,36 @@ export function salvaPDF() {
   doc.text(`Note: ${note}`, 14, 55);
 
   // Tabella eventi
-  const rows = log.map(e => [
-    e.data,
-    e.categoria,
-    e.girone,
-    e.squadra,
-    e.tipo,
-    e.tempo,
-    e.secondi,
-    e.blocco
-  ]);
+  const rows = log.map(e => {
+
+    if (e.tipo === "SOST") {
+      return [
+        e.data,
+        e.categoria,
+        e.girone,
+        e.squadra,
+        "SOST",
+        e.tempoNum,
+        e.secondi,
+        `Entra: ${e.entra} > Esce: ${e.esce}`
+      ];
+    }
+
+    return [
+      e.data,
+      e.categoria,
+      e.girone,
+      e.squadra,
+      e.tipo,
+      e.tempo,
+      e.secondi,
+      e.blocco
+    ];
+  });
 
   doc.autoTable({
     startY: 65,
-    head: [['Data', 'Categoria', 'Girone', 'Squadra', 'Evento', 'Tempo', 'Secondi', 'Blocco']],
+    head: [['Data','Categoria','Girone','Squadra','Evento','Tempo','Secondi','Blocco']],
     body: rows,
     theme: 'grid',
     styles: { fontSize: 8 }

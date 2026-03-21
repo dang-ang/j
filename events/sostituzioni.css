@@ -1,0 +1,55 @@
+/* ============================
+   GESTIONE SOSTITUZIONI
+   ============================ */
+
+#gestione-sostituzioni {
+  margin-top: 20px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  background: #fafafa;
+  border-radius: 6px;
+}
+
+.griglia-giocatori {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btn-titolare,
+.btn-riserva {
+  padding: 6px 12px;
+  font-size: 15px;
+  cursor: pointer;
+  border: 1px solid #444;
+  background: #fff;
+  border-radius: 4px;
+  transition: 0.2s;
+}
+
+.btn-titolare:hover,
+.btn-riserva:hover {
+  background: #e6f0ff;
+}
+
+.btn-titolare:disabled,
+.btn-riserva:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Titolari abilitati per sostituzione → rossi */
+.btn-titolare.selezionabile {
+  background: #ffdddd !important;
+  border-color: #cc0000 !important;
+}
+
+#eventiSostituzioni div {
+  margin: 4px 0;
+  padding: 5px 8px;
+  background: #f0f0f0;
+  border-left: 4px solid #0077cc;
+  font-size: 14px;
+  border-radius: 3px;
+}
