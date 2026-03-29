@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Scout</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary:     #ffffff;
+    --bg-secondary:   #f5f5f5;
+    --bg-tertiary:    #eeeeee;
+    --text-primary:   #111111;
+    --text-secondary: #666666;
+    --border:         rgba(0,0,0,0.10);
+    --border-mid:     rgba(0,0,0,0.18);
+    --accent:         #00C853;
+    --accent-dark:    #00963e;
+    --danger:         #E53935;
+    --radius:         12px;
+    --radius-sm:      8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary:     #1a1a1a;
+      --bg-secondary:   #242424;
+      --bg-tertiary:    #2e2e2e;
+      --text-primary:   #f0f0f0;
+      --text-secondary: #999999;
+      --border:         rgba(255,255,255,0.08);
+      --border-mid:     rgba(255,255,255,0.16);
+    }
+  }
+
+  body { font-family: 'Inter', sans-serif; font-size: 14px; color: var(--text-primary); background: var(--bg-tertiary); }
+
+  /* Header */
+  .header {
+    background: var(--bg-primary); border-bottom: 0.5px solid var(--border-mid);
+    padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px; position: sticky; top: 0; z-index: 100;
+  }
+  .header h1 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; line-height: 1; }
+  .header-eyebrow { font-size: 10px; text-transform: uppercase; letter-spacing: .8px; color: var(--text-secondary); margin-bottom: 2px; }
+  .header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* Controls */
+  select, button {
+    font-family: 'Inter', sans-serif; font-size: 13px; padding: 6px 12px;
+    border: 0.5px solid var(--border-mid); border-radius: var(--radius-sm);
+    background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; outline: none;
+    transition: border-color .15s, background .15s;
+  }
+  select:focus, button:focus-visible { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+  .btn-load { background: var(--accent); color: #fff; border-color: var(--accent-dark); font-weight: 500; }
+  .btn-load:hover { background: var(--accent-dark); }
+  .btn-load:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-more { margin-top: 12px; width: 100%; }
+  .btn-more:hover { background: var(--bg-tertiary); }
+
+  /* Tabs */
+  .tabs {
+    display: flex; gap: 2px; padding: 10px 20px 0;
+    border-bottom: 0.5px solid var(--border-mid); background: var(--bg-primary); overflow-x: auto;
+  }
+  .tab { padding: 8px 14px; border: none; background: transparent; font-size: 13px; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all .2s; white-space: nowrap; }
+  .tab.active { color: var(--text-primary); border-bottom-color: var(--accent); font-weight: 500; }
+  .tab:hover:not(.active) { color: var(--text-primary); }
+
+  /* Layout */
+  .content { padding: 20px; }
+  .panel { display: none; } .panel.active { display: block; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+  @media(max-width:900px) { .grid4 { grid-template-columns: repeat(2,1fr); } }
+  @media(max-width:600px) { .grid2, .grid4 { grid-template-columns: 1fr; } }
+
+  /* Cards */
+  .card { background: var(--bg-primary); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+  .card-title { font-size: 11px; text-transform: uppercase; letter-spacing: .8px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500; }
+  .card-value { font-size: 28px; font-weight: 300; line-height: 1; }
+  .card-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+  /* Section headers */
+  .sec-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .sec-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .sec-header h3 { font-size: 14px; font-weight: 500; }
+  .sec-avg { margin-left: auto; font-size: 20px; font-weight: 300; }
+  .sec-avg small { font-size: 12px; color: var(--text-secondary); }
+
+  /* KPI bars */
+  .kpi-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+  .kpi-label { font-size: 11px; color: var(--text-secondary); width: 170px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kpi-bar-wrap { flex: 1; height: 5px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; }
+  .kpi-bar { height: 100%; border-radius: 3px; transition: width .4s ease; }
+  .kpi-val { font-size: 11px; font-weight: 500; width: 26px; text-align: right; }
+
+  /* Radar */
+  .radar-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  @media(max-width:900px) { .radar-grid { grid-template-columns: repeat(2,1fr); } }
+  @media(max-width:560px) { .radar-grid { grid-template-columns: 1fr; } }
+  .radar-card { background: var(--bg-primary); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .radar-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 0.5px solid var(--border); }
+  .radar-card-header h3 { font-size: 12px; font-weight: 500; line-height: 1.3; }
+  .radar-card-avg { margin-left: auto; font-size: 18px; font-weight: 300; white-space: nowrap; }
+  .radar-wrap { position: relative; width: 100%; aspect-ratio: 1; max-width: 260px; margin: 0 auto; }
+
+  /* Section group label */
+  .sec-group-label { grid-column: 1/-1; display: flex; align-items: center; gap: 8px; padding: 6px 0 2px; margin-top: 8px; }
+  .sec-group-label:first-child { margin-top: 0; }
+  .sec-group-label h2 { font-size: 13px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .6px; }
+
+  /* Players */
+  .player-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; cursor: pointer; border-radius: 6px; border-bottom: 0.5px solid var(--border); transition: background .15s; }
+  .player-row:hover, .player-row.selected { background: var(--bg-secondary); }
+  .player-avatar { width: 34px; height: 34px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #1565C0; flex-shrink: 0; }
+
+  /* Status */
+  .status-bar { background: var(--bg-secondary); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .dot.loading { animation: pulse 1s infinite; }
+  .dot.error { background: var(--danger); }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+
+  /* Table */
+  .eval-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .eval-table th { text-align: left; padding: 7px 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-secondary); border-bottom: 0.5px solid var(--border-mid); }
+  .eval-table td { padding: 7px 8px; border-bottom: 0.5px solid var(--border); }
+  .eval-table tr:hover td { background: var(--bg-secondary); }
+  .nota-badge { display: inline-block; padding: 2px 7px; background: var(--bg-secondary); border-radius: 10px; font-size: 11px; color: var(--text-secondary); }
+
+  /* Ranking */
+  .rank-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
+
+  /* Misc */
+  .mb16 { margin-bottom: 16px; } .mt16 { margin-top: 16px; }
+  .empty { text-align: center; padding: 40px; color: var(--text-secondary); font-size: 13px; }
+  .part-badge { font-size: 10px; color: var(--text-secondary); background: var(--bg-secondary); border-radius: 6px; padding: 2px 6px; margin-left: 4px; }
+
+  /* Error */
+  .error-banner { background: #ffebee; border: 0.5px solid #ef9a9a; color: #b71c1c; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  @media(prefers-color-scheme: dark) { .error-banner { background: #3b1212; border-color: #7f2020; color: #ff8a80; } }
+  .error-banner button { background: transparent; border: none; font-size: 12px; text-decoration: underline; color: inherit; padding: 0; cursor: pointer; }
+
+  /* Debug panel */
+  .debug-panel { background: var(--bg-secondary); border: 0.5px solid var(--border-mid); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 11px; font-family: monospace; color: var(--text-secondary); margin-bottom: 16px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; }
+
+  /* v,4 */
+  .sort-icon {  cursor: pointer;  margin-left: 6px;  opacity: 0.5;  font-size: 0.9rem;}
+  .sort-icon:hover {  opacity: 1;}
+  .sec-sort-btn {  margin-left: 8px;  border: none;  background: transparent;  cursor: pointer;  font-size: 0.9rem;  opacity: 0.6;}
+  .sec-sort-btn:hover { opacity: 1;}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <div class="header">
+    <div>
+      <div class="header-eyebrow">⚽ Sistema di Valutazione</div>
+      <h1>PLAYER SCOUT - v</h1>
+    </div>
+    <div class="header-right">
+      <select id="sel-mister" onchange="applyMisterFilter()" aria-label="Filtra per mister">
+        <option value="">Tutti i mister</option>
+      </select>
+      <button class="btn-load" id="btn-load" onclick="loadData()" aria-label="Aggiorna dati">↻ Aggiorna</button>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" role="tab" aria-selected="true"  onclick="showTab(0)">Squadra</button>
+    <button class="tab"        role="tab" aria-selected="false" onclick="showTab(1)">Radar Squadra</button>
+    <button class="tab"        role="tab" aria-selected="false" onclick="showTab(2)">Giocatori</button>
+    <button class="tab"        role="tab" aria-selected="false" onclick="showTab(3)">Radar Giocatore</button>
+    <button class="tab"        role="tab" aria-selected="false" onclick="showTab(4)">Confronto</button>
+    <button class="tab"        role="tab" aria-selected="false" onclick="showTab(5)">Sessioni</button>
+    <button class="tab"        role="tab" aria-selected="false" onclick="showTab(6)">⚙ Debug</button>
+  </div>
+
+  <div class="content">
+
+    <!-- TAB 0: KPI SQUADRA -->
+    <div class="panel active" id="panel-0" role="tabpanel">
+      <div class="status-bar" role="status" aria-live="polite">
+        <div class="dot loading" id="status-dot"></div>
+        <span id="status-msg">Connessione in corso...</span>
+      </div>
+      <div id="error-container"></div>
+      <div class="grid4 mb16" id="kpi-cards">
+        <div class="card"><div class="card-title">Giocatori</div><div class="card-value" id="kpi-ng">—</div></div>
+        <div class="card"><div class="card-title">Sezioni rilevate</div><div class="card-value" id="kpi-sec">—</div></div>
+        <div class="card"><div class="card-title">KPI totali</div><div class="card-value" id="kpi-tot">—</div></div>
+        <div class="card"><div class="card-title">Valutazioni</div><div class="card-value" id="kpi-val">—</div></div>
+      </div>
+      <div id="squadra-bars-grid" class="grid2"></div>
+    </div>
+
+    <!-- TAB 1: RADAR SQUADRA -->
+    <div class="panel" id="panel-1" role="tabpanel">
+      <div class="radar-grid" id="radar-squadra-grid"></div>
+    </div>
+
+    <!-- TAB 2: GIOCATORI -->
+    <div class="panel" id="panel-2" role="tabpanel">
+      <div class="grid2">
+        <div class="card" style="max-height:580px;overflow-y:auto">
+          <div class="card-title mb16">Seleziona Giocatore</div>
+          <div id="player-list"><div class="empty">Caricamento...</div></div>
+        </div>
+        <div class="card"><div class="card-title">Scheda</div><div id="player-detail"><div class="empty">Seleziona un giocatore</div></div></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: RADAR GIOCATORE -->
+    <div class="panel" id="panel-3" role="tabpanel">
+      <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <select id="sel-radar-player" onchange="renderRadarGiocatore()" style="min-width:180px" aria-label="Seleziona giocatore">
+          <option value="">— Seleziona giocatore —</option>
+        </select>
+        <span style="font-size:12px;color:var(--text-secondary)">Linea verde = media squadra</span>
+      </div>
+      <div class="radar-grid" id="radar-player-grid"><div class="empty">Seleziona un giocatore</div></div>
+    </div>
+
+    <!-- TAB 4: CONFRONTO -->
+    <div class="panel" id="panel-4" role="tabpanel">
+      <div class="card mb16">
+        <div class="card-title mb16">Confronta due giocatori</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <select id="cmp-a" style="flex:1" onchange="aggiornaConfronto()" aria-label="Giocatore A"><option value="">— Giocatore A —</option></select>
+          <select id="cmp-b" style="flex:1" onchange="aggiornaConfronto()" aria-label="Giocatore B"><option value="">— Giocatore B —</option></select>
+        </div>
+      </div>
+      <div class="radar-grid" id="radar-cmp-grid"><div class="empty">Seleziona due giocatori</div></div>
+    </div>
+
+    <!-- TAB 5: SESSIONI -->
+    <div class="panel" id="panel-5" role="tabpanel">
+      <div class="card mb16">
+        <div class="card-title">Ultime valutazioni</div>
+        <div style="overflow-x:auto">
+          <table class="eval-table" aria-label="Tabella valutazioni">
+            <thead id="sessioni-head"><tr></tr></thead>
+            <tbody id="sessioni-body"></tbody>
+          </table>
+        </div>
+        <button class="btn-more" id="btn-more-sessioni" onclick="loadMoreSessioni()" style="display:none">↓ Carica altri</button>
+      </div>
+      <div class="card"><div class="card-title mb16">Ranking</div><div id="ranking-list"></div></div>
+    </div>
+
+    <!-- TAB 6: DEBUG -->
+    <div class="panel" id="panel-6" role="tabpanel">
+      <div class="card mb16">
+        <div class="card-title mb16">Struttura rilevata dal foglio</div>
+        <div class="debug-panel" id="debug-output">In attesa di dati...</div>
+      </div>
+      <div class="card">
+        <div class="card-title mb16">Colonne per sezione</div>
+        <div id="debug-sections"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   CONFIGURAZIONE
+   Sostituire WEBAPP_URL con un proxy server-side in produzione.
+═══════════════════════════════════════════════════════════════════ */
+// const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzTFAitbfb5YHVqCuUKZL2wbHg2DAZiJr5GVwM7e0ZIwchk4ITtbwphDAE4viEb_LuF/exec";
+// v.12
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzRd35A9aLKYRjb9-xQc0P52SreVYQM4JEg_IE-fw-UWDxYr7HOnBpEIhtnYrPF9aoF/exec";
+// v.12.2
+/* ── Colonne fisse (non-KPI) all'inizio del foglio ──────────────
+   Adatta questo numero se le tue colonne fisse iniziali sono diverse.
+   Es: 0=Timestamp, 1=Data, 2=Mister, 3=Giocatore, 4=Nota, 5=Ruolo → 6
+   Le colonne da FIXED_COLS in poi sono trattate come KPI dinamici.
+── */
+const FIXED_COLS = 6;
+
+/* ── Palette colori per le sezioni (ciclica) ────────────────────
+   Puoi aggiungere colori per supportare più sezioni.
+── */
+const SEC_COLORS = [
+  '#1565C0', '#00C853', '#FF6F00', '#7B1FA2',
+  '#C62828', '#00838F', '#558B2F', '#AD1457',
+  '#4527A0', '#E65100', '#2E7D32', '#1565C0'
+];
+
+const MAX_RADAR = 8;
+const SESSIONI_PER_PAGE = 30;
+
+/* ── Stato globale ─────────────────────────────────────────────── */
+let allRows      = [];
+let filteredRows = [];
+let players      = {};
+let charts       = {};
+let sessioniPage = 0;
+
+/* Struttura sezioni costruita dinamicamente dai headers del foglio */
+let SECTIONS     = {};  // { secKey: { label, color, kpis:[{name,col}] } }
+let KPI_COL_MAP  = {};  // { kpiName: colIndex }
+
+/* Cache medie squadra */
+let squadraKpiCache = {};
+let squadraSecCache = {};
+
+/* ════════════════════════════════════════════════════════════════
+   PARSING HEADERS DINAMICO
+   Riceve headers1 (riga1 sezioni) e headers2 (riga2 KPI nomi)
+   e ricostruisce SECTIONS e KPI_COL_MAP.
+
+   Logica:
+   - Scorre le colonne da FIXED_COLS in poi
+   - Prende il nome sezione da headers1[col] (non vuoto = nuova sezione)
+   - Prende il nome KPI    da headers2[col]
+   - Ignora colonne con KPI vuoto o intestazione di riga
+════════════════════════════════════════════════════════════════ */
+  const scalaStep=10; // scala di valutazione 1 a 10
+
+function buildSectionsFromHeaders(headers1, headers2) {
+  SECTIONS    = {};
+  KPI_COL_MAP = {};
+
+  let currentSecKey   = null;
+  let currentSecLabel = null;
+  let secIndex        = 0;
+
+
+
+  for (let col = FIXED_COLS; col < headers2.length; col++) {
+    const rawSec = String(headers1[col] || '').trim();
+    const rawKpi = String(headers2[col] || '').trim();
+
+    if (!rawKpi) continue; // colonna senza nome KPI → salta
+
+    // Nuova sezione se headers1 ha un valore non vuoto in questa colonna
+    if (rawSec && rawSec !== currentSecLabel) {
+      currentSecLabel = rawSec;
+      // Crea una chiave slug sicura (es. "Tattica Individuale" → "tattica_individuale")
+      currentSecKey = rawSec.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+      if (!SECTIONS[currentSecKey]) {
+        SECTIONS[currentSecKey] = {
+          label: rawSec,
+          color: SEC_COLORS[secIndex % SEC_COLORS.length],
+          kpis:  []
+        };
+        secIndex++;
+      }
+    }
+
+    // Se non c'è ancora una sezione (colonne KPI prima della prima intestazione sezione)
+    // le assegniamo a "Altro"
+    if (!currentSecKey) {
+      currentSecKey = 'altro';
+      if (!SECTIONS['altro']) {
+        SECTIONS['altro'] = { label: 'Altro', color: SEC_COLORS[secIndex % SEC_COLORS.length], kpis: [] };
+        secIndex++;
+      }
+    }
+
+    SECTIONS[currentSecKey].kpis.push({ name: rawKpi, col });
+    KPI_COL_MAP[rawKpi] = col;
+  }
+
+  // Log debug
+  const lines = ['=== SEZIONI RILEVATE ==='];
+  Object.entries(SECTIONS).forEach(([k, s]) => {
+    lines.push(`\n[${s.label}] (${s.kpis.length} KPI)`);
+    s.kpis.forEach(kpi => lines.push(`  col${kpi.col}: ${kpi.name}`));
+  });
+  document.getElementById('debug-output').textContent = lines.join('\n');
+  renderDebugSections();
+}
+
+function renderDebugSections() {
+  const el = document.getElementById('debug-sections');
+  if (!el) return;
+  const frag = document.createDocumentFragment();
+  Object.entries(SECTIONS).forEach(([, s]) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'margin-bottom:14px';
+    const hdr = document.createElement('div');
+    hdr.className = 'sec-header';
+    hdr.innerHTML = `<div class="sec-dot" style="background:${s.color}"></div><h3>${escapeHtml(s.label)}</h3><span style="margin-left:auto;font-size:12px;color:var(--text-secondary)">${s.kpis.length} KPI</span>`;
+    wrap.appendChild(hdr);
+    s.kpis.forEach(kpi => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:8px;font-size:11px;color:var(--text-secondary);padding:2px 0';
+      row.innerHTML = `<span style="min-width:40px;color:var(--text-secondary)">col ${kpi.col}</span><span>${escapeHtml(kpi.name)}</span>`;
+      wrap.appendChild(row);
+    });
+    frag.appendChild(wrap);
+  });
+  el.innerHTML = '';
+  el.appendChild(frag);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   UTILITY
+════════════════════════════════════════════════════════════════ */
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+}
+
+
+function scoreColor(v) {
+  if (!v || v === 0) return 'var(--text-secondary)';
+  if (v >= 9) return '#1B5E20';// raddoppiati i valori x scala 10
+  if (v >= 7) return '#2E7D32';// raddoppiati i valori x scala 10
+  if (v >= 5) return '#E65100';// raddoppiati i valori x scala 10
+  return '#B71C1C';
+}
+
+function chunkArray(arr, size) {
+  const chunks = [];
+  for (let i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size));
+  return chunks;
+}
+
+/* Restituisce tutti i chunk per tutti le sezioni */
+function getAllChunks() {
+  const result = [];
+  Object.entries(SECTIONS).forEach(([secKey, s]) => {
+    const chunks = chunkArray(s.kpis, MAX_RADAR);
+    chunks.forEach((chunk, i) => result.push({
+      secKey, label: s.label, color: s.color,
+      kpis: chunk,           // [{name,col}]
+      part: i + 1, totalParts: chunks.length
+    }));
+  });
+  return result;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FETCH con RETRY + BACKOFF
+════════════════════════════════════════════════════════════════ */
+async function fetchWithRetry(url, maxRetries = 3, baseDelay = 800) {
+  let lastError;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 15000);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(tid);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxRetries - 1) {
+        const delay = baseDelay * Math.pow(2, attempt);
+        setStatus(`Tentativo ${attempt + 2}/${maxRetries} tra ${Math.round(delay / 1000)}s…`, 'loading');
+        await new Promise(r => setTimeout(r, delay));
+      }
+    }
+  }
+  throw lastError;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   LOAD DATA
+════════════════════════════════════════════════════════════════ */
+async function loadData() {
+  const btn = document.getElementById('btn-load');
+  btn.disabled = true;
+  setStatus('Connessione al Google Sheets…', 'loading');
+  clearError();
+
+  try {
+    // Fetch 1: lista mister
+    const d1 = await fetchWithRetry(WEBAPP_URL);
+    if (d1.status !== 'OK') throw new Error(d1.message || 'Risposta non valida');
+
+    const misteri = Object.keys(d1.data);
+    const sel = document.getElementById('sel-mister');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Tutti i mister</option>' +
+      misteri.map(m => `<option value="${escapeHtml(m)}"${m === cur ? ' selected' : ''}>${escapeHtml(m)}</option>`).join('');
+
+    // Fetch 2: headers + righe dati
+    const d2 = await fetchWithRetry(WEBAPP_URL + '?action=full');
+    if (d2.status !== 'OK') throw new Error(d2.message || 'Risposta non valida (full)');
+
+    // Costruisci SECTIONS dinamicamente
+    buildSectionsFromHeaders(d2.headers1 || [], d2.headers2 || []);
+
+    allRows = d2.rows || [];
+    applyMisterFilter();
+
+    const nKpi  = Object.keys(KPI_COL_MAP).length;
+    const nSec  = Object.keys(SECTIONS).length;
+    const nVal  = filteredRows.filter(r => r[3] && r[3] !== 'Giocatore').length;
+    setStatus(`Dati aggiornati — ${Object.keys(players).length} giocatori · ${nSec} sezioni · ${nKpi} KPI · ${nVal} valutazioni`, 'ok');
+
+  } catch (err) {
+    const msg = err.name === 'AbortError' ? 'Timeout: server troppo lento.' : `Errore: ${err.message}`;
+    setStatus(msg, 'error');
+    showError(msg, loadData);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FILTRO MISTER
+════════════════════════════════════════════════════════════════ */
+function applyMisterFilter() {
+  const mister = document.getElementById('sel-mister').value;
+  filteredRows = mister
+  ? allRows.filter(r => r[2] === mister) // col 2 = mister
+  : [...allRows];
+  buildAll();
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   BUILD
+════════════════════════════════════════════════════════════════ */
+function buildAll() {
+  buildPlayers();
+  buildSquadraCache();
+  renderKpiCards();
+  renderSquadra();
+  renderRadarGrid('radar-squadra-grid', getAllChunks(),
+    chunk => [{ label: 'Squadra', data: chunk.kpis.map(k => squadraKpiCache[k.name] || 0), color: chunk.color }]
+  );
+  renderGiocatori();
+  renderSessioni(true);
+  populateSelects();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   BUILD PLAYERS
+════════════════════════════════════════════════════════════════ */
+function buildPlayers() {
+  players = {};
+  filteredRows.forEach(r => {
+    const g = r[3];
+    if (!g || g === 'Giocatore') return;
+    if (!players[g]) players[g] = { name: g, rows: [], role: String(r[5] || '') };
+    players[g].rows.push(r);
+  });
+
+  Object.values(players).forEach(p => {
+    p.avgs = {};
+    Object.entries(KPI_COL_MAP).forEach(([kpi, col]) => {
+      const vs = p.rows.map(r => parseFloat(r[col])).filter(v => !isNaN(v) && v > 0);
+      p.avgs[kpi] = vs.length ? +(vs.reduce((a, b) => a + b, 0) / vs.length).toFixed(2) : null;
+    });
+    p.secAvg = {};
+    Object.entries(SECTIONS).forEach(([secKey, s]) => {
+      const vs = s.kpis.map(k => p.avgs[k.name]).filter(v => v != null);
+      p.secAvg[secKey] = vs.length ? +(vs.reduce((a, b) => a + b, 0) / vs.length).toFixed(2) : null;
+    });
+    const all = Object.values(p.secAvg).filter(v => v != null);
+    p.overall = all.length ? +(all.reduce((a, b) => a + b, 0) / all.length).toFixed(2) : null;
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CACHE MEDIE SQUADRA (O(1) lookup)
+════════════════════════════════════════════════════════════════ */
+function buildSquadraCache() {
+  squadraKpiCache = {};
+  squadraSecCache = {};
+
+  Object.entries(KPI_COL_MAP).forEach(([kpi, col]) => {
+    const vs = filteredRows.map(r => parseFloat(r[col])).filter(v => !isNaN(v) && v > 0);
+    squadraKpiCache[kpi] = vs.length ? +(vs.reduce((a, b) => a + b, 0) / vs.length).toFixed(2) : null;
+  });
+
+  Object.entries(SECTIONS).forEach(([secKey, s]) => {
+    const vs = s.kpis.map(k => squadraKpiCache[k.name]).filter(v => v != null);
+    squadraSecCache[secKey] = vs.length ? +(vs.reduce((a, b) => a + b, 0) / vs.length).toFixed(2) : null;
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   RENDER KPI CARDS (dinamiche)
+════════════════════════════════════════════════════════════════ */
+function renderKpiCards() {
+  document.getElementById('kpi-ng').textContent  = Object.keys(players).length;
+  document.getElementById('kpi-sec').textContent = Object.keys(SECTIONS).length;
+  document.getElementById('kpi-tot').textContent = Object.keys(KPI_COL_MAP).length;
+  document.getElementById('kpi-val').textContent = filteredRows.filter(r => r[3] && r[3] !== 'Giocatore').length;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   RENDER SQUADRA — barre per ogni sezione (dinamico)
+════════════════════════════════════════════════════════════════ */
+/* v4 */
+// Stato globale del sort
+let squadraSort = {
+  type: null,      // "section" | "kpi"
+  key: null,       // nome sezione o nome KPI
+  direction: null  // "asc" | "desc"
+  
+};
+
+// direzione per ogni sezione: "asc" | "desc"
+const squadraSectionSortDir = {}; // es: { fondamentali: "desc" }
+
+//Ordinamento per sezione (media KPI)
+function sortSquadraBySection_(secKey) {
+  const direction = toggleSquadraSort("section", secKey);
+
+  // ordina SECTIONS in base alla media
+  const entries = Object.entries(SECTIONS);
+
+  entries.sort(([aKey], [bKey]) => {
+    const A = squadraSecCache[aKey] || 0;
+    const B = squadraSecCache[bKey] || 0;
+    return direction === "asc" ? A - B : B - A;
+  });
+
+  return Object.fromEntries(entries);
+}
+// Ordinamento per SEZIONE (corretto!)
+function sortSquadraBySection(secKey) {
+  const direction = toggleSquadraSort("section", secKey);
+
+  const entries = Object.entries(SECTIONS);
+
+  entries.sort(([aKey], [bKey]) => {
+    const A = squadraSecCache[aKey] || 0;
+    const B = squadraSecCache[bKey] || 0;
+    return direction === "asc" ? A - B : B - A;
+  });
+
+  return Object.fromEntries(entries);
+}
+//Toggle direzione per sezione
+function toggleSectionSortDir(secKey) {
+  const current = squadraSectionSortDir[secKey] || "desc";
+  const next = current === "desc" ? "asc" : "desc";
+  squadraSectionSortDir[secKey] = next;
+  return next;
+}
+
+function getSectionSortDir(secKey) {
+  return squadraSectionSortDir[secKey] || "desc"; // default: max → min
+}
+
+
+//Ordinamento per KPI
+function sortSquadraByKPI(kpiName) {
+  const direction = toggleSquadraSort("kpi", kpiName);
+
+  const entries = Object.entries(SECTIONS);
+
+  entries.sort(([aKey, aSec], [bKey, bSec]) => {
+    const A = squadraKpiCache[kpiName] || 0;
+    const B = squadraKpiCache[kpiName] || 0;
+    return direction === "asc" ? A - B : B - A;
+  });
+
+  return Object.fromEntries(entries);
+}
+// Toggle ↑↓
+function toggleSquadraSort(type, key) {
+  if (squadraSort.type === type && squadraSort.key === key) {
+    squadraSort.direction = squadraSort.direction === "asc" ? "desc" : "asc";
+  } else {
+    squadraSort.type = type;
+    squadraSort.key = key;
+    squadraSort.direction = "desc"; // default
+  }
+  return squadraSort.direction;
+}
+// Aggiornamento icone ↑↓
+function updateSquadraSortIcons() {
+  document.querySelectorAll(".sort-icon").forEach(i => {
+    i.textContent = "↕";
+  });
+
+  if (!squadraSort.key) return;
+
+  const icon = document.querySelector(
+    `.sort-icon[data-type="${squadraSort.type}"][data-key="${squadraSort.key}"]`
+  );
+
+  if (icon) {
+    icon.textContent = squadraSort.direction === "asc" ? "↑" : "↓";
+  }
+}
+// Listener per click sulla sezione (Fondamentali, ecc.)
+function attachSquadraSectionSortEvents() {
+  document.querySelectorAll('.sec-sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const secKey = btn.dataset.sec;
+      toggleSectionSortDir(secKey); // cambia asc/desc
+      renderSquadra();              // rirender con nuovo ordine
+    });
+  });
+}
+
+// render squadra
+function renderSquadra() {
+  const grid = document.getElementById('squadra-bars-grid');
+  grid.innerHTML = '';
+
+  Object.entries(SECTIONS).forEach(([secKey, s]) => {
+    const avg = squadraSecCache[secKey];
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const dir = getSectionSortDir(secKey); // "asc" | "desc"
+
+    // HEADER SEZIONE con icona sort
+    const hdr = document.createElement('div');
+    hdr.className = 'sec-header';
+    hdr.innerHTML = `
+      <div class="sec-dot" style="background:${s.color}"></div>
+      <h3>${escapeHtml(s.label)}</h3>
+      <button class="sec-sort-btn"
+              data-sec="${secKey}"
+              title="Ordina KPI ${dir === 'desc' ? 'crescente' : 'decrescente'}">
+        ${dir === 'desc' ? '↓' : '↑'}
+      </button>
+      <div class="sec-avg" style="color:${scoreColor(avg)}">
+        <span>${avg || '—'}</span><small>/${scalaStep}</small>
+      </div>`;
+    card.appendChild(hdr);
+
+    // KPI ORDINATI PER VALORE NELLA SEZIONE
+    const sortedKpis = [...s.kpis].sort((a, b) => {
+      const va = Number(squadraKpiCache[a.name] || 0);
+      const vb = Number(squadraKpiCache[b.name] || 0);
+      return dir === 'desc' ? vb - va : va - vb;
+    });
+
+    sortedKpis.forEach(kpi => {
+      const v   = squadraKpiCache[kpi.name];
+      const pct = v ? (v / scalaStep * 100).toFixed(0) : 0;
+      const row = document.createElement('div');
+      row.className = 'kpi-row';
+      row.innerHTML = `
+        <div class="kpi-label" title="${escapeHtml(kpi.name)}">${escapeHtml(kpi.name)}</div>
+        <div class="kpi-bar-wrap" role="progressbar" aria-valuenow="${v || 0}" aria-valuemin="0" aria-valuemax="5">
+          <div class="kpi-bar" style="width:${pct}%;background:${s.color}"></div>
+        </div>
+        <div class="kpi-val" style="color:${scoreColor(v)}">${v || '—'}</div>`;
+      card.appendChild(row);
+    });
+
+    grid.appendChild(card);
+  });
+
+  attachSquadraSectionSortEvents();
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   RADAR GRID — generico
+════════════════════════════════════════════════════════════════ */
+function destroyChartsInGrid(gridId) {
+  Object.keys(charts).filter(id => id.startsWith(gridId)).forEach(id => {
+    charts[id].destroy();
+    delete charts[id];
+  });
+}
+
+function renderRadarGrid(gridId, chunks, datasetsFn) {
+  destroyChartsInGrid(gridId);
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  let lastSec = null;
+
+  chunks.forEach(chunk => {
+    if (chunk.secKey !== lastSec) {
+      lastSec = chunk.secKey;
+      const lbl = document.createElement('div');
+      lbl.className = 'sec-group-label';
+      lbl.innerHTML = `<div class="sec-dot" style="background:${chunk.color};width:8px;height:8px;border-radius:50%"></div><h2>${escapeHtml(chunk.label)}</h2>`;
+      grid.appendChild(lbl);
+    }
+
+    const cid = `${gridId}-${chunk.secKey}-${chunk.part}`;
+    const datasets = datasetsFn(chunk);
+    const vals = chunk.kpis.map(k => squadraKpiCache[k.name] || 0).filter(v => v > 0);
+    const chunkAvg = vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2) : null;
+    const partBadge = chunk.totalParts > 1 ? `<span class="part-badge">parte ${chunk.part}/${chunk.totalParts}</span>` : '';
+
+    const div = document.createElement('div');
+    div.className = 'radar-card';
+    div.innerHTML = `
+      <div class="radar-card-header">
+        <div class="sec-dot" style="background:${chunk.color}"></div>
+        <h3>${escapeHtml(chunk.label)}${partBadge}</h3>
+        <div class="radar-card-avg" style="color:${scoreColor(chunkAvg)}">${chunkAvg || '—'}<small style="font-size:10px;color:var(--text-secondary)"> /10</small></div>
+      </div>
+      <div class="radar-wrap"><canvas id="${escapeHtml(cid)}" aria-label="Radar ${escapeHtml(chunk.label)}"></canvas></div>`;
+    grid.appendChild(div);
+    drawRadar(cid, chunk.kpis.map(k => k.name), datasets);
+  });
+}
+
+function renderRadarGridPlayer(gridId, chunks, player) {
+  destroyChartsInGrid(gridId);
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  let lastSec = null;
+
+  chunks.forEach(chunk => {
+    if (chunk.secKey !== lastSec) {
+      lastSec = chunk.secKey;
+      const lbl = document.createElement('div');
+      lbl.className = 'sec-group-label';
+      lbl.innerHTML = `<div class="sec-dot" style="background:${chunk.color};width:8px;height:8px;border-radius:50%"></div><h2>${escapeHtml(chunk.label)}</h2>`;
+      grid.appendChild(lbl);
+    }
+    const cid        = `${gridId}-${chunk.secKey}-${chunk.part}`;
+    const playerVals = chunk.kpis.map(k => player.avgs[k.name] || 0);
+    const squadVals  = chunk.kpis.map(k => squadraKpiCache[k.name] || 0);
+    const active     = playerVals.filter(v => v > 0);
+    const chunkAvg   = active.length ? (active.reduce((a, b) => a + b, 0) / active.length).toFixed(2) : null;
+    const partBadge  = chunk.totalParts > 1 ? `<span class="part-badge">parte ${chunk.part}/${chunk.totalParts}</span>` : '';
+
+    const div = document.createElement('div');
+    div.className = 'radar-card';
+    div.innerHTML = `
+      <div class="radar-card-header">
+        <div class="sec-dot" style="background:${chunk.color}"></div>
+        <h3>${escapeHtml(chunk.label)}${partBadge}</h3>
+        <div class="radar-card-avg" style="color:${scoreColor(chunkAvg)}">${chunkAvg || '—'}<small style="font-size:10px;color:var(--text-secondary)"> /10</small></div>
+      </div>
+      <div class="radar-wrap"><canvas id="${escapeHtml(cid)}" aria-label="${escapeHtml(player.name)} — ${escapeHtml(chunk.label)}"></canvas></div>`;
+    grid.appendChild(div);
+    drawRadar(cid, chunk.kpis.map(k => k.name), [
+      { label: player.name,     data: playerVals, color: chunk.color },
+      { label: 'Media squadra', data: squadVals,  color: '#00C853'  }
+    ]);
+  });
+}
+
+function renderRadarGridConfronto(gridId, chunks, pa, pb, na, nb) {
+  destroyChartsInGrid(gridId);
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  let lastSec = null;
+
+  chunks.forEach(chunk => {
+    if (chunk.secKey !== lastSec) {
+      lastSec = chunk.secKey;
+      const lbl = document.createElement('div');
+      lbl.className = 'sec-group-label';
+      lbl.innerHTML = `<div class="sec-dot" style="background:${chunk.color};width:8px;height:8px;border-radius:50%"></div><h2>${escapeHtml(chunk.label)}</h2>`;
+      grid.appendChild(lbl);
+    }
+    const cid   = `${gridId}-${chunk.secKey}-${chunk.part}`;
+    const vaArr = chunk.kpis.map(k => pa.avgs[k.name] || 0);
+    const vbArr = chunk.kpis.map(k => pb.avgs[k.name] || 0);
+    const partBadge = chunk.totalParts > 1 ? `<span class="part-badge">parte ${chunk.part}/${chunk.totalParts}</span>` : '';
+
+    const div = document.createElement('div');
+    div.className = 'radar-card';
+    div.innerHTML = `
+      <div class="radar-card-header">
+        <div class="sec-dot" style="background:${chunk.color}"></div>
+        <h3>${escapeHtml(chunk.label)}${partBadge}</h3>
+        <div style="margin-left:auto;display:flex;gap:8px;font-size:11px">
+          <span style="color:#1565C0;font-weight:500">${escapeHtml(na.split(' ')[0])}</span>
+          <span style="color:var(--text-secondary)">vs</span>
+          <span style="color:#E53935;font-weight:500">${escapeHtml(nb.split(' ')[0])}</span>
+        </div>
+      </div>
+      <div class="radar-wrap"><canvas id="${escapeHtml(cid)}" aria-label="Confronto ${escapeHtml(na)} vs ${escapeHtml(nb)}"></canvas></div>`;
+    grid.appendChild(div);
+    drawRadar(cid, chunk.kpis.map(k => k.name), [
+      { label: na, data: vaArr, color: '#1565C0' },
+      { label: nb, data: vbArr, color: '#E53935' }
+    ]);
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   RENDER GIOCATORI
+════════════════════════════════════════════════════════════════ */
+function renderGiocatori() {
+  const list   = document.getElementById('player-list');
+  const sorted = Object.values(players).sort((a, b) => (b.overall || 0) - (a.overall || 0));
+  if (!sorted.length) { list.innerHTML = '<div class="empty">Nessun giocatore trovato</div>'; return; }
+
+  const frag = document.createDocumentFragment();
+  sorted.forEach(p => {
+    const ini = p.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.setAttribute('role', 'button');
+    row.setAttribute('tabindex', '0');
+    row.setAttribute('aria-label', `Seleziona ${p.name}`);
+    row.addEventListener('click', () => selectPlayer(p.name));
+    row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') selectPlayer(p.name); });
+
+    const av = document.createElement('div'); av.className = 'player-avatar'; av.textContent = ini;
+    const info = document.createElement('div');
+    const nm = document.createElement('div'); nm.style.cssText = 'font-size:13px;font-weight:500'; nm.textContent = p.name;
+    const sub = document.createElement('div'); sub.style.cssText = 'font-size:11px;color:var(--text-secondary)'; sub.textContent = `${p.role || 'N/D'} · ${p.rows.length} val.`;
+    info.appendChild(nm); info.appendChild(sub);
+    const sc = document.createElement('div'); sc.style.cssText = `margin-left:auto;font-size:18px;font-weight:300;color:${scoreColor(p.overall)}`; sc.textContent = p.overall || '—';
+    row.appendChild(av); row.appendChild(info); row.appendChild(sc);
+    frag.appendChild(row);
+  });
+  list.innerHTML = '';
+  list.appendChild(frag);
+}
+
+function selectPlayer(name) {
+  document.querySelectorAll('.player-row').forEach(r => {
+    const nm = r.querySelector('div > div');
+    r.classList.toggle('selected', nm && nm.textContent === name);
+  });
+  const p = players[name]; if (!p) return;
+  const ini  = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const frag = document.createDocumentFragment();
+
+  // Header
+  const hdr = document.createElement('div'); hdr.style.cssText = 'display:flex;align-items:center;gap:12px;margin-bottom:14px';
+  const av  = document.createElement('div'); av.className = 'player-avatar'; av.style.cssText = 'width:46px;height:46px;font-size:15px'; av.textContent = ini;
+  const nw  = document.createElement('div');
+  const nm  = document.createElement('div'); nm.style.cssText = 'font-size:15px;font-weight:500'; nm.textContent = name;
+  const sub = document.createElement('div'); sub.style.cssText = 'font-size:12px;color:var(--text-secondary)'; sub.textContent = `${p.role || ''} · ${p.rows.length} val.`;
+  nw.appendChild(nm); nw.appendChild(sub);
+  const ov = document.createElement('div'); ov.style.cssText = `margin-left:auto;font-size:26px;font-weight:300;color:${scoreColor(p.overall)}`; ov.textContent = p.overall || '—';
+  hdr.appendChild(av); hdr.appendChild(nw); hdr.appendChild(ov);
+  frag.appendChild(hdr);
+
+  // Sezioni dinamiche
+  Object.entries(SECTIONS).forEach(([secKey, s]) => {
+    const avg    = p.secAvg[secKey];
+    const secHdr = document.createElement('div'); secHdr.className = 'sec-header'; secHdr.style.marginTop = '10px';
+    secHdr.innerHTML = `<div class="sec-dot" style="background:${s.color}"></div><h3>${escapeHtml(s.label)}</h3>
+      <div class="sec-avg" style="font-size:15px;color:${scoreColor(avg)}">${avg || '—'}<small> /10</small></div>`;
+    frag.appendChild(secHdr);
+
+    s.kpis.forEach(kpi => {
+      const v   = p.avgs[kpi.name];
+      const pct = v ? (v / scalaStep * 100).toFixed(0) : 0;
+      const row = document.createElement('div'); row.className = 'kpi-row';
+      row.innerHTML = `
+        <div class="kpi-label" title="${escapeHtml(kpi.name)}">${escapeHtml(kpi.name)}</div>
+        <div class="kpi-bar-wrap" role="progressbar" aria-valuenow="${v || 0}" aria-valuemin="0" aria-valuemax="10">
+          <div class="kpi-bar" style="width:${pct}%;background:${s.color}"></div>
+        </div>
+        <div class="kpi-val" style="color:${scoreColor(v)}">${v || '—'}</div>`;
+      frag.appendChild(row);
+    });
+  });
+
+  const det = document.getElementById('player-detail');
+  det.innerHTML = ''; det.appendChild(frag);
+  document.getElementById('sel-radar-player').value = name;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   RADAR GIOCATORE / CONFRONTO
+════════════════════════════════════════════════════════════════ */
+function renderRadarGiocatore() {
+  const name = document.getElementById('sel-radar-player').value;
+  const grid = document.getElementById('radar-player-grid');
+  if (!name) { destroyChartsInGrid('radar-player-grid'); grid.innerHTML = '<div class="empty">Seleziona un giocatore</div>'; return; }
+  const p = players[name]; if (!p) return;
+  renderRadarGridPlayer('radar-player-grid', getAllChunks(), p);
+}
+
+function aggiornaConfronto() {
+  const na = document.getElementById('cmp-a').value;
+  const nb = document.getElementById('cmp-b').value;
+  const grid = document.getElementById('radar-cmp-grid');
+  if (!na || !nb) { destroyChartsInGrid('radar-cmp-grid'); grid.innerHTML = '<div class="empty">Seleziona due giocatori</div>'; return; }
+  const pa = players[na], pb = players[nb]; if (!pa || !pb) return;
+  renderRadarGridConfronto('radar-cmp-grid', getAllChunks(), pa, pb, na, nb);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SESSIONI con paginazione
+════════════════════════════════════════════════════════════════ */
+function renderSessioni(reset = false) {
+  if (reset) sessioniPage = 0;
+
+  const tbody   = document.getElementById('sessioni-body');
+  const btnMore = document.getElementById('btn-more-sessioni');
+
+  const validRows = [...filteredRows]
+    .filter(r => r[3] && r[3] !== 'Giocatore')
+    .sort((a, b) => (b[1] || '').localeCompare(a[1] || ''));
+
+  const total    = validRows.length;
+  const start    = sessioniPage * SESSIONI_PER_PAGE;
+  const end      = start + SESSIONI_PER_PAGE;
+  const pageRows = validRows.slice(start, end);
+
+  // Header tabella (dinamico in base alle sezioni)
+  if (reset) {
+    tbody.innerHTML = '';
+    const thead = document.getElementById('sessioni-head');
+    const tr = document.createElement('tr');
+    ['Data','Giocatore','Nota',...Object.values(SECTIONS).map(s => s.label),'Media'].forEach(h => {
+      const th = document.createElement('th'); th.textContent = h; tr.appendChild(th);
+    });
+    thead.innerHTML = ''; thead.appendChild(tr);
+  }
+
+  const secAvgRow = (r, s) => {
+    const vs = s.kpis.map(k => parseFloat(r[k.col])).filter(v => !isNaN(v) && v > 0);
+    return vs.length ? (vs.reduce((a, b) => a + b, 0) / vs.length).toFixed(1) : '—';
+  };
+
+  const frag = document.createDocumentFragment();
+  pageRows.forEach(r => {
+    const allV = Object.values(SECTIONS).flatMap(s => s.kpis.map(k => parseFloat(r[k.col]))).filter(v => !isNaN(v) && v > 0);
+    const ov   = allV.length ? (allV.reduce((a, b) => a + b, 0) / allV.length).toFixed(1) : '—';
+    const tr   = document.createElement('tr');
+    let html   = `<td>${escapeHtml(r[1] || '—')}</td><td><strong>${escapeHtml(r[3])}</strong></td><td><span class="nota-badge">${escapeHtml(r[4] || '—')}</span></td>`;
+    Object.values(SECTIONS).forEach(s => {
+      const avg = secAvgRow(r, s);
+      html += `<td style="color:${scoreColor(avg)}">${escapeHtml(avg)}</td>`;
+    });
+    html += `<td style="font-weight:500;color:${scoreColor(ov)}">${escapeHtml(ov)}</td>`;
+    tr.innerHTML = html;
+    frag.appendChild(tr);
+  });
+  tbody.appendChild(frag);
+
+  sessioniPage++;
+  const remaining = total - end;
+  btnMore.style.display   = end < total ? 'block' : 'none';
+  btnMore.textContent     = `↓ Carica altri (${Math.min(SESSIONI_PER_PAGE, remaining)} di ${remaining} rimanenti)`;
+
+  if (!total) tbody.innerHTML = '<tr><td colspan="99" style="text-align:center;padding:20px;color:var(--text-secondary)">Nessun dato</td></tr>';
+
+  // Ranking
+  const rankEl  = document.getElementById('ranking-list');
+  const sorted2 = Object.values(players).filter(p => p.overall).sort((a, b) => b.overall - a.overall);
+  const rfrag   = document.createDocumentFragment();
+  sorted2.forEach((p, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : String(i + 1);
+    const row   = document.createElement('div'); row.className = 'rank-row';
+    row.innerHTML = `
+      <div style="min-width:24px;font-size:13px">${medal}</div>
+      <div style="min-width:130px;font-size:13px">${escapeHtml(p.name)}</div>
+      <div style="flex:1;height:4px;background:var(--bg-secondary);border-radius:2px;overflow:hidden"
+           role="progressbar" aria-valuenow="${p.overall}" aria-valuemin="0" aria-valuemax="10">
+        <div style="height:100%;background:${scoreColor(p.overall)};width:${(p.overall/scalaStep*100).toFixed(0)}%"></div>
+      </div>
+      <div style="font-size:13px;font-weight:500;min-width:32px;text-align:right;color:${scoreColor(p.overall)}">${p.overall}</div>`;
+    rfrag.appendChild(row);
+  });
+  rankEl.innerHTML = '';
+  if (sorted2.length) rankEl.appendChild(rfrag);
+  else rankEl.innerHTML = '<div class="empty">Nessun dato</div>';
+}
+
+function loadMoreSessioni() { renderSessioni(false); }
+
+/* ════════════════════════════════════════════════════════════════
+   POPULATE SELECTS
+════════════════════════════════════════════════════════════════ */
+function populateSelects() {
+  const names = Object.keys(players);
+  ['sel-radar-player','cmp-a','cmp-b'].forEach(id => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    const ph  = id === 'cmp-a' ? '— Giocatore A —' : id === 'cmp-b' ? '— Giocatore B —' : '— Seleziona giocatore —';
+    sel.innerHTML = `<option value="">${ph}</option>` +
+      names.map(n => `<option value="${escapeHtml(n)}"${n === cur ? ' selected' : ''}>${escapeHtml(n)}</option>`).join('');
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   UI helpers
+════════════════════════════════════════════════════════════════ */
+function showTab(idx) {
+  document.querySelectorAll('.tab').forEach((t, i) => { t.classList.toggle('active', i === idx); t.setAttribute('aria-selected', String(i === idx)); });
+  document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+}
+
+function setStatus(msg, state) {
+  document.getElementById('status-msg').textContent = msg;
+  const d = document.getElementById('status-dot');
+  d.className = 'dot' + (state === 'loading' ? ' loading' : state === 'error' ? ' error' : '');
+}
+
+function showError(msg, retryFn) {
+  const c = document.getElementById('error-container');
+  const d = document.createElement('div'); d.className = 'error-banner'; d.setAttribute('role', 'alert');
+  d.innerHTML = `⚠ ${escapeHtml(msg)}`;
+  if (retryFn) { const b = document.createElement('button'); b.textContent = 'Riprova'; b.onclick = retryFn; d.appendChild(b); }
+  c.innerHTML = ''; c.appendChild(d);
+}
+
+function clearError() { document.getElementById('error-container').innerHTML = ''; }
+
+/* ════════════════════════════════════════════════════════════════
+   CHART.JS
+════════════════════════════════════════════════════════════════ */
+function drawRadar(canvasId, labels, datasets) {
+  if (charts[canvasId]) { charts[canvasId].destroy(); delete charts[canvasId]; }
+  const ctx = document.getElementById(canvasId); if (!ctx) return;
+  const short = labels.map(l => l.length > 13 ? l.slice(0, 12) + '…' : l);
+  charts[canvasId] = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: short,
+      datasets: datasets.map(ds => ({
+        label: ds.label, data: ds.data,
+        backgroundColor: ds.color + '20', borderColor: ds.color,
+        borderWidth: 2, pointBackgroundColor: ds.color,
+        pointRadius: 3, pointHoverRadius: 5, pointBorderColor: 'transparent'
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {
+        legend: { display: datasets.length > 1, position: 'bottom', labels: { font: { size: 10 }, boxWidth: 8, padding: 6 } },
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.raw}` } }
+      },
+      scales: { r: {
+        min: 0, max: 5,
+        ticks: { stepSize: 1, font: { size: 9 }, color: '#999', backdropColor: 'transparent' },
+        pointLabels: { font: { size: 9 }, color: '#777', padding: 3 },
+        grid: { color: 'rgba(128,128,128,0.15)' },
+        angleLines: { color: 'rgba(128,128,128,0.2)' }
+      }}
+    }
+  });
+}
+
+/* ── Avvio ──────────────────────────────────────────────────────── */
+loadData();
+</script>
+</body>
+</html>

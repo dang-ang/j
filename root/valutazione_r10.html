@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro progressi giocatori</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; margin: 20px; max-width: 900px; }
+    h1 { margin-bottom: 16px; }
+
+    .field-group { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+    .field-group label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: bold; flex: 1; min-width: 200px; }
+    .field-group input, .field-group select { padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+    .field-group input[readonly] { background: #f5f5f5; color: #555; }
+
+    .tabs { display: flex; flex-wrap: wrap; margin-bottom: 0; border-bottom: 2px solid #ccc; }
+    .tab { padding: 10px 20px; background: #eee; margin-right: 4px; cursor: pointer; border-radius: 4px 4px 0 0; border: 1px solid #ccc; border-bottom: none; font-size: 14px; }
+    .tab.active { background: #fff; font-weight: bold; border-bottom: 2px solid #fff; margin-bottom: -2px; }
+    .tab:hover:not(.active) { background: #ddd; }
+
+    .section { display: none; border: 1px solid #ccc; border-top: none; padding: 16px; border-radius: 0 4px 4px 4px; background: #fff; }
+    .section.active { display: block; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 8px; }
+    .grid label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+    .grid select { padding: 4px 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+
+    .portiere-toggle { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 14px; }
+    .portiere-toggle input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+
+    button#saveBtn {
+      padding: 12px 32px; margin-top: 20px;
+      background: #2563eb; color: #fff;
+      border: none; border-radius: 6px;
+      font-size: 15px; font-weight: bold;
+      cursor: pointer; transition: background 0.2s;
+    }
+    button#saveBtn:hover:not(:disabled) { background: #1d4ed8; }
+    button#saveBtn:disabled { background: #93c5fd; cursor: not-allowed; }
+
+    .alert { padding: 10px 14px; border-radius: 4px; margin-top: 12px; font-size: 14px; display: none; }
+    .alert.success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    .alert.error   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .alert.warning { background: #fef9c3; color: #713f12; border: 1px solid #fde047; }
+    .alert.show { display: block; }
+
+    #pannello-valutati { margin-bottom: 20px; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
+    #pannello-valutati summary { padding: 10px 16px; background: #f8fafc; cursor: pointer; font-size: 14px; font-weight: bold; user-select: none; list-style: none; display: flex; align-items: center; gap: 8px; }
+    #pannello-valutati summary::-webkit-details-marker { display: none; }
+    #pannello-valutati summary::before { content: "▶"; font-size: 11px; transition: transform 0.2s; }
+    #pannello-valutati[open] summary::before { transform: rotate(90deg); }
+    #pannello-valutati .inner { padding: 12px 16px; }
+    .badge-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .badge-gi { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+    .badge-gi.warning { background: #fef9c3; color: #713f12; border-color: #fde047; }
+    #stato-caricamento { font-size: 13px; color: #6b7280; font-style: italic; }
+    
+    .comment { font-style: italic;}
+  </style>
+</head>
+<body>
+
+<h1>Registro progressi giocatori</h1>
+
+<details id="pannello-valutati">
+  <summary>Giocatori già valutati <span id="stato-caricamento">— caricamento...</span></summary>
+  <div class="inner">
+    <div id="lista-valutati"><em>Nessun dato disponibile.</em></div>
+  </div>
+</details>
+
+<div class="field-group">
+  <label>Mister
+    <input type="text" id="mister" readonly placeholder="Parametro ?mister= mancante">
+  </label>
+  <label>Giocatore
+    <select id="giocatore">
+      <option value="">-- seleziona --</option>
+     <option>AGR</option><option>AZI</option><option>ARC</option>
+      <option>BAR</option><option>BEN</option><option>BUS</option>
+      <option>CEN</option><option>FAL</option><option>FAR</option>
+      <option>FOR</option><option>GAL</option><option>GEM</option>
+      <option>GIO</option><option>GNO</option><option>GRA</option>
+      <option>GRE</option><option>GUE</option><option>IAN</option>
+      <option>LAN</option><option>MAS</option><option>MHI</option>
+      <option>NDO</option><option>ZIT</option>
+    </select>
+  </label>
+  <label>Nota / Sezione
+    <input type="text" id="sezione" placeholder="es. Valutazione mensile">
+  </label>
+</div>
+
+<div id="alert" class="alert"></div>
+
+<!-- TABS -->
+<span class="comment">valutazione [ 2:scarso, 4:insufficiente, 6:sufficiente, 8:buono, 10:ottimo ]</span></br>
+<div class="tabs">
+  <div class="tab active" data-target="fondamenti">Fondamenti</div>
+  <div class="tab" data-target="portieri">Portieri</div>
+  <div class="tab" data-target="tattica">Tattica Individuale</div>
+  <div class="tab" data-target="fisico">Aspetto Fisico</div>
+  <div class="tab" data-target="mentale">Aspetto Mentale e Comportamentale</div>
+</div>
+
+<!-- SEZIONI -->
+<div id="fondamenti" class="section active">
+  <h3>Fondamenti</h3>
+  <div class="grid" id="gridFondamenti"></div>
+</div>
+
+<div id="portieri" class="section">
+  <h3>Portieri</h3>
+  <div class="portiere-toggle">
+    <input type="checkbox" id="isPortiere">
+    <label for="isPortiere">Questo giocatore è un portiere (includi valutazione portieri)</label>
+  </div>
+  <div class="grid" id="gridPortieri"></div>
+</div>
+
+<div id="tattica" class="section">
+  <h3>Tattica Individuale</h3>
+  <div class="grid" id="gridTattica"></div>
+</div>
+
+<div id="fisico" class="section">
+  <h3>Aspetto Fisico</h3>
+  <div class="grid" id="gridFisico"></div>
+</div>
+
+<div id="mentale" class="section">
+  <h3>Aspetto Mentale</h3>
+  <div class="grid" id="gridMentale"></div>
+</div>
+
+<button id="saveBtn">SALVA SCHEDA</button>
+
+<script>
+  // ─── Configurazione ───────────────────────────────────────────────
+  // ⚠️  Sostituisci questo URL con quello del tuo Google Apps Script pubblicato
+  // const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyZYu4Q16k-SDMwKrSWOeoj6llV5b16UAhhDaQ5YIroNgcP8npNFTEb122ESxqJ1knO/exec"; // v10
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwTQs_Vot7h7cmoTk29EjaH7mcFMOg5qLypKI0arYBWzckFJ-wYlAbBBtk1ojboA3K1/exec"; // v11 - Upgrade
+
+  // ─── Parametro mister da URL ──────────────────────────────────────
+  const params = new URLSearchParams(window.location.search);
+  const misterFromUrl = params.get("mister") || "";
+  const misterInput = document.getElementById("mister");
+  misterInput.value = misterFromUrl;
+
+  // ─── Caricamento giocatori già valutati ──────────────────────────
+  async function caricaValutati() {
+    const stato = document.getElementById("stato-caricamento");
+    const lista = document.getElementById("lista-valutati");
+    try {
+      const res = await fetch(WEBAPP_URL);
+      const json = await res.json();
+      if (json.status !== "OK") throw new Error(json.message);
+
+      const mappa = json.data;
+      const tuttiMister = Object.keys(mappa);
+
+      if (tuttiMister.length === 0) {
+        stato.textContent = "— nessuna valutazione ancora registrata";
+        lista.innerHTML = "";
+        return;
+      }
+
+      // Evidenzia il mister corrente se presente
+      let html = "";
+      tuttiMister.forEach(m => {
+        const isCurrent = m === misterFromUrl;
+        const giocatori = mappa[m];
+        html += `<div style="margin-bottom:12px">
+          <div style="font-size:13px;font-weight:bold;margin-bottom:4px;color:${isCurrent ? "#1e40af" : "#374151"}">
+            ${isCurrent ? "⭐ " : ""}${m} (${giocatori.length} giocatori)
+          </div>
+          <div class="badge-list">
+            ${giocatori.map(g => `<span class="badge-gi${isCurrent ? " warning" : ""}">${g}</span>`).join("")}
+          </div>
+        </div>`;
+      });
+
+      lista.innerHTML = html;
+
+      // Aggiorna contatore nel summary
+      const totale = tuttiMister.reduce((acc, m) => acc + mappa[m].length, 0);
+      const mieiCount = mappa[misterFromUrl] ? mappa[misterFromUrl].length : 0;
+      stato.textContent = misterFromUrl
+        ? `— ${mieiCount} tuoi, ${totale} totali`
+        : `— ${totale} totali`;
+
+    } catch (err) {
+      stato.textContent = "— errore caricamento";
+      lista.innerHTML = `<span style="color:#991b1b;font-size:13px">Impossibile caricare i dati: ${err.message}</span>`;
+    }
+  }
+
+  caricaValutati();
+
+  // ─── Dati categorie ───────────────────────────────────────────────
+  const fondamenti = [
+    "Controllo orientato", "Conduzione palla", "Passaggio corto", "Passaggio lungo",
+    "Dribbling 1v1", "Tiro in porta", "Cross e assist", "Tocco di prima",
+    "Colpo di testa", "Cambio di ritmo", "Ricezione tra le linee", "Smarcamento",
+    "Pressing individuale", "Occupazione spazi", "Transizioni", "Protezione della Palla",
+    "Rimessa laterale","Modo di calciare","Uso del piede destro","Uso del piede sinistro"
+  ];
+  const portieri = [
+    "Tecnica di parata", "Gioco coi piedi", "Guida della squadra",
+    "Presa alta","Presa bassa","Reattività",
+    "Uscite Basse", "Uscite Alte","Comunicazione"
+  ];
+  const tattica = [
+    "Smarcamento attivo", "Pressing offensivo", "Inserimento in area",
+    "Gioco spalle porta", "Marcatura diretta", "Copertura e scalata",
+    "Anticipo", "Pressing individuale","Movimento senza palla","Visione-Lettura del gioco",
+    "Capacità di adattarsi al gioco","Senso della posizione","Capacità impostazione",
+    "Tackle","Capacità di anticipo","Spinta offensiva","Cross","Capacità di inserimento",
+    "Capacità di interdizione","Passaggio chiave","Tiro dalla distanza","Abilità in area-difensiva",
+    "Abilità in area-offensiva","Finalizzazione","Attacco della profondità"
+  ];
+  const fisico = [
+    "Coordinazione", "Velocità Rapidità", "Resistenza", "Forza", "Flessibilità Mobilità articolare",
+    "Elevazione, esplosività","Velocità nel breve","Velocità nel lungo","Agilità"
+  ];
+  const mentale = [
+    "Concentrazione", "Motivazione", "Spirito di sacrificio", "Disciplina", "Autostima",
+    "Autorità nel gioco","Determinazione","Autocontrollo","Impegno","Grinta","Spirito di squadra",
+    "Capacità di reagire positivamente alle avversità"
+  ];
+
+  // ─── Generazione select (sicura — nessuna interpolazione HTML) ────
+  function createSelect(labelText, dataKey, dataValue, containerId) {
+    const wrapper = document.createElement("label");
+    wrapper.textContent = labelText;
+
+    const select = document.createElement("select");
+    select.dataset[dataKey] = dataValue;
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      if (v === 6) opt.selected = true;
+      select.appendChild(opt);
+    });
+
+    wrapper.appendChild(select);
+    const div = document.createElement("div");
+    div.appendChild(wrapper);
+    document.getElementById(containerId).appendChild(div);
+  }
+
+  fondamenti.forEach(f => createSelect(f, "f", f, "gridFondamenti"));
+  portieri.forEach(p  => createSelect(p, "p", p, "gridPortieri"));
+  tattica.forEach(t   => createSelect(t, "t", t, "gridTattica"));
+  fisico.forEach(f    => createSelect(f, "fis", f, "gridFisico"));
+  mentale.forEach(f    => createSelect(f, "men", f, "gridMentale"));
+
+  // ─── Tabs ─────────────────────────────────────────────────────────
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+      tab.classList.add("active");
+      document.getElementById(tab.dataset.target).classList.add("active");
+    });
+  });
+
+  // ─── Alert helper ─────────────────────────────────────────────────
+  function showAlert(msg, type) {
+    const el = document.getElementById("alert");
+    el.textContent = msg;
+    el.className = "alert " + type + " show";
+    if (type === "success") setTimeout(() => el.classList.remove("show"), 5000);
+  }
+
+  // ─── Salvataggio (FormData per evitare CORS preflight su GAS) ────
+  document.getElementById("saveBtn").addEventListener("click", async () => {
+    const giocatore = document.getElementById("giocatore").value;
+    const mister = misterInput.value.trim();
+
+    if (!giocatore) { showAlert("Seleziona un giocatore prima di salvare.", "warning"); return; }
+    if (!mister)    { showAlert("Parametro 'mister' mancante nell'URL (?mister=NOME).", "warning"); return; }
+    if (WEBAPP_URL.includes("INSERISCI_QUI")) {
+      showAlert("⚠️  URL del Google Apps Script non configurata. Modifica WEBAPP_URL nel codice.", "error");
+      return;
+    }
+
+    const btn = document.getElementById("saveBtn");
+    btn.disabled = true;
+    btn.textContent = "Salvataggio in corso...";
+
+    const getValue = (attr, key) => {
+      const el = document.querySelector(`[data-${attr}="${key}"]`);
+      return el ? el.value : null;
+    };
+
+    const isPortiere = document.getElementById("isPortiere").checked;
+
+    const record = {
+      timestamp: new Date().toISOString(),
+      data: new Date().toLocaleDateString("it-IT"),
+      mister,
+      giocatore,
+      sezione: document.getElementById("sezione").value.trim(),
+      isPortiere,
+      fondamenti: fondamenti.map(f => ({ voce: f, valore: getValue("f", f) })),
+      tattica:    tattica.map(t   => ({ voce: t, valore: getValue("t", t) })),
+      fisico:     fisico.map(f    => ({ voce: f, valore: getValue("fis", f) })),
+      portieri:   isPortiere
+        ? portieri.map(p => ({ voce: p, valore: getValue("p", p) }))
+        : [],
+      mentale :     fisico.map(f    => ({ voce: f, valore: getValue("fis", f) }))
+      
+    };
+
+    try {
+      // no-cors: evita preflight CORS su Google Apps Script
+      // La risposta è opaca (non leggibile), ma il dato viene ricevuto dallo script
+      const params = new URLSearchParams();
+      params.append("payload", JSON.stringify(record));
+
+      const res = await fetch(WEBAPP_URL, {
+        method: "POST",
+        redirect: "follow",
+        mode: "no-cors",
+        body: JSON.stringify(record),
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+
+      });
+      const data = await res.json();
+      if (data.status === "OK") {
+        showAlert("✅ Scheda salvata correttamente!", "success");
+        document.getElementById("giocatore").value = "";
+        document.getElementById("sezione").value = "";
+        document.getElementById("isPortiere").checked = false;
+        caricaValutati();
+      } else if (data.status === "DUPLICATE") {
+        showAlert("⚠️ " + data.message + ". Valutazione non salvata.", "warning");
+      } else {
+        showAlert("Errore: " + (data.message || "risposta inattesa dal server"), "error");
+      }
+
+    } catch (err) {
+      showAlert("Errore di comunicazione col server: " + err.message, "error");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "SALVA SCHEDA";
+    }
+  });
+</script>
+
+</body>
+</html>
